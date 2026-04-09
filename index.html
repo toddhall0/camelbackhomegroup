@@ -266,7 +266,7 @@ cursor:pointer;transition:all 0.3s;margin-top:8px}
 /* ===== FOOTER ===== */
 .footer{background:#111110;padding:64px 24px 0}
 .footer-grid{max-width:1200px;margin:0 auto;display:grid;
-grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:48px;
+grid-template-columns:auto 1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:48px;
 border-bottom:1px solid rgba(255,255,255,0.06)}
 .footer-brand-mark{width:36px;height:36px;border:1.5px solid var(--gold);
 display:flex;align-items:center;justify-content:center;
@@ -671,8 +671,10 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
 <div class="footer-grid">
+<div class="footer-logo-col" style="display:flex;align-items:flex-start">
+<img src="assets/logo/logo.png" alt="Camelback Home Group" style="height:120px;width:auto">
+</div>
 <div class="footer-brand-col">
-<img src="assets/logo/logo.png" alt="Camelback Home Group" class="nav-logo-img" style="height:72px;width:auto;margin-bottom:12px">
 <div class="footer-brand-name">Camelback Home Group</div>
 <div class="footer-brand-tag">Real Estate Brokerage</div>
 <p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
