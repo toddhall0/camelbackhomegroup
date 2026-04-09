@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camelback Home Group — Phoenix Real Estate with Legal Expertise</title>
+<meta name="description" content="Camelback Home Group is Phoenix's only real estate brokerage with licensed attorneys and paralegals overseeing every transaction at no additional charge.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & VARIABLES ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1A1917;--charcoal-mid:#2E2C29;--gold:#B8922A;--gold-light:#D4AA4A;
+--gold-pale:#F2E8D0;--cream:#F7F3EC;--cream-dark:#EDE5D8;--sand:#D4C4A8;
+--terracotta:#A85F3A;--text-dark:#1A1917;--text-mid:#4A4640;--text-light:#7A7268;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.eyebrow{font-family:var(--font-sans);font-size:0.75rem;font-weight:500;
+letter-spacing:0.15em;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--gold)}
+.gold{color:var(--gold)}
+.gold-italic{color:var(--gold);font-style:italic}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal{opacity:1;transform:translateY(0);transition:opacity 0.7s ease,transform 0.7s ease}
+body.js-loaded .reveal{opacity:0;transform:translateY(32px)}
+body.js-loaded .reveal.revealed{opacity:1;transform:translateY(0)}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-block;font-family:var(--font-sans);font-size:0.85rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;
+border:1px solid var(--gold);cursor:pointer;transition:all 0.3s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-filled{background:var(--gold);color:var(--charcoal)}
+.btn-filled:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;color:var(--gold)}
+.btn-ghost:hover{background:var(--gold);color:var(--charcoal)}
+.btn-dark{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
+.btn-dark:hover{background:var(--gold);color:var(--charcoal);border-color:var(--gold)}
+
+/* ===== NAVIGATION ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(26,25,23,0.92);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);transition:background 0.3s ease;padding:0 32px}
+.nav.scrolled{background:rgba(26,25,23,0.98)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+/* LOGO PLACEHOLDER: Replace .nav-logo-mark with <img src="assets/logo/logo.png" alt="Camelback Home Group" class="nav-logo-img"> */
+.nav-logo-mark{width:40px;height:40px;border:1.5px solid var(--gold);
+display:flex;align-items:center;justify-content:center;
+font-family:var(--font-serif);font-size:1.25rem;color:var(--gold);font-weight:500;flex-shrink:0}
+.nav-logo-img{height:40px;width:auto}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);
+font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.6rem;font-weight:500;letter-spacing:0.14em;
+text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.82rem;font-weight:400;letter-spacing:0.04em;
+color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.78rem;font-weight:500;letter-spacing:0.08em;
+text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);
+padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--charcoal)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);
+margin:5px 0;transition:all 0.3s}
+
+/* ===== HERO ===== */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;
+background:var(--charcoal);overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1600&q=80')
+center/cover no-repeat;opacity:0.3}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(
+to right,rgba(26,25,23,0.85) 0%,rgba(26,25,23,0.6) 100%)}
+.hero-mountain{position:absolute;bottom:0;left:0;right:0;opacity:0.06}
+.hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;
+padding:120px 24px 80px;display:grid;grid-template-columns:1fr 280px;
+gap:60px;align-items:center;width:100%}
+.hero-main{max-width:680px}
+.hero .eyebrow{color:var(--gold);margin-bottom:24px}
+.hero h1{font-size:clamp(2.5rem,5.5vw,4.2rem);font-weight:300;color:var(--white);
+margin-bottom:24px;line-height:1.1}
+.hero-sub{font-size:1.05rem;font-weight:300;color:rgba(255,255,255,0.7);
+line-height:1.7;margin-bottom:40px;max-width:560px}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap}
+.hero-stats{display:flex;flex-direction:column;gap:0;border-left:1px solid rgba(184,146,42,0.3);padding-left:32px}
+.hero-stat{padding:24px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+.hero-stat:last-child{border-bottom:none}
+.hero-stat-value{font-family:var(--font-serif);font-size:1.6rem;font-weight:500;color:var(--gold);line-height:1.2}
+.hero-stat-label{font-size:0.75rem;font-weight:400;color:rgba(255,255,255,0.5);
+letter-spacing:0.04em;margin-top:4px}
+
+/* ===== DIFFERENTIATOR BANNER ===== */
+.banner{background:var(--gold);padding:20px 24px}
+.banner-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:center;gap:24px;flex-wrap:wrap;text-align:center}
+.banner-text{font-family:var(--font-sans);font-size:0.82rem;font-weight:500;
+letter-spacing:0.04em;color:var(--charcoal)}
+.banner-dot{width:4px;height:4px;border-radius:50%;background:var(--charcoal);opacity:0.4;flex-shrink:0}
+
+/* ===== VALUE PROPOSITION ===== */
+.value{background:var(--charcoal);padding:100px 24px}
+.value-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.value-left .eyebrow{color:var(--gold)}
+.value-left h2{font-size:clamp(1.8rem,3.5vw,2.6rem);color:var(--white);margin-bottom:24px}
+.value-body{font-size:0.95rem;font-weight:300;color:rgba(255,255,255,0.65);
+line-height:1.8;margin-bottom:32px}
+.value-signature{display:flex;align-items:flex-start;gap:16px;padding:20px;
+border:1px solid rgba(255,255,255,0.08);margin-top:16px}
+.value-shield{width:40px;height:40px;border:1.5px solid var(--gold);
+display:flex;align-items:center;justify-content:center;color:var(--gold);
+font-size:1.1rem;flex-shrink:0}
+.value-sig-text{font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6}
+.value-cards{display:flex;flex-direction:column;gap:16px}
+.value-card{border:1px solid rgba(255,255,255,0.08);padding:28px;
+border-left:3px solid transparent;transition:all 0.4s ease}
+.value-card:hover{border-left-color:var(--gold);background:rgba(255,255,255,0.02)}
+.value-card-num{font-family:var(--font-sans);font-size:0.75rem;font-weight:500;
+color:var(--gold);letter-spacing:0.06em;margin-bottom:8px}
+.value-card h3{font-size:1.15rem;color:var(--white);margin-bottom:8px}
+.value-card p{font-size:0.85rem;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6}
+
+/* ===== SERVICES ===== */
+.services{background:var(--cream);padding:100px 24px}
+.services-header{max-width:640px;margin:0 auto 60px;text-align:center}
+.services-header .eyebrow{justify-content:center}
+.services-header .eyebrow::before{display:none}
+.services-header h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--text-dark);margin-bottom:16px}
+.services-header p{font-size:0.92rem;font-weight:300;color:var(--text-light);line-height:1.7}
+.services-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:repeat(3,1fr);gap:32px}
+.service-card{background:var(--white);padding:40px 32px;position:relative;
+overflow:hidden;transition:transform 0.3s}
+.service-card::after{content:'';position:absolute;bottom:0;left:0;right:0;
+height:3px;background:var(--gold);transform:scaleX(0);transform-origin:left;
+transition:transform 0.4s ease}
+.service-card:hover::after{transform:scaleX(1)}
+.service-card:hover{transform:translateY(-2px)}
+.service-icon{width:52px;height:52px;background:var(--gold-pale);
+display:flex;align-items:center;justify-content:center;margin-bottom:24px;
+color:var(--gold);font-size:1.3rem}
+.service-card h3{font-size:1.25rem;color:var(--text-dark);margin-bottom:12px}
+.service-card p{font-size:0.88rem;font-weight:300;color:var(--text-light);line-height:1.7}
+
+/* ===== LEGAL DETAIL ===== */
+.legal{background:var(--cream-dark);padding:100px 24px}
+.legal-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:400px 1fr;gap:48px;align-items:start}
+.legal-panel{overflow:hidden}
+.legal-quote-area{background:var(--charcoal);padding:48px 36px}
+.legal-quote-mark{font-family:var(--font-serif);font-size:4rem;color:var(--gold);
+line-height:1;margin-bottom:8px}
+.legal-quote-text{font-family:var(--font-serif);font-size:1.15rem;font-style:italic;
+color:var(--white);line-height:1.7;margin-bottom:24px}
+.legal-quote-divider{width:40px;height:1px;background:var(--gold);margin-bottom:20px}
+.legal-quote-name{font-size:0.75rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.legal-quote-detail{font-size:0.78rem;color:rgba(255,255,255,0.45)}
+.legal-bottom-area{background:var(--gold);padding:36px}
+.legal-bottom-area h3{font-family:var(--font-serif);font-size:1.4rem;
+color:var(--charcoal);margin-bottom:4px}
+.legal-bottom-area p{font-size:0.7rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--charcoal);opacity:0.7}
+.legal-right .eyebrow{color:var(--text-light)}
+.legal-right h2{font-size:clamp(1.6rem,3vw,2.2rem);color:var(--text-dark);margin-bottom:36px}
+.legal-checklist{display:flex;flex-direction:column;gap:28px;margin-bottom:36px}
+.legal-check-item{display:flex;align-items:flex-start;gap:16px}
+.legal-check-icon{width:28px;height:28px;background:var(--gold-pale);
+display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+color:var(--gold);font-size:0.85rem}
+.legal-check-content h4{font-family:var(--font-serif);font-size:1.05rem;
+color:var(--text-dark);margin-bottom:4px}
+.legal-check-content p{font-size:0.85rem;font-weight:300;color:var(--text-light);line-height:1.6}
+
+/* ===== PROCESS ===== */
+.process{background:var(--white);padding:100px 24px}
+.process-header{max-width:640px;margin:0 auto 64px;text-align:center}
+.process-header .eyebrow{justify-content:center}
+.process-header .eyebrow::before{display:none}
+.process-header h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--text-dark)}
+.process-steps{max-width:1100px;margin:0 auto;display:grid;
+grid-template-columns:repeat(4,1fr);gap:32px;position:relative}
+.process-steps::before{content:'';position:absolute;top:24px;left:calc(12.5% + 24px);
+right:calc(12.5% + 24px);height:1px;background:var(--gold);opacity:0.4}
+.process-step{text-align:center}
+.process-num{width:48px;height:48px;border:1.5px solid var(--gold);border-radius:50%;
+display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+font-family:var(--font-sans);font-size:0.85rem;font-weight:500;color:var(--gold);
+background:var(--white);position:relative;z-index:2}
+.process-step h3{font-size:1.1rem;color:var(--text-dark);margin-bottom:8px}
+.process-step p{font-size:0.85rem;font-weight:300;color:var(--text-light);line-height:1.6}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials{background:var(--charcoal);padding:100px 24px}
+.testimonials-header{text-align:center;margin-bottom:56px}
+.testimonials-header .eyebrow{justify-content:center;color:var(--gold)}
+.testimonials-header .eyebrow::before{background:var(--gold)}
+.testimonials-header h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--white)}
+.testimonials-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:repeat(3,1fr);gap:28px}
+.testimonial-card{background:var(--charcoal-mid);border:1px solid rgba(184,146,42,0.15);
+padding:36px 28px}
+.testimonial-quote-mark{font-family:var(--font-serif);font-size:3rem;
+color:var(--gold);line-height:1;margin-bottom:8px}
+.testimonial-text{font-family:var(--font-serif);font-size:1rem;font-style:italic;
+color:rgba(255,255,255,0.75);line-height:1.7;margin-bottom:24px}
+.testimonial-author{display:flex;align-items:center;gap:14px}
+.testimonial-avatar{width:42px;height:42px;border-radius:50%;
+background:rgba(184,146,42,0.15);display:flex;align-items:center;justify-content:center;
+font-family:var(--font-sans);font-size:0.75rem;font-weight:500;color:var(--gold);
+letter-spacing:0.04em}
+.testimonial-name{font-size:0.82rem;font-weight:500;color:var(--white)}
+.testimonial-detail{font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:2px}
+
+/* ===== CONTACT ===== */
+.contact{background:var(--cream);padding:100px 24px}
+.contact-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.contact-left .eyebrow{color:var(--text-light)}
+.contact-left h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--text-dark);margin-bottom:16px}
+.contact-left>p{font-size:0.92rem;font-weight:300;color:var(--text-light);
+line-height:1.7;margin-bottom:36px}
+.contact-info{display:flex;flex-direction:column;gap:20px}
+.contact-row{display:flex;align-items:flex-start;gap:16px}
+.contact-icon{width:44px;height:44px;background:var(--gold-pale);
+display:flex;align-items:center;justify-content:center;flex-shrink:0;
+color:var(--gold);font-size:1rem}
+.contact-row-label{font-size:0.72rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--text-light);margin-bottom:2px}
+.contact-row-value{font-size:0.95rem;color:var(--text-dark);font-weight:400}
+.contact-form-panel{background:var(--white);padding:44px 40px}
+.contact-form-panel h3{font-family:var(--font-serif);font-size:1.5rem;
+color:var(--text-dark);margin-bottom:28px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:0.75rem;font-weight:500;
+letter-spacing:0.06em;text-transform:uppercase;color:var(--text-light);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;
+font-family:var(--font-sans);font-size:0.9rem;padding:12px 14px;
+border:1px solid var(--sand);background:var(--cream);color:var(--text-dark);
+outline:none;transition:border-color 0.3s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold)}
+.form-group textarea{resize:vertical;min-height:100px}
+.form-submit{width:100%;padding:16px;font-family:var(--font-sans);font-size:0.85rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+background:var(--charcoal);color:var(--white);border:1px solid var(--charcoal);
+cursor:pointer;transition:all 0.3s;margin-top:8px}
+.form-submit:hover{background:var(--gold);color:var(--charcoal);border-color:var(--gold)}
+.form-disclaimer{font-size:0.72rem;color:var(--text-light);margin-top:12px;line-height:1.5}
+
+/* ===== FOOTER ===== */
+.footer{background:#111110;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:48px;
+border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-brand-mark{width:36px;height:36px;border:1.5px solid var(--gold);
+display:flex;align-items:center;justify-content:center;
+font-family:var(--font-serif);font-size:1.1rem;color:var(--gold);margin-bottom:12px}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;
+color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.65rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.8rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.72rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.85rem;color:rgba(255,255,255,0.5);
+margin-bottom:12px;transition:color 0.3s}
+.footer-col a:hover{color:var(--white)}
+.footer-col p{font-size:0.82rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;
+align-items:center;justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.75rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.75rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:960px){
+.hero-content{grid-template-columns:1fr;gap:40px}
+.hero-stats{flex-direction:row;border-left:none;border-top:1px solid rgba(184,146,42,0.3);
+padding-left:0;padding-top:24px}
+.hero-stat{padding:0 24px;border-bottom:none;border-right:1px solid rgba(255,255,255,0.08)}
+.hero-stat:last-child{border-right:none}
+.value-grid{grid-template-columns:1fr;gap:48px}
+.services-grid{grid-template-columns:1fr}
+.legal-grid{grid-template-columns:1fr;gap:40px}
+.process-steps{grid-template-columns:repeat(2,1fr);gap:40px}
+.process-steps::before{display:none}
+.testimonials-grid{grid-template-columns:1fr}
+.contact-grid{grid-template-columns:1fr}
+.footer-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.hero h1{font-size:2rem}
+.hero-stats{flex-direction:column}
+.hero-stat{padding:12px 0;border-right:none;border-bottom:1px solid rgba(255,255,255,0.08)}
+.banner-inner{flex-direction:column;gap:8px}
+.banner-dot{display:none}
+.form-row{grid-template-columns:1fr}
+.footer-grid{grid-template-columns:1fr}
+.footer-bottom{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<!-- ===== NAVIGATION ===== -->
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="#" class="nav-brand">
+<!-- LOGO PLACEHOLDER: Replace the div below with: <img src="assets/logo/logo.png" alt="Camelback Home Group" class="nav-logo-img"> -->
+<div class="nav-logo-mark">C</div>
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="#services" class="nav-link">Services</a>
+<a href="#advantage" class="nav-link">Legal Advantage</a>
+<a href="#process" class="nav-link">Process</a>
+<a href="#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+<div class="hero-bg"></div>
+<div class="hero-overlay"></div>
+<svg class="hero-mountain" viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0,200 L0,160 L80,140 L160,120 L240,100 L320,70 L380,50 L420,35 L460,28 L500,35 L540,55 L580,70 L620,60 L660,45 L700,30 L740,22 L780,30 L820,50 L860,65 L900,80 L940,95 L1000,110 L1060,120 L1120,130 L1200,145 L1280,155 L1360,165 L1440,170 L1440,200 Z" fill="rgba(255,255,255,0.5)"/>
+</svg>
+<div class="hero-content">
+<div class="hero-main reveal">
+<div class="eyebrow" style="color:var(--gold)">Camelback Home Group — Phoenix Metro Area</div>
+<h1>Real Estate Backed by <span class="gold-italic">Real Legal</span> Expertise</h1>
+<p class="hero-sub">We're the only brokerage where licensed real estate attorneys and paralegals oversee every transaction — protecting your interests from offer to close, at no additional charge.</p>
+<div class="hero-buttons">
+<a href="#contact" class="btn btn-filled">Start Your Search</a>
+<a href="#advantage" class="btn btn-ghost">Our Legal Advantage</a>
+</div>
+</div>
+<div class="hero-stats reveal">
+<div class="hero-stat">
+<div class="hero-stat-value">100%</div>
+<div class="hero-stat-label">Attorney Oversight</div>
+</div>
+<div class="hero-stat">
+<div class="hero-stat-value">$0</div>
+<div class="hero-stat-label">Added Legal Fees</div>
+</div>
+<div class="hero-stat">
+<div class="hero-stat-value">Valley-Wide</div>
+<div class="hero-stat-label">Service Area</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== DIFFERENTIATOR BANNER ===== -->
+<section class="banner">
+<div class="banner-inner">
+<span class="banner-text">Attorney &amp; Paralegal oversight included on every transaction</span>
+<span class="banner-dot"></span>
+<span class="banner-text">No added fees. No hidden costs. Just better protection.</span>
+<span class="banner-dot"></span>
+<span class="banner-text">Buyers &bull; Sellers &bull; Investors</span>
+</div>
+</section>
+
+<!-- ===== VALUE PROPOSITION ===== -->
+<section class="value" id="advantage">
+<div class="value-grid">
+<div class="value-left reveal">
+<div class="eyebrow">Why Camelback</div>
+<h2>The Legal Protection <span class="gold-italic">You Deserve</span></h2>
+<p class="value-body">Most brokerages hand you off to a single agent and hope for the best. We built something different. At Camelback Home Group, licensed real estate attorneys and experienced paralegals are embedded into every transaction — reviewing contracts, managing contingencies, and protecting your interests at every turn.</p>
+<p class="value-body">This isn't an upsell or an add-on. It's how we do business.</p>
+<div class="value-signature">
+<div class="value-shield">&#9878;</div>
+<p class="value-sig-text">Every client gets direct access to our legal team — from the first offer to the final signature. No hourly fees. No surprises.</p>
+</div>
+</div>
+<div class="value-cards reveal">
+<div class="value-card">
+<div class="value-card-num">01</div>
+<h3>Attorney-Reviewed Contracts</h3>
+<p>Every purchase agreement, counteroffer, and addendum is reviewed by a licensed real estate attorney before you sign.</p>
+</div>
+<div class="value-card">
+<div class="value-card-num">02</div>
+<h3>Paralegal Transaction Coordination</h3>
+<p>Our paralegals manage timelines, deadlines, and documentation — ensuring nothing falls through the cracks.</p>
+</div>
+<div class="value-card">
+<div class="value-card-num">03</div>
+<h3>Legal Q&amp;A, No Meter Running</h3>
+<p>Have questions about disclosures, HOA docs, or title issues? Get answers from our legal team at no additional cost.</p>
+</div>
+<div class="value-card">
+<div class="value-card-num">04</div>
+<h3>Dispute &amp; Risk Mitigation</h3>
+<p>From inspection disputes to appraisal gaps, our team proactively identifies and resolves issues before they escalate.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section class="services" id="services">
+<div class="services-header reveal">
+<div class="eyebrow" style="color:var(--text-light)">What We Do</div>
+<h2>Full-Service Real Estate with Legal Peace of Mind</h2>
+<p>Whether you're buying your first home, selling a property, or building an investment portfolio, our team combines market expertise with legal oversight to deliver a smarter, safer experience.</p>
+</div>
+<div class="services-grid">
+<div class="service-card reveal">
+<div class="service-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
+</div>
+<h3>Home Buying</h3>
+<p>From first-time buyers to seasoned homeowners, we guide you through every step — with attorney-reviewed contracts and paralegal-managed closings included.</p>
+</div>
+<div class="service-card reveal">
+<div class="service-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+</div>
+<h3>Home Selling</h3>
+<p>We market your property with precision and protect your interests with legally sound listing agreements, disclosure reviews, and contract negotiations.</p>
+</div>
+<div class="service-card reveal">
+<div class="service-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+</div>
+<h3>Investment Properties</h3>
+<p>Whether you're acquiring rentals, flipping properties, or building a portfolio, our legal team reviews every deal to protect your bottom line.</p>
+</div>
+</div>
+</section>
+
+<!-- ===== LEGAL ADVANTAGE DETAIL ===== -->
+<section class="legal">
+<div class="legal-grid">
+<div class="legal-panel reveal">
+<div class="legal-quote-area">
+<div class="legal-quote-mark">&ldquo;</div>
+<p class="legal-quote-text">Their attorney caught an issue in our contract that could have cost us thousands. That kind of protection is priceless — and it came standard.</p>
+<div class="legal-quote-divider"></div>
+<p class="legal-quote-name">Marcus &amp; Rachel T.</p>
+<p class="legal-quote-detail">First-time Homebuyers — Scottsdale, AZ</p>
+</div>
+<div class="legal-bottom-area">
+<h3>Real Attorneys. Real Transactions.</h3>
+<p>Included at no additional cost</p>
+</div>
+</div>
+<div class="legal-right reveal">
+<div class="eyebrow">Legal Services</div>
+<h2>What Our Legal Team Does <span class="gold-italic">For You</span></h2>
+<div class="legal-checklist">
+<div class="legal-check-item">
+<div class="legal-check-icon">&#10003;</div>
+<div class="legal-check-content">
+<h4>Contract Review &amp; Analysis</h4>
+<p>Every clause, every contingency, every deadline — reviewed by a licensed attorney to ensure your interests are fully protected.</p>
+</div>
+</div>
+<div class="legal-check-item">
+<div class="legal-check-icon">&#10003;</div>
+<div class="legal-check-content">
+<h4>Contingency &amp; Deadline Management</h4>
+<p>Our paralegals track every critical date in your transaction, so nothing expires and no opportunity is missed.</p>
+</div>
+</div>
+<div class="legal-check-item">
+<div class="legal-check-icon">&#10003;</div>
+<div class="legal-check-content">
+<h4>Legal Q&amp;A Hotline</h4>
+<p>Have a question about a disclosure, an HOA rule, or a title issue? Call our legal team directly — no hourly fees, no appointment needed.</p>
+</div>
+</div>
+<div class="legal-check-item">
+<div class="legal-check-icon">&#10003;</div>
+<div class="legal-check-content">
+<h4>Title &amp; Closing Oversight</h4>
+<p>We coordinate with title companies and review all closing documents to ensure accuracy and protect you from last-minute surprises.</p>
+</div>
+</div>
+</div>
+<a href="#contact" class="btn btn-dark">Schedule a Consultation</a>
+</div>
+</div>
+</section>
+
+<!-- ===== PROCESS ===== -->
+<section class="process" id="process">
+<div class="process-header reveal">
+<div class="eyebrow" style="color:var(--text-light)">How It Works</div>
+<h2><span class="gold-italic">Legally Protected</span> at Every Step</h2>
+</div>
+<div class="process-steps">
+<div class="process-step reveal">
+<div class="process-num">1</div>
+<h3>Consultation</h3>
+<p>We learn about your goals, timeline, and budget. You learn how our legal-backed approach protects you differently.</p>
+</div>
+<div class="process-step reveal">
+<div class="process-num">2</div>
+<h3>Search &amp; Offer</h3>
+<p>We find the right properties and craft attorney-reviewed offers designed to protect your interests and win the deal.</p>
+</div>
+<div class="process-step reveal">
+<div class="process-num">3</div>
+<h3>Under Contract</h3>
+<p>Our paralegal team manages inspections, appraisals, and every deadline while our attorneys review all documents.</p>
+</div>
+<div class="process-step reveal">
+<div class="process-num">4</div>
+<h3>Close &amp; Move In</h3>
+<p>We oversee closing documents, coordinate with title, and ensure a smooth handoff — so you can celebrate with confidence.</p>
+</div>
+</div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="testimonials">
+<div class="testimonials-header reveal">
+<div class="eyebrow">Client Stories</div>
+<h2>Trusted by Homeowners Across the Valley</h2>
+</div>
+<div class="testimonials-grid">
+<!-- testimonial-card -->
+<div class="testimonial-card reveal">
+<div class="testimonial-quote-mark">&ldquo;</div>
+<p class="testimonial-text">Their attorney caught an issue in our contract that could have cost us thousands. That kind of protection is priceless — and it came standard.</p>
+<div class="testimonial-author">
+<div class="testimonial-avatar">MR</div>
+<div>
+<div class="testimonial-name">Marcus &amp; Rachel T.</div>
+<div class="testimonial-detail">First-time homebuyers — Scottsdale</div>
+</div>
+</div>
+</div>
+<!-- testimonial-card -->
+<div class="testimonial-card reveal">
+<div class="testimonial-quote-mark">&ldquo;</div>
+<p class="testimonial-text">I've closed dozens of investment deals, and no other brokerage has ever offered this level of legal review. It's saved me real money — and real headaches.</p>
+<div class="testimonial-author">
+<div class="testimonial-avatar">DJ</div>
+<div>
+<div class="testimonial-name">David J.</div>
+<div class="testimonial-detail">Real estate investor — Phoenix</div>
+</div>
+</div>
+</div>
+<!-- testimonial-card -->
+<div class="testimonial-card reveal">
+<div class="testimonial-quote-mark">&ldquo;</div>
+<p class="testimonial-text">Selling our family home was emotional, but Camelback made it easy. Their paralegal kept us informed every step, and the attorney handled all the paperwork flawlessly.</p>
+<div class="testimonial-author">
+<div class="testimonial-avatar">SL</div>
+<div>
+<div class="testimonial-name">Sandra L.</div>
+<div class="testimonial-detail">Home seller — Paradise Valley</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section class="contact" id="contact">
+<div class="contact-grid">
+<div class="contact-left reveal">
+<div class="eyebrow">Contact Us</div>
+<h2>Let's Find Your Next Home</h2>
+<p>Ready to experience real estate backed by real legal expertise? Reach out for a free consultation — no pressure, no obligation.</p>
+<div class="contact-info">
+<div class="contact-row">
+<div class="contact-icon">
+<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+</div>
+<div>
+<div class="contact-row-label">Phone</div>
+<div class="contact-row-value">(602) 555-0100</div>
+</div>
+</div>
+<div class="contact-row">
+<div class="contact-icon">
+<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>
+</div>
+<div>
+<div class="contact-row-label">Email</div>
+<div class="contact-row-value">info@camelbackhomegroup.com</div>
+</div>
+</div>
+<div class="contact-row">
+<div class="contact-icon">
+<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+</div>
+<div>
+<div class="contact-row-label">Service Area</div>
+<div class="contact-row-value">Greater Phoenix Metro — Maricopa County</div>
+</div>
+</div>
+</div>
+</div>
+<div class="contact-form-panel reveal">
+<h3>Request a Consultation</h3>
+<form name="contact" method="POST" data-netlify="true">
+<input type="hidden" name="form-name" value="contact">
+<div class="form-row">
+<div class="form-group">
+<label for="firstName">First Name</label>
+<input type="text" id="firstName" name="firstName" required>
+</div>
+<div class="form-group">
+<label for="lastName">Last Name</label>
+<input type="text" id="lastName" name="lastName" required>
+</div>
+</div>
+<div class="form-group">
+<label for="email">Email</label>
+<input type="email" id="email" name="email" required>
+</div>
+<div class="form-group">
+<label for="phone">Phone</label>
+<input type="tel" id="phone" name="phone">
+</div>
+<div class="form-group">
+<label for="interest">I Am Interested In</label>
+<select id="interest" name="interest">
+<option value="Buying">Buying a Home</option>
+<option value="Selling">Selling a Home</option>
+<option value="Investment">Investment Properties</option>
+<option value="General">General Inquiry</option>
+</select>
+</div>
+<div class="form-group">
+<label for="message">Message</label>
+<textarea id="message" name="message" rows="4"></textarea>
+</div>
+<button type="submit" class="form-submit">Send Message</button>
+<p class="form-disclaimer">By submitting this form, you agree to be contacted by Camelback Home Group regarding your inquiry. We respect your privacy and will never share your information.</p>
+</form>
+</div>
+</div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+<div class="footer-grid">
+<div class="footer-brand-col">
+<div class="footer-brand-mark">C</div>
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+</div>
+<div class="footer-col">
+<h4>Services</h4>
+<a href="#services">Home Buying</a>
+<a href="#services">Home Selling</a>
+<a href="#services">Investment Properties</a>
+<a href="#advantage">Legal Advantage</a>
+</div>
+<div class="footer-col">
+<h4>Company</h4>
+<a href="#advantage">About Us</a>
+<a href="#process">Our Process</a>
+<a href="#contact">Contact</a>
+</div>
+<div class="footer-col">
+<h4>Get In Touch</h4>
+<p>(602) 555-0100</p>
+<p>info@camelbackhomegroup.com</p>
+<p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
+</div>
+</div>
+<div class="footer-bottom">
+<span class="footer-copy">&copy; 2025 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Use</a>
+<a href="#">Fair Housing</a>
+</div>
+</div>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+(function(){
+  // Add js-loaded class after DOM is ready (enables scroll-reveal hidden state)
+  document.body.classList.add('js-loaded');
+
+  // NAV SCROLL EFFECT
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 60){nav.classList.add('scrolled')}
+    else{nav.classList.remove('scrolled')}
+  });
+
+  // MOBILE NAV TOGGLE
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){
+    links.classList.toggle('open');
+  });
+  // Close mobile nav on link click
+  var navAnchors = links.querySelectorAll('a');
+  navAnchors.forEach(function(a){
+    a.addEventListener('click', function(){links.classList.remove('open')});
+  });
+
+  // SCROLL REVEAL (Intersection Observer)
+  var reveals = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(function(el){observer.observe(el)});
+  } else {
+    // Fallback: show everything
+    reveals.forEach(function(el){el.classList.add('revealed')});
+  }
+
+  // SMOOTH SCROLL FOR ANCHOR LINKS
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor){
+    anchor.addEventListener('click',function(e){
+      var target = document.querySelector(this.getAttribute('href'));
+      if(target){
+        e.preventDefault();
+        target.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
