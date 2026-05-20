@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join Our Team — Camelback Home Group</title>
+<meta name="description" content="Join Camelback Home Group — a Phoenix real estate brokerage with built-in legal support, competitive compensation, and a culture that helps agents thrive.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+.eyebrow{font-family:var(--font-sans);font-size:0.85rem;font-weight:500;
+letter-spacing:0.15em;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--gold)}
+.gold-italic{color:var(--gold);font-style:italic}
+.reveal{opacity:1;transform:translateY(0);transition:opacity 0.7s ease,transform 0.7s ease}
+body.js-loaded .reveal{opacity:0;transform:translateY(32px)}
+body.js-loaded .reveal.revealed{opacity:1;transform:translateY(0)}
+.btn{display:inline-block;font-family:var(--font-sans);font-size:0.95rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;
+border:1px solid var(--gold);cursor:pointer;transition:all 0.3s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-filled{background:var(--gold);color:var(--white)}
+.btn-filled:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;color:var(--gold)}
+.btn-ghost:hover{background:var(--gold);color:var(--white)}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);transition:background 0.3s ease;padding:0 32px}
+.nav.scrolled{background:rgba(22,58,73,0.98)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;letter-spacing:0.04em;color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0;transition:all 0.3s}
+
+/* HERO BANNER */
+.page-hero{background:var(--charcoal);padding:140px 24px 80px;text-align:center}
+.page-hero .eyebrow{justify-content:center;color:var(--gold)}
+.page-hero .eyebrow::before{display:none}
+.page-hero h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:300;color:var(--white);margin-bottom:20px}
+.page-hero p{font-size:1.1rem;font-weight:300;color:rgba(255,255,255,0.65);max-width:640px;margin:0 auto;line-height:1.7}
+
+/* WHY JOIN */
+.why-join{background:var(--cream);padding:100px 24px}
+.why-join-header{max-width:640px;margin:0 auto 60px;text-align:center}
+.why-join-header .eyebrow{justify-content:center}
+.why-join-header .eyebrow::before{display:none}
+.why-join-header h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--text-dark);margin-bottom:16px}
+.why-join-header p{font-size:0.95rem;font-weight:300;color:var(--text-light);line-height:1.7}
+.why-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.why-card{background:var(--white);padding:40px 32px;position:relative;overflow:hidden;transition:transform 0.3s}
+.why-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform 0.4s ease}
+.why-card:hover::after{transform:scaleX(1)}
+.why-card:hover{transform:translateY(-2px)}
+.why-card-icon{width:52px;height:52px;background:var(--gold-pale);display:flex;
+align-items:center;justify-content:center;margin-bottom:24px;color:var(--gold);font-size:1.5rem}
+.why-card h3{font-size:1.25rem;color:var(--text-dark);margin-bottom:12px}
+.why-card p{font-size:0.95rem;font-weight:300;color:var(--text-light);line-height:1.7}
+
+/* LEGAL EDGE */
+.legal-edge{background:var(--charcoal);padding:100px 24px}
+.legal-edge-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.legal-edge-left .eyebrow{color:var(--gold)}
+.legal-edge-left h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--white);margin-bottom:20px}
+.legal-edge-left p{font-size:0.95rem;font-weight:300;color:rgba(255,255,255,0.65);line-height:1.8;margin-bottom:20px}
+.legal-edge-list{list-style:none;display:flex;flex-direction:column;gap:16px}
+.legal-edge-list li{display:flex;align-items:flex-start;gap:12px;font-size:0.95rem;color:rgba(255,255,255,0.75)}
+.legal-edge-list li .check{color:var(--gold);font-weight:600;font-size:1.1rem;flex-shrink:0}
+.legal-edge-right{background:var(--charcoal-mid);padding:48px 36px;border:1px solid rgba(255,255,255,0.08)}
+.legal-edge-right h3{font-family:var(--font-serif);font-size:1.6rem;color:var(--white);margin-bottom:16px}
+.legal-edge-right p{font-size:0.95rem;font-weight:300;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:12px}
+.legal-edge-right .highlight{font-family:var(--font-serif);font-size:1.2rem;font-style:italic;color:var(--gold);margin-top:20px}
+
+/* COMPENSATION */
+.compensation{background:var(--cream-dark);padding:100px 24px}
+.comp-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.comp-left .eyebrow{color:var(--text-light)}
+.comp-left h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--text-dark);margin-bottom:20px}
+.comp-left p{font-size:0.95rem;font-weight:300;color:var(--text-light);line-height:1.8;margin-bottom:20px}
+.comp-items{display:flex;flex-direction:column;gap:20px}
+.comp-item{display:flex;align-items:flex-start;gap:16px;padding:24px;background:var(--white)}
+.comp-item-icon{width:44px;height:44px;background:var(--gold-pale);display:flex;
+align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);font-size:1.1rem}
+.comp-item h4{font-family:var(--font-serif);font-size:1.1rem;color:var(--text-dark);margin-bottom:4px}
+.comp-item p{font-size:0.92rem;font-weight:300;color:var(--text-light);line-height:1.6}
+
+/* CONTACT */
+.agent-contact{background:var(--cream);padding:100px 24px}
+.agent-contact-inner{max-width:640px;margin:0 auto}
+.agent-contact-inner .eyebrow{justify-content:center}
+.agent-contact-inner .eyebrow::before{display:none}
+.agent-contact-inner>h2{font-size:clamp(1.8rem,3.5vw,2.4rem);color:var(--text-dark);
+margin-bottom:12px;text-align:center}
+.agent-contact-inner>p{font-size:0.95rem;font-weight:300;color:var(--text-light);
+text-align:center;margin-bottom:36px;line-height:1.7}
+.agent-form{background:var(--white);padding:44px 40px}
+.agent-form h3{font-family:var(--font-serif);font-size:1.5rem;color:var(--text-dark);margin-bottom:28px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:0.85rem;font-weight:500;letter-spacing:0.06em;
+text-transform:uppercase;color:var(--text-light);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;font-family:var(--font-sans);
+font-size:0.9rem;padding:12px 14px;border:1px solid var(--sand);background:var(--cream);
+color:var(--text-dark);outline:none;transition:border-color 0.3s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold)}
+.form-group textarea{resize:vertical;min-height:100px}
+.form-submit{width:100%;padding:16px;font-family:var(--font-sans);font-size:0.95rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:var(--charcoal);
+color:var(--white);border:1px solid var(--charcoal);cursor:pointer;transition:all 0.3s;margin-top:8px}
+.form-submit:hover{background:var(--gold);color:var(--white);border-color:var(--gold)}
+.form-disclaimer{font-size:0.82rem;color:var(--text-light);margin-top:12px;line-height:1.5}
+
+/* FOOTER */
+.footer{background:#0f2530;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:auto 1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:48px;
+border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.8rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.9rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.95rem;color:rgba(255,255,255,0.5);margin-bottom:12px;transition:color 0.3s}
+.footer-col a:hover{color:var(--white)}
+.footer-col p{font-size:0.92rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.85rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.85rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
+
+@media(max-width:960px){
+.legal-edge-grid{grid-template-columns:1fr}
+.comp-grid{grid-template-columns:1fr}
+.why-grid{grid-template-columns:1fr}
+.footer-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.form-row{grid-template-columns:1fr}
+.footer-grid{grid-template-columns:1fr}
+.footer-bottom{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="index.html#services" class="nav-link">Services</a>
+<a href="index.html#advantage" class="nav-link">Legal Advantage</a>
+<a href="index.html#process" class="nav-link">Process</a>
+<a href="agents.html" class="nav-link" style="color:var(--white)">Join Our Team</a>
+<a href="index.html#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<section class="page-hero">
+<div class="eyebrow">Careers at Camelback</div>
+<h1>Build Your Career with a <span class="gold-italic">Brokerage That Invests in You</span></h1>
+<p>Camelback Home Group gives agents something no other brokerage can — built-in legal support on every deal, competitive compensation, and a team culture that helps you grow.</p>
+</section>
+
+<section class="why-join">
+<div class="why-join-header reveal">
+<div class="eyebrow" style="color:var(--text-light)">Why Agents Choose Us</div>
+<h2>A Brokerage Built for <span class="gold-italic">Your Success</span></h2>
+<p>We provide the tools, training, and support you need to grow your business — so you can focus on what you do best: helping clients buy and sell homes.</p>
+</div>
+<div class="why-grid">
+<div class="why-card reveal">
+<div class="why-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+</div>
+<h3>Collaborative Culture</h3>
+<p>Work alongside experienced agents, attorneys, and paralegals who are invested in your success. We share knowledge, not just office space.</p>
+</div>
+<div class="why-card reveal">
+<div class="why-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+</div>
+<h3>Training & Mentorship</h3>
+<p>From new agents to seasoned producers, we offer ongoing education, one-on-one mentorship, and real-world transaction training.</p>
+</div>
+<div class="why-card reveal">
+<div class="why-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+</div>
+<h3>Marketing & Tech Tools</h3>
+<p>Professional branding, listing marketing, CRM tools, and digital advertising support — all provided so you can compete at the highest level.</p>
+</div>
+</div>
+</section>
+
+<section class="legal-edge">
+<div class="legal-edge-grid">
+<div class="legal-edge-left reveal">
+<div class="eyebrow">Your Competitive Edge</div>
+<h2>Give Your Clients Something <span class="gold-italic">No One Else Can</span></h2>
+<p>When you join Camelback, every transaction you close comes with built-in attorney and paralegal support — at no additional cost to your clients. That's a game-changer for your listing presentations, buyer consultations, and overall value proposition.</p>
+<p>Imagine telling a prospective client: "Every contract I write is reviewed by a licensed attorney, and a paralegal manages every deadline — and it's included."</p>
+<ul class="legal-edge-list">
+<li><span class="check">&#10003;</span> Attorney-reviewed contracts on every deal</li>
+<li><span class="check">&#10003;</span> Paralegal support managing timelines and paperwork</li>
+<li><span class="check">&#10003;</span> Legal Q&amp;A hotline for you and your clients</li>
+<li><span class="check">&#10003;</span> Stronger listing presentations and buyer pitches</li>
+<li><span class="check">&#10003;</span> Fewer deals falling through from preventable issues</li>
+</ul>
+</div>
+<div class="legal-edge-right reveal">
+<h3>Your Pitch Writes Itself</h3>
+<p>Other agents compete on commission or personality. You compete on protection.</p>
+<p>Your clients get a full legal team watching their back — and it doesn't cost them a dime extra. That's a value proposition that wins listings and builds referrals.</p>
+<p class="highlight">"Every deal I close is backed by a licensed attorney. Can your agent say the same?"</p>
+</div>
+</div>
+</section>
+
+<section class="compensation">
+<div class="comp-grid">
+<div class="comp-left reveal">
+<div class="eyebrow">Compensation</div>
+<h2>Competitive Splits, <span class="gold-italic">Real Support</span></h2>
+<p>We believe agents should keep more of what they earn — especially when they're backed by the tools and support to close more deals. Our compensation plans are designed to reward production while giving you the infrastructure to grow.</p>
+<p>Whether you're a new agent building your book or a top producer looking for a better home, we have a plan that works for you.</p>
+<a href="#agent-contact" class="btn btn-filled" style="margin-top:12px">Let's Talk Numbers</a>
+</div>
+<div class="comp-items reveal">
+<div class="comp-item">
+<div class="comp-item-icon">
+<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+</div>
+<div>
+<h4>Competitive Commission Splits</h4>
+<p>Tiered plans that reward your production. The more you close, the more you keep.</p>
+</div>
+</div>
+<div class="comp-item">
+<div class="comp-item-icon">
+<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+</div>
+<div>
+<h4>No Hidden Fees</h4>
+<p>Transparent costs, no surprise desk fees, and no nickel-and-diming. You know exactly what you're getting.</p>
+</div>
+</div>
+<div class="comp-item">
+<div class="comp-item-icon">
+<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+</div>
+<div>
+<h4>Growth Incentives</h4>
+<p>Hit your milestones and unlock better splits, bonuses, and leadership opportunities within the brokerage.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="agent-contact" id="agent-contact">
+<div class="agent-contact-inner reveal">
+<div class="eyebrow">Get Started</div>
+<h2>Let's Have a Conversation</h2>
+<p>Interested in joining Camelback Home Group? Fill out the form below and we'll reach out to schedule a confidential conversation about your goals.</p>
+<div class="agent-form">
+<h3>Agent Inquiry</h3>
+<form name="agent-inquiry" method="POST" data-netlify="true">
+<input type="hidden" name="form-name" value="agent-inquiry">
+<div class="form-row">
+<div class="form-group">
+<label for="firstName">First Name</label>
+<input type="text" id="firstName" name="firstName" required>
+</div>
+<div class="form-group">
+<label for="lastName">Last Name</label>
+<input type="text" id="lastName" name="lastName" required>
+</div>
+</div>
+<div class="form-group">
+<label for="email">Email</label>
+<input type="email" id="email" name="email" required>
+</div>
+<div class="form-group">
+<label for="phone">Phone</label>
+<input type="tel" id="phone" name="phone">
+</div>
+<div class="form-group">
+<label for="experience">Experience Level</label>
+<select id="experience" name="experience">
+<option value="New Agent">New Agent (0-2 years)</option>
+<option value="Mid-Career">Mid-Career (3-7 years)</option>
+<option value="Experienced">Experienced (8+ years)</option>
+<option value="Team Leader">Team Leader</option>
+</select>
+</div>
+<div class="form-group">
+<label for="currentBrokerage">Current Brokerage (Optional)</label>
+<input type="text" id="currentBrokerage" name="currentBrokerage">
+</div>
+<div class="form-group">
+<label for="message">Tell Us About Your Goals</label>
+<textarea id="message" name="message" rows="4"></textarea>
+</div>
+<button type="submit" class="form-submit">Submit Inquiry</button>
+<p class="form-disclaimer">All inquiries are confidential. We respect your privacy and will never share your information with your current brokerage or anyone else.</p>
+</form>
+</div>
+</div>
+</section>
+
+<footer class="footer">
+<div class="footer-grid">
+<div class="footer-logo-col" style="display:flex;align-items:flex-start">
+<img src="assets/logo/logo.png" alt="Camelback Home Group" style="height:180px;width:auto">
+</div>
+<div class="footer-brand-col">
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+</div>
+<div class="footer-col">
+<h4>Services</h4>
+<a href="index.html#services">Home Buying</a>
+<a href="index.html#services">Home Selling</a>
+<a href="index.html#services">Investment Properties</a>
+<a href="index.html#advantage">Legal Advantage</a>
+</div>
+<div class="footer-col">
+<h4>Company</h4>
+<a href="index.html#advantage">About Us</a>
+<a href="index.html#process">Our Process</a>
+<a href="agents.html">Join Our Team</a>
+<a href="index.html#contact">Contact</a>
+</div>
+<div class="footer-col">
+<h4>Get In Touch</h4>
+<p>(480) 203-3039</p>
+<p>info@camelbackhomegroup.com</p>
+<p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
+</div>
+</div>
+<div class="footer-bottom">
+<span class="footer-copy">&copy; 2025 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Use</a>
+<a href="#">Fair Housing</a>
+</div>
+</div>
+</footer>
+
+<script>
+(function(){
+  document.body.classList.add('js-loaded');
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 60){nav.classList.add('scrolled')}
+    else{nav.classList.remove('scrolled')}
+  });
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){links.classList.toggle('open')});
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){links.classList.remove('open')});
+  });
+  var reveals = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){entry.target.classList.add('revealed');observer.unobserve(entry.target)}
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(function(el){observer.observe(el)});
+  } else {
+    reveals.forEach(function(el){el.classList.add('revealed')});
+  }
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor){
+    anchor.addEventListener('click',function(e){
+      var target = document.querySelector(this.getAttribute('href'));
+      if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'})}
+    });
+  });
+})();
+</script>
+</body>
+</html>
