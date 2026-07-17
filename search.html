@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Homes — Camelback Home Group</title>
+<meta name="description" content="Search homes for sale across the Phoenix metro area. Camelback Home Group — full-service real estate brokerage with built-in legal support.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+.gold-italic{color:var(--gold);font-style:italic}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);transition:background 0.3s ease;padding:0 32px}
+.nav.scrolled{background:rgba(22,58,73,0.98)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;letter-spacing:0.04em;color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0;transition:all 0.3s}
+
+/* SEARCH PAGE */
+.search-hero{background:var(--charcoal);padding:120px 24px 40px;text-align:center}
+.search-hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--white);margin-bottom:12px}
+.search-hero p{font-size:1.05rem;font-weight:300;color:rgba(255,255,255,0.6);max-width:560px;margin:0 auto}
+
+.search-container{min-height:70vh;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.search-placeholder{max-width:600px;text-align:center}
+.search-placeholder-icon{width:80px;height:80px;background:var(--gold-pale);border-radius:50%;
+display:flex;align-items:center;justify-content:center;margin:0 auto 24px;color:var(--gold);font-size:2rem}
+.search-placeholder h2{font-size:1.6rem;color:var(--text-dark);margin-bottom:12px}
+.search-placeholder p{font-size:1rem;font-weight:300;color:var(--text-light);line-height:1.7;margin-bottom:24px}
+.search-placeholder .btn{display:inline-block;font-family:var(--font-sans);font-size:0.95rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;
+border:1px solid var(--gold);background:var(--gold);color:var(--white);cursor:pointer;transition:all 0.3s}
+.search-placeholder .btn:hover{background:var(--gold-light);transform:translateY(-1px)}
+
+/* IDX EMBED AREA — uncomment and replace placeholder when IDX is ready */
+.idx-embed{max-width:1400px;margin:0 auto;padding:40px 24px;min-height:70vh;display:none}
+
+/* FOOTER */
+.footer{background:#0f2530;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:auto 1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:48px;
+border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.8rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.9rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.95rem;color:rgba(255,255,255,0.5);margin-bottom:12px;transition:color 0.3s}
+.footer-col a:hover{color:var(--white)}
+.footer-col p{font-size:0.92rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.85rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.85rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
+
+@media(max-width:960px){
+.footer-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.footer-grid{grid-template-columns:1fr}
+.footer-bottom{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="search.html" class="nav-link" style="color:var(--white)">Search Homes</a>
+<a href="index.html#services" class="nav-link">Services</a>
+<a href="index.html#advantage" class="nav-link">Legal Advantage</a>
+<a href="agents.html" class="nav-link">Join Our Team</a>
+<a href="index.html#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<section class="search-hero">
+<h1>Find Your Next <span class="gold-italic">Home</span></h1>
+<p>Search homes for sale across the Greater Phoenix metro area.</p>
+</section>
+
+<!-- ===== PLACEHOLDER — shown until IDX is connected ===== -->
+<section class="search-container">
+<div class="search-placeholder">
+<div class="search-placeholder-icon">
+<svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+</div>
+<h2>Property Search Coming Soon</h2>
+<p>We're connecting our MLS listing feed so you can search homes directly on our site. In the meantime, reach out and we'll send you listings that match your criteria.</p>
+<a href="index.html#contact" class="btn">Contact Us to Get Started</a>
+</div>
+</section>
+
+<!--
+===== IDX EMBED INSTRUCTIONS =====
+When your IDX provider (e.g., Showcase IDX, IDX Broker) gives you an embed script:
+1. Delete or hide the .search-container section above
+2. Uncomment the .idx-embed section in the CSS (change display:none to display:block)
+3. Paste your IDX script/widget code inside the div below
+-->
+<div class="idx-embed">
+<!-- PASTE IDX EMBED CODE HERE -->
+</div>
+
+<footer class="footer">
+<div class="footer-grid">
+<div class="footer-logo-col" style="display:flex;align-items:flex-start">
+<img src="assets/logo/logo.png" alt="Camelback Home Group" style="height:180px;width:auto">
+</div>
+<div class="footer-brand-col">
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity" style="height:70px;width:auto;margin-top:16px">
+</div>
+<div class="footer-col">
+<h4>Services</h4>
+<a href="index.html#services">Home Buying</a>
+<a href="index.html#services">Home Selling</a>
+<a href="index.html#services">Investment Properties</a>
+<a href="index.html#advantage">Legal Advantage</a>
+</div>
+<div class="footer-col">
+<h4>Company</h4>
+<a href="index.html#advantage">About Us</a>
+<a href="index.html#process">Our Process</a>
+<a href="agents.html">Join Our Team</a>
+<a href="index.html#contact">Contact</a>
+</div>
+<div class="footer-col">
+<h4>Get In Touch</h4>
+<p>(480) 203-3039</p>
+<p>info@camelbackhomegroup.com</p>
+<p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
+</div>
+</div>
+<div class="footer-bottom">
+<span class="footer-copy">&copy; 2025 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Use</a>
+<a href="#">Fair Housing</a>
+</div>
+</div>
+</footer>
+
+<script>
+(function(){
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 60){nav.classList.add('scrolled')}
+    else{nav.classList.remove('scrolled')}
+  });
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){links.classList.toggle('open')});
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){links.classList.remove('open')});
+  });
+})();
+</script>
+</body>
+</html>
