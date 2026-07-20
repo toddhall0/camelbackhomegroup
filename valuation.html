@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Home Valuation — Camelback Home Group</title>
+<meta name="description" content="Get a free, no-obligation estimate of your home's value from Camelback Home Group.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+background:var(--cream);min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER BAR */
+.val-header{background:var(--charcoal);padding:20px 24px;text-align:center}
+.val-header-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:16px}
+.val-header-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500}
+.val-header-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold)}
+
+/* MAIN CONTENT */
+.val-main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.val-card{max-width:520px;width:100%;background:var(--white);padding:48px 44px;box-shadow:0 2px 20px rgba(0,0,0,0.06)}
+.val-card h1{font-size:2rem;font-weight:400;color:var(--text-dark);margin-bottom:8px;line-height:1.15}
+.val-card h1 span{color:var(--gold);font-style:italic}
+.val-card>p{font-size:0.95rem;font-weight:300;color:var(--text-light);line-height:1.6;margin-bottom:32px}
+.val-form .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.val-form .form-group{margin-bottom:14px}
+.val-form .form-group.full{grid-column:1/-1}
+.val-form label{display:block;font-size:0.82rem;font-weight:500;letter-spacing:0.06em;
+text-transform:uppercase;color:var(--text-light);margin-bottom:5px}
+.val-form input{width:100%;font-family:var(--font-sans);font-size:0.95rem;padding:13px 14px;
+border:1px solid var(--sand);background:var(--cream);color:var(--text-dark);outline:none;transition:border-color 0.3s}
+.val-form input:focus{border-color:var(--gold)}
+.val-form .val-submit{width:100%;padding:16px;font-family:var(--font-sans);font-size:1rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);
+color:var(--white);border:none;cursor:pointer;transition:all 0.3s;margin-top:8px}
+.val-form .val-submit:hover{background:var(--gold-light)}
+.val-form .val-submit:disabled{opacity:0.6;cursor:not-allowed}
+.val-disclaimer{font-size:0.78rem;color:var(--text-light);margin-top:14px;line-height:1.5;text-align:center}
+
+/* LOADING STATE */
+.val-loading{display:none;text-align:center;padding:60px 20px}
+.val-loading.active{display:block}
+.val-spinner{width:48px;height:48px;border:3px solid var(--cream-dark);
+border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.val-loading p{font-size:1rem;color:var(--text-mid)}
+
+/* RESULTS */
+.val-results{display:none;text-align:center;padding:40px 20px}
+.val-results.active{display:block}
+.val-results-label{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.val-results-address{font-size:0.95rem;color:var(--text-light);margin-bottom:24px}
+.val-results-value{font-family:var(--font-serif);font-size:3.2rem;font-weight:500;
+color:var(--text-dark);margin-bottom:8px}
+.val-results-range{font-size:0.95rem;color:var(--text-light);margin-bottom:32px}
+.val-results-divider{width:60px;height:1px;background:var(--gold);margin:0 auto 24px}
+.val-results-cta-text{font-size:0.95rem;color:var(--text-mid);margin-bottom:16px;line-height:1.6}
+.val-results-cta{display:inline-block;font-family:var(--font-sans);font-size:0.95rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 36px;
+background:var(--charcoal);color:var(--white);border:none;cursor:pointer;transition:all 0.3s;text-decoration:none}
+.val-results-cta:hover{background:var(--gold)}
+.val-results-disclaimer{font-size:0.78rem;color:var(--text-light);margin-top:24px;
+line-height:1.5;max-width:400px;margin-left:auto;margin-right:auto}
+
+/* FALLBACK MESSAGE */
+.val-fallback{display:none;text-align:center;padding:40px 20px}
+.val-fallback.active{display:block}
+.val-fallback-icon{font-size:2.5rem;margin-bottom:16px}
+.val-fallback h2{font-size:1.5rem;color:var(--text-dark);margin-bottom:12px}
+.val-fallback p{font-size:0.95rem;color:var(--text-light);line-height:1.6;margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto}
+
+/* FOOTER */
+.val-footer{background:var(--charcoal);padding:24px;text-align:center}
+.val-footer p{font-size:0.82rem;color:rgba(255,255,255,0.4)}
+.val-footer a{color:var(--gold);text-decoration:none}
+.val-footer a:hover{color:var(--gold-light)}
+.val-footer-logos{margin-top:12px}
+
+@media(max-width:540px){
+.val-card{padding:32px 24px}
+.val-form .form-row{grid-template-columns:1fr}
+.val-results-value{font-size:2.4rem}
+}
+</style>
+</head>
+<body>
+
+<div class="val-header">
+<div class="val-header-inner">
+<div>
+<div class="val-header-name">Camelback Home Group</div>
+<div class="val-header-sub">Licensed Real Estate Brokerage</div>
+</div>
+</div>
+</div>
+
+<div class="val-main">
+<div class="val-card">
+
+<!-- FORM STATE -->
+<div id="formState">
+<h1>What's Your Home <span>Worth?</span></h1>
+<p>Get a free, no-obligation estimate of your home's current market value. Enter your details below and we'll generate your personalized report.</p>
+<form class="val-form" id="valForm" name="home-valuation" method="POST" data-netlify="true">
+<input type="hidden" name="form-name" value="home-valuation">
+<div class="form-row">
+<div class="form-group">
+<label for="firstName">First Name</label>
+<input type="text" id="firstName" name="firstName" required>
+</div>
+<div class="form-group">
+<label for="lastName">Last Name</label>
+<input type="text" id="lastName" name="lastName" required>
+</div>
+</div>
+<div class="form-group">
+<label for="address">Property Address</label>
+<input type="text" id="address" name="address" placeholder="123 Main St, Phoenix, AZ 85001" required>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="email">Email</label>
+<input type="email" id="email" name="email" required>
+</div>
+<div class="form-group">
+<label for="phone">Phone</label>
+<input type="tel" id="phone" name="phone">
+</div>
+</div>
+<button type="submit" class="val-submit" id="submitBtn">Get My Home Value</button>
+</form>
+<p class="val-disclaimer">Your information is confidential and will never be shared. By submitting, you agree to be contacted by Camelback Home Group.</p>
+</div>
+
+<!-- LOADING STATE -->
+<div class="val-loading" id="loadingState">
+<div class="val-spinner"></div>
+<p>Analyzing property data...</p>
+</div>
+
+<!-- RESULTS STATE -->
+<div class="val-results" id="resultsState">
+<div class="val-results-label">Estimated Home Value</div>
+<div class="val-results-address" id="resultsAddress"></div>
+<div class="val-results-value" id="resultsValue"></div>
+<div class="val-results-range" id="resultsRange"></div>
+<div class="val-results-divider"></div>
+<p class="val-results-cta-text">Want a more precise valuation? Our team can prepare a detailed Comparative Market Analysis using real-time MLS data.</p>
+<a href="index.html#contact" class="val-results-cta">Request a Detailed CMA</a>
+<p class="val-results-disclaimer">This is an automated estimate based on publicly available data. Actual market value may vary. For a precise valuation, contact us for a professional CMA.</p>
+</div>
+
+<!-- FALLBACK STATE (no API or no data) -->
+<div class="val-fallback" id="fallbackState">
+<div class="val-fallback-icon">&#10003;</div>
+<h2>We've Got Your Info!</h2>
+<p id="fallbackMessage">Our team is preparing your personalized home valuation and will reach out shortly.</p>
+<a href="index.html#contact" class="val-results-cta">Contact Us Directly</a>
+</div>
+
+</div>
+</div>
+
+<div class="val-footer">
+<p>&copy; 2025 Camelback Home Group. Licensed in Arizona. | <a href="index.html">Visit Our Website</a></p>
+<div class="val-footer-logos">
+<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity" style="height:36px;width:auto;margin:0 auto">
+</div>
+</div>
+
+<script>
+(function(){
+  var form = document.getElementById('valForm');
+  var formState = document.getElementById('formState');
+  var loadingState = document.getElementById('loadingState');
+  var resultsState = document.getElementById('resultsState');
+  var fallbackState = document.getElementById('fallbackState');
+
+  function formatCurrency(num) {
+    return '$' + num.toLocaleString('en-US');
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var formData = new FormData(form);
+    var address = formData.get('address');
+
+    // Show loading
+    formState.style.display = 'none';
+    loadingState.classList.add('active');
+
+    // Submit lead to Netlify Forms
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(formData).toString()
+    }).catch(function(){});
+
+    // Call valuation function
+    fetch('/.netlify/functions/valuation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: address })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      loadingState.classList.remove('active');
+      if (data.estimated) {
+        document.getElementById('resultsAddress').textContent = data.address;
+        document.getElementById('resultsValue').textContent = formatCurrency(data.price);
+        document.getElementById('resultsRange').textContent =
+          'Estimated range: ' + formatCurrency(data.low) + ' — ' + formatCurrency(data.high);
+        resultsState.classList.add('active');
+      } else {
+        document.getElementById('fallbackMessage').textContent =
+          data.message || 'Our team is preparing your personalized home valuation and will reach out shortly.';
+        fallbackState.classList.add('active');
+      }
+    })
+    .catch(function() {
+      loadingState.classList.remove('active');
+      document.getElementById('fallbackMessage').textContent =
+        'Your information has been submitted! Our team will prepare a personalized valuation and reach out shortly.';
+      fallbackState.classList.add('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>
