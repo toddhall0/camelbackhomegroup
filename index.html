@@ -97,18 +97,7 @@ gap:60px;align-items:center;width:100%}
 margin-bottom:24px;line-height:1.1}
 .hero-sub{font-size:1.05rem;font-weight:300;color:rgba(255,255,255,0.7);
 line-height:1.7;margin-bottom:40px;max-width:560px}
-.hero-buttons{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px}
-.hero-search{max-width:520px}
-.hero-search-form{display:flex;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
-transition:border-color 0.3s}
-.hero-search-form:focus-within{border-color:var(--gold)}
-.hero-search-input{flex:1;font-family:var(--font-sans);font-size:1rem;padding:14px 18px;
-background:transparent;border:none;color:var(--white);outline:none}
-.hero-search-input::placeholder{color:rgba(255,255,255,0.4)}
-.hero-search-btn{font-family:var(--font-sans);font-size:0.85rem;font-weight:500;
-letter-spacing:0.06em;text-transform:uppercase;padding:14px 24px;background:var(--gold);
-color:var(--white);border:none;cursor:pointer;transition:background 0.3s;white-space:nowrap}
-.hero-search-btn:hover{background:var(--gold-light)}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap}
 .hero-stats{display:flex;flex-direction:column;gap:0;border-left:1px solid rgba(204,98,76,0.35);padding-left:32px}
 .hero-stat{padding:24px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
 .hero-stat:last-child{border-bottom:none}
@@ -373,12 +362,7 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 <div class="hero-buttons">
 <a href="#contact" class="btn btn-filled">Let's Talk</a>
 <a href="#services" class="btn btn-ghost">What We Offer</a>
-</div>
-<div class="hero-search">
-<form class="hero-search-form" id="heroSearch" action="https://www.camelbackhomegroup.com/property-search/results/" method="GET">
-<input type="text" class="hero-search-input" placeholder="Enter a city, zip, or neighborhood..." aria-label="Search for homes">
-<button type="submit" class="hero-search-btn">Search Homes</button>
-</form>
+<a href="https://camelbackhomegroup.com" class="btn btn-ghost">Search for Homes</a>
 </div>
 </div>
 <div class="hero-stats reveal">
@@ -755,13 +739,6 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
   var navAnchors = links.querySelectorAll('a');
   navAnchors.forEach(function(a){
     a.addEventListener('click', function(){links.classList.remove('open')});
-  });
-
-  // HERO SEARCH — redirect to property search page
-  var heroSearch = document.getElementById('heroSearch');
-  heroSearch.addEventListener('submit', function(e){
-    e.preventDefault();
-    window.open('https://www.camelbackhomegroup.com/property-search/results/', '_blank');
   });
 
   // SCROLL REVEAL (Intersection Observer)
