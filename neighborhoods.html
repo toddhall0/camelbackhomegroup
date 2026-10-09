@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phoenix Neighborhoods — Camelback Home Group</title>
+<meta name="description" content="Explore Phoenix metro neighborhoods and search homes by area. Camelback Home Group — your Valley-wide real estate brokerage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+body{font-family:var(--font-sans);color:var(--text-dark);margin:0;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);padding:0 32px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0;transition:all 0.3s}
+
+/* MAP LAYOUT */
+.map-page{display:flex;flex-direction:column;height:100vh;padding-top:72px}
+.map-header{background:var(--charcoal);padding:24px 32px;text-align:center}
+.map-header h1{font-family:var(--font-serif);font-size:1.6rem;font-weight:400;color:var(--white);margin-bottom:4px}
+.map-header p{font-size:0.92rem;font-weight:300;color:rgba(255,255,255,0.55)}
+#map{flex:1;width:100%;z-index:1}
+
+/* CUSTOM POPUP */
+.leaflet-popup-content-wrapper{border-radius:0;font-family:var(--font-sans);box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.leaflet-popup-content{margin:0;padding:0}
+.hood-popup{padding:20px 24px;min-width:200px}
+.hood-popup h3{font-family:var(--font-serif);font-size:1.2rem;color:var(--text-dark);margin-bottom:8px}
+.hood-popup p{font-size:0.88rem;color:var(--text-light);margin-bottom:14px;line-height:1.5}
+.hood-popup a{display:inline-block;font-size:0.82rem;font-weight:500;letter-spacing:0.06em;
+text-transform:uppercase;padding:10px 20px;background:var(--gold);color:var(--white);transition:background 0.3s}
+.hood-popup a:hover{background:var(--gold-light)}
+
+/* NEIGHBORHOOD LABELS */
+.neighborhood-label{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
+color:#1f4e60;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),
+-1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8)}
+
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.map-header h1{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="search.html" class="nav-link">Search Homes</a>
+<a href="index.html#services" class="nav-link">Services</a>
+<a href="neighborhoods.html" class="nav-link" style="color:var(--white)">Neighborhoods</a>
+<a href="agents.html" class="nav-link">Join Our Team</a>
+<a href="index.html#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<div class="map-page">
+<div class="map-header">
+<h1>Explore Phoenix Metro Neighborhoods</h1>
+<p>Click any area to search homes for sale</p>
+</div>
+<div id="map"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+  // Mobile nav
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){links.classList.toggle('open')});
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){links.classList.remove('open')});
+  });
+
+  // Initialize map centered on Phoenix metro
+  var map = L.map('map',{zoomControl:true}).setView([33.50,-111.90],10);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom:18
+  }).addTo(map);
+
+  var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
+  var hoodStyle = {color:'#1f4e60',weight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
+  var hoverStyle = {fillOpacity:0.35,weight:2.5};
+
+  // Neighborhoods: [name, description, coordinates (polygon), searchUrl]
+  var neighborhoods = [
+    {
+      name:'Scottsdale',
+      desc:'Upscale desert living with world-class dining, golf, and luxury homes.',
+      coords:[[33.68,-111.96],[33.68,-111.82],[33.55,-111.82],[33.42,-111.88],[33.42,-111.96],[33.49,-111.96],[33.55,-111.96]]
+    },
+    {
+      name:'Paradise Valley',
+      desc:'Arizona\'s most exclusive community with stunning mountain views and estates.',
+      coords:[[33.56,-111.97],[33.56,-111.92],[33.52,-111.92],[33.52,-111.97]]
+    },
+    {
+      name:'Arcadia',
+      desc:'Tree-lined streets, mid-century homes, and a vibrant local scene near Camelback Mountain.',
+      coords:[[33.52,-111.99],[33.52,-111.94],[33.48,-111.94],[33.48,-111.99]]
+    },
+    {
+      name:'Biltmore',
+      desc:'Iconic Phoenix neighborhood known for luxury condos, resorts, and walkability.',
+      coords:[[33.53,-112.03],[33.53,-111.99],[33.50,-111.99],[33.50,-112.03]]
+    },
+    {
+      name:'North Scottsdale',
+      desc:'Expansive desert properties, gated communities, and top-rated schools.',
+      coords:[[33.78,-111.94],[33.78,-111.82],[33.68,-111.82],[33.68,-111.94]]
+    },
+    {
+      name:'Tempe',
+      desc:'A vibrant college town with a mix of modern condos, historic homes, and urban energy.',
+      coords:[[33.47,-111.97],[33.47,-111.88],[33.39,-111.88],[33.39,-111.97]]
+    },
+    {
+      name:'Mesa',
+      desc:'One of the Valley\'s largest cities with diverse housing options and family-friendly neighborhoods.',
+      coords:[[33.47,-111.88],[33.47,-111.72],[33.35,-111.72],[33.35,-111.88]]
+    },
+    {
+      name:'Gilbert',
+      desc:'Top-rated schools, master-planned communities, and a charming heritage district.',
+      coords:[[33.39,-111.84],[33.39,-111.72],[33.28,-111.72],[33.28,-111.84]]
+    },
+    {
+      name:'Chandler',
+      desc:'Tech corridor hub with excellent dining, shopping, and growing real estate market.',
+      coords:[[33.35,-111.88],[33.35,-111.78],[33.25,-111.78],[33.25,-111.88]]
+    },
+    {
+      name:'Queen Creek',
+      desc:'Fast-growing community with new construction, equestrian properties, and open space.',
+      coords:[[33.28,-111.72],[33.28,-111.60],[33.18,-111.60],[33.18,-111.72]]
+    },
+    {
+      name:'Phoenix — Central',
+      desc:'The urban core with diverse architecture from historic bungalows to modern high-rises.',
+      coords:[[33.52,-112.10],[33.52,-112.03],[33.43,-112.03],[33.43,-112.10]]
+    },
+    {
+      name:'Phoenix — North',
+      desc:'Mountain preserves, desert estates, and scenic neighborhoods along the I-17 corridor.',
+      coords:[[33.68,-112.12],[33.68,-112.00],[33.56,-112.00],[33.56,-112.12]]
+    },
+    {
+      name:'Phoenix — Ahwatukee',
+      desc:'A tucked-away community at the base of South Mountain with a suburban feel.',
+      coords:[[33.35,-112.00],[33.35,-111.90],[33.28,-111.90],[33.28,-112.00]]
+    },
+    {
+      name:'Fountain Hills',
+      desc:'Quiet desert town known for its famous fountain, mountain views, and arts community.',
+      coords:[[33.62,-111.78],[33.62,-111.70],[33.56,-111.70],[33.56,-111.78]]
+    },
+    {
+      name:'Cave Creek / Carefree',
+      desc:'Western charm with desert acreage, horse properties, and a relaxed atmosphere.',
+      coords:[[33.83,-112.02],[33.83,-111.90],[33.75,-111.90],[33.75,-112.02]]
+    },
+    {
+      name:'Peoria',
+      desc:'Spring training, lake communities, and family neighborhoods in the West Valley.',
+      coords:[[33.62,-112.28],[33.62,-112.14],[33.54,-112.14],[33.54,-112.28]]
+    },
+    {
+      name:'Glendale',
+      desc:'Sports venues, historic districts, and affordable housing options across the city.',
+      coords:[[33.58,-112.22],[33.58,-112.10],[33.50,-112.10],[33.50,-112.22]]
+    },
+    {
+      name:'Surprise',
+      desc:'Growing West Valley city with new builds, golf courses, and spring training.',
+      coords:[[33.68,-112.40],[33.68,-112.28],[33.60,-112.28],[33.60,-112.40]]
+    },
+    {
+      name:'Goodyear / Avondale',
+      desc:'Rapidly developing West Valley communities with modern master-planned neighborhoods.',
+      coords:[[33.48,-112.40],[33.48,-112.25],[33.38,-112.25],[33.38,-112.40]]
+    },
+    {
+      name:'Buckeye',
+      desc:'Booming growth area with affordable new construction and wide-open desert space.',
+      coords:[[33.45,-112.60],[33.45,-112.45],[33.35,-112.45],[33.35,-112.60]]
+    }
+  ];
+
+  neighborhoods.forEach(function(hood){
+    var polygon = L.polygon(hood.coords, hoodStyle).addTo(map);
+
+    // Add neighborhood label
+    var center = polygon.getBounds().getCenter();
+    L.marker(center, {
+      icon: L.divIcon({
+        className:'neighborhood-label',
+        html:hood.name,
+        iconSize:[120,20],
+        iconAnchor:[60,10]
+      })
+    }).addTo(map);
+
+    // Hover effects
+    polygon.on('mouseover',function(){this.setStyle(hoverStyle)});
+    polygon.on('mouseout',function(){this.setStyle(hoodStyle)});
+
+    // Click popup
+    polygon.bindPopup(
+      '<div class="hood-popup">'+
+      '<h3>'+hood.name+'</h3>'+
+      '<p>'+hood.desc+'</p>'+
+      '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
+      '</div>',
+      {maxWidth:280}
+    );
+  });
+})();
+</script>
+</body>
+</html>
