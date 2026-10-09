@@ -122,11 +122,40 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
   }).addTo(map);
 
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
+
+  // Base layer: Maricopa County (light fill for unincorporated areas)
+  var countyStyle = {color:'#6a8290',weight:1,fillColor:'#d4c4a8',fillOpacity:0.1,dashArray:'4 4'};
+  if(MAPDATA.county){
+    MAPDATA.county.forEach(function(part){
+      L.polygon(part, countyStyle).addTo(map);
+    });
+  }
+
+  // Tribal lands (distinct style, not clickable for home search)
+  var tribalStyle = {color:'#6a8290',weight:1,fillColor:'#6a8290',fillOpacity:0.1,dashArray:'6 3'};
+  MAPDATA.tribal.forEach(function(t){
+    var tLayer;
+    if(t.type === 'MultiPolygon'){
+      tLayer = L.polygon(t.coords, tribalStyle).addTo(map);
+    } else {
+      tLayer = L.polygon(t.coords[0], tribalStyle).addTo(map);
+    }
+    var center = tLayer.getBounds().getCenter();
+    L.marker(center, {
+      icon: L.divIcon({
+        className:'neighborhood-label',
+        html:'<span style="color:#6a8290;font-style:italic">'+t.name+'</span>',
+        iconSize:[160,20],
+        iconAnchor:[80,10]
+      })
+    }).addTo(map);
+  });
+
+  // City/neighborhood polygons on top
   var hoodStyle = {color:'#1f4e60',weight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
   var hoverStyle = {fillOpacity:0.35,weight:2.5};
 
-  NEIGHBORHOODS.forEach(function(hood){
-    // Handle both Polygon (single part) and MultiPolygon (multiple parts)
+  MAPDATA.neighborhoods.forEach(function(hood){
     var layer;
     if(hood.type === 'MultiPolygon'){
       layer = L.polygon(hood.coords, hoodStyle).addTo(map);
@@ -134,7 +163,6 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
       layer = L.polygon(hood.coords[0], hoodStyle).addTo(map);
     }
 
-    // Add neighborhood label at center of largest part
     var center = layer.getBounds().getCenter();
     L.marker(center, {
       icon: L.divIcon({
@@ -145,11 +173,9 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
       })
     }).addTo(map);
 
-    // Hover effects
     layer.on('mouseover',function(){this.setStyle(hoverStyle)});
     layer.on('mouseout',function(){this.setStyle(hoodStyle)});
 
-    // Click popup
     layer.bindPopup(
       '<div class="hood-popup">'+
       '<h3>'+hood.name+'</h3>'+
