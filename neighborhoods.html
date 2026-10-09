@@ -127,39 +127,59 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
   // Neighborhoods: [name, description, coordinates (polygon), searchUrl]
   var neighborhoods = [
     {
+      name:'North Scottsdale',
+      desc:'Expansive desert properties, gated communities, and top-rated schools.',
+      coords:[[33.78,-111.92],[33.78,-111.82],[33.68,-111.82],[33.68,-111.92]]
+    },
+    {
+      name:'Cave Creek / Carefree',
+      desc:'Western charm with desert acreage, horse properties, and a relaxed atmosphere.',
+      coords:[[33.83,-112.02],[33.83,-111.92],[33.75,-111.92],[33.75,-112.02]]
+    },
+    {
+      name:'Fountain Hills',
+      desc:'Quiet desert town known for its famous fountain, mountain views, and arts community.',
+      coords:[[33.63,-111.78],[33.63,-111.70],[33.55,-111.70],[33.55,-111.78]]
+    },
+    {
       name:'Scottsdale',
       desc:'Upscale desert living with world-class dining, golf, and luxury homes.',
-      coords:[[33.68,-111.96],[33.68,-111.82],[33.55,-111.82],[33.42,-111.88],[33.42,-111.96],[33.49,-111.96],[33.55,-111.96]]
+      coords:[[33.68,-111.92],[33.68,-111.82],[33.55,-111.82],[33.55,-111.92]]
     },
     {
       name:'Paradise Valley',
       desc:'Arizona\'s most exclusive community with stunning mountain views and estates.',
-      coords:[[33.56,-111.97],[33.56,-111.92],[33.52,-111.92],[33.52,-111.97]]
+      coords:[[33.57,-111.97],[33.57,-111.92],[33.52,-111.92],[33.52,-111.97]]
+    },
+    {
+      name:'Phoenix — North',
+      desc:'Mountain preserves, desert estates, and scenic neighborhoods along the I-17 corridor.',
+      coords:[[33.75,-112.12],[33.75,-112.02],[33.57,-112.02],[33.57,-112.12]]
     },
     {
       name:'Arcadia',
       desc:'Tree-lined streets, mid-century homes, and a vibrant local scene near Camelback Mountain.',
-      coords:[[33.52,-111.99],[33.52,-111.94],[33.48,-111.94],[33.48,-111.99]]
+      coords:[[33.52,-111.97],[33.52,-111.92],[33.48,-111.92],[33.48,-111.97]]
     },
     {
       name:'Biltmore',
       desc:'Iconic Phoenix neighborhood known for luxury condos, resorts, and walkability.',
-      coords:[[33.53,-112.03],[33.53,-111.99],[33.50,-111.99],[33.50,-112.03]]
+      coords:[[33.52,-112.02],[33.52,-111.97],[33.48,-111.97],[33.48,-112.02]]
     },
     {
-      name:'North Scottsdale',
-      desc:'Expansive desert properties, gated communities, and top-rated schools.',
-      coords:[[33.78,-111.94],[33.78,-111.82],[33.68,-111.82],[33.68,-111.94]]
+      name:'Phoenix — Central',
+      desc:'The urban core with diverse architecture from historic bungalows to modern high-rises.',
+      coords:[[33.52,-112.12],[33.52,-112.02],[33.43,-112.02],[33.43,-112.12]]
     },
     {
       name:'Tempe',
       desc:'A vibrant college town with a mix of modern condos, historic homes, and urban energy.',
-      coords:[[33.47,-111.97],[33.47,-111.88],[33.39,-111.88],[33.39,-111.97]]
+      coords:[[33.48,-111.97],[33.48,-111.88],[33.39,-111.88],[33.39,-111.97]]
     },
     {
       name:'Mesa',
       desc:'One of the Valley\'s largest cities with diverse housing options and family-friendly neighborhoods.',
-      coords:[[33.47,-111.88],[33.47,-111.72],[33.35,-111.72],[33.35,-111.88]]
+      coords:[[33.48,-111.88],[33.48,-111.72],[33.39,-111.72],[33.39,-111.88]]
     },
     {
       name:'Gilbert',
@@ -169,7 +189,7 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
     {
       name:'Chandler',
       desc:'Tech corridor hub with excellent dining, shopping, and growing real estate market.',
-      coords:[[33.35,-111.88],[33.35,-111.78],[33.25,-111.78],[33.25,-111.88]]
+      coords:[[33.39,-111.97],[33.39,-111.84],[33.28,-111.84],[33.28,-111.97]]
     },
     {
       name:'Queen Creek',
@@ -177,54 +197,34 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
       coords:[[33.28,-111.72],[33.28,-111.60],[33.18,-111.60],[33.18,-111.72]]
     },
     {
-      name:'Phoenix — Central',
-      desc:'The urban core with diverse architecture from historic bungalows to modern high-rises.',
-      coords:[[33.52,-112.10],[33.52,-112.03],[33.43,-112.03],[33.43,-112.10]]
-    },
-    {
-      name:'Phoenix — North',
-      desc:'Mountain preserves, desert estates, and scenic neighborhoods along the I-17 corridor.',
-      coords:[[33.68,-112.12],[33.68,-112.00],[33.56,-112.00],[33.56,-112.12]]
-    },
-    {
       name:'Phoenix — Ahwatukee',
       desc:'A tucked-away community at the base of South Mountain with a suburban feel.',
-      coords:[[33.35,-112.00],[33.35,-111.90],[33.28,-111.90],[33.28,-112.00]]
-    },
-    {
-      name:'Fountain Hills',
-      desc:'Quiet desert town known for its famous fountain, mountain views, and arts community.',
-      coords:[[33.62,-111.78],[33.62,-111.70],[33.56,-111.70],[33.56,-111.78]]
-    },
-    {
-      name:'Cave Creek / Carefree',
-      desc:'Western charm with desert acreage, horse properties, and a relaxed atmosphere.',
-      coords:[[33.83,-112.02],[33.83,-111.90],[33.75,-111.90],[33.75,-112.02]]
+      coords:[[33.39,-112.02],[33.39,-111.97],[33.28,-111.97],[33.28,-112.02]]
     },
     {
       name:'Peoria',
       desc:'Spring training, lake communities, and family neighborhoods in the West Valley.',
-      coords:[[33.62,-112.28],[33.62,-112.14],[33.54,-112.14],[33.54,-112.28]]
+      coords:[[33.65,-112.28],[33.65,-112.12],[33.57,-112.12],[33.57,-112.28]]
     },
     {
       name:'Glendale',
       desc:'Sports venues, historic districts, and affordable housing options across the city.',
-      coords:[[33.58,-112.22],[33.58,-112.10],[33.50,-112.10],[33.50,-112.22]]
+      coords:[[33.57,-112.28],[33.57,-112.12],[33.48,-112.12],[33.48,-112.28]]
     },
     {
       name:'Surprise',
       desc:'Growing West Valley city with new builds, golf courses, and spring training.',
-      coords:[[33.68,-112.40],[33.68,-112.28],[33.60,-112.28],[33.60,-112.40]]
+      coords:[[33.68,-112.40],[33.68,-112.28],[33.58,-112.28],[33.58,-112.40]]
     },
     {
       name:'Goodyear / Avondale',
       desc:'Rapidly developing West Valley communities with modern master-planned neighborhoods.',
-      coords:[[33.48,-112.40],[33.48,-112.25],[33.38,-112.25],[33.38,-112.40]]
+      coords:[[33.48,-112.40],[33.48,-112.28],[33.38,-112.28],[33.38,-112.40]]
     },
     {
       name:'Buckeye',
       desc:'Booming growth area with affordable new construction and wide-open desert space.',
-      coords:[[33.45,-112.60],[33.45,-112.45],[33.35,-112.45],[33.35,-112.60]]
+      coords:[[33.45,-112.60],[33.45,-112.40],[33.35,-112.40],[33.35,-112.60]]
     }
   ];
 
