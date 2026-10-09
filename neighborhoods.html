@@ -126,10 +126,16 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
   var hoverStyle = {fillOpacity:0.35,weight:2.5};
 
   NEIGHBORHOODS.forEach(function(hood){
-    var polygon = L.polygon(hood.coords, hoodStyle).addTo(map);
+    // Handle both Polygon (single part) and MultiPolygon (multiple parts)
+    var layer;
+    if(hood.type === 'MultiPolygon'){
+      layer = L.polygon(hood.coords, hoodStyle).addTo(map);
+    } else {
+      layer = L.polygon(hood.coords[0], hoodStyle).addTo(map);
+    }
 
-    // Add neighborhood label
-    var center = polygon.getBounds().getCenter();
+    // Add neighborhood label at center of largest part
+    var center = layer.getBounds().getCenter();
     L.marker(center, {
       icon: L.divIcon({
         className:'neighborhood-label',
@@ -140,11 +146,11 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
     }).addTo(map);
 
     // Hover effects
-    polygon.on('mouseover',function(){this.setStyle(hoverStyle)});
-    polygon.on('mouseout',function(){this.setStyle(hoodStyle)});
+    layer.on('mouseover',function(){this.setStyle(hoverStyle)});
+    layer.on('mouseout',function(){this.setStyle(hoodStyle)});
 
     // Click popup
-    polygon.bindPopup(
+    layer.bindPopup(
       '<div class="hood-popup">'+
       '<h3>'+hood.name+'</h3>'+
       '<p>'+hood.desc+'</p>'+
