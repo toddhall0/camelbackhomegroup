@@ -132,6 +132,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   }).addTo(map);
 
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
+  function searchUrl(name){
+    return searchBase + '?city=' + encodeURIComponent(name) + '&sortby=datelisted%20desc#view_map/';
+  }
   var hoodStyle = {color:'#1f4e60',weight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
   var hoverStyle = {fillOpacity:0.35,weight:2.5};
   var drillStyle = {color:'#1f4e60',weight:1.5,fillColor:'#1f4e60',fillOpacity:0.10};
@@ -174,7 +177,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
         '<div class="hood-popup">'+
         '<h3>'+hood.name+'</h3>'+
         '<p>'+hood.desc+'</p>'+
-        '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
+        '<a href="'+searchUrl(hood.searchCity || hood.name)+'" target="_blank">Search Homes in '+hood.name+'</a>'+
         '</div>',
         {maxWidth:280}
       );
@@ -217,7 +220,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
           '<div class="hood-popup">'+
           '<h3>'+hood.name+'</h3>'+
           '<p>'+hood.desc+'</p>'+
-          '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
+          '<a href="'+searchUrl(hood.name)+'" target="_blank">Search Homes in '+hood.name+'</a>'+
           '</div>',
           {maxWidth:280}
         );
