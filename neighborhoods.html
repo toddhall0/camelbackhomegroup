@@ -70,6 +70,15 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 .nav-mobile-toggle{display:block}
 .map-header h1{font-size:1.3rem}
 }
+/* Back button */
+.back-btn{display:none;position:absolute;top:82px;left:12px;z-index:800;
+font-family:var(--font-sans);font-size:0.88rem;font-weight:500;padding:10px 18px;
+background:var(--charcoal);color:var(--white);border:none;cursor:pointer;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
+.back-btn:hover{background:var(--gold)}
+.back-btn.active{display:block}
+.map-header-subtitle{font-size:0.85rem;color:var(--gold);display:none;margin-top:4px}
+.map-header-subtitle.active{display:block}
 </style>
 </head>
 <body>
@@ -96,17 +105,20 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 
 <div class="map-page">
 <div class="map-header">
-<h1>Explore Phoenix Metro Neighborhoods</h1>
-<p>Click any area to search homes for sale</p>
+<h1 id="mapTitle">Explore Phoenix Metro Neighborhoods</h1>
+<p id="mapSubtitle">Click any city to explore neighborhoods</p>
+<p class="map-header-subtitle" id="mapDrillLabel"></p>
+</div>
+<button class="back-btn" id="backBtn">&larr; Back to Metro View</button>
 </div>
 <div id="map"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="neighborhoods-data.js"></script>
+<script src="phoenix-neighborhoods.js"></script>
 <script>
 (function(){
-  // Mobile nav
   var toggle = document.getElementById('navToggle');
   var links = document.getElementById('navLinks');
   toggle.addEventListener('click', function(){links.classList.toggle('open')});
@@ -114,7 +126,6 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
     a.addEventListener('click', function(){links.classList.remove('open')});
   });
 
-  // Initialize map centered on Phoenix metro
   var map = L.map('map',{zoomControl:true}).setView([33.50,-111.95],10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -122,39 +133,30 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
   }).addTo(map);
 
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
-
-  // Tribal lands (distinct style, not clickable for home search)
-  var tribalStyle = {color:'#6a8290',weight:1,fillColor:'#6a8290',fillOpacity:0.1,dashArray:'6 3'};
-  MAPDATA.tribal.forEach(function(t){
-    var tLayer;
-    if(t.type === 'MultiPolygon'){
-      tLayer = L.polygon(t.coords, tribalStyle).addTo(map);
-    } else {
-      tLayer = L.polygon(t.coords[0], tribalStyle).addTo(map);
-    }
-    var center = tLayer.getBounds().getCenter();
-    L.marker(center, {
-      icon: L.divIcon({
-        className:'neighborhood-label',
-        html:'<span style="color:#6a8290;font-style:italic">'+t.name+'</span>',
-        iconSize:[160,20],
-        iconAnchor:[80,10]
-      })
-    }).addTo(map);
-  });
-
-  // City/neighborhood polygons on top
   var hoodStyle = {color:'#1f4e60',weight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
   var hoverStyle = {fillOpacity:0.35,weight:2.5};
+  var drillStyle = {color:'#1f4e60',weight:1.5,fillColor:'#1f4e60',fillOpacity:0.10};
+  var drillHover = {fillOpacity:0.30,weight:2.5};
 
-  MAPDATA.neighborhoods.forEach(function(hood){
+  var metroLayers = L.layerGroup().addTo(map);
+  var drillLayers = L.layerGroup();
+  var backBtn = document.getElementById('backBtn');
+  var mapTitle = document.getElementById('mapTitle');
+  var mapSubtitle = document.getElementById('mapSubtitle');
+  var drillLabel = document.getElementById('mapDrillLabel');
+
+  // Neighborhood data registry — add more cities here later
+  var drillData = {
+    'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null
+  };
+
+  function addPolygon(hood, layerGroup, style, hover, onClick){
     var layer;
     if(hood.type === 'MultiPolygon'){
-      layer = L.polygon(hood.coords, hoodStyle).addTo(map);
+      layer = L.polygon(hood.coords, style).addTo(layerGroup);
     } else {
-      layer = L.polygon(hood.coords[0], hoodStyle).addTo(map);
+      layer = L.polygon(hood.coords[0], style).addTo(layerGroup);
     }
-
     var center = layer.getBounds().getCenter();
     L.marker(center, {
       icon: L.divIcon({
@@ -163,20 +165,106 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
         iconSize:[120,20],
         iconAnchor:[60,10]
       })
-    }).addTo(map);
+    }).addTo(layerGroup);
+    layer.on('mouseover',function(){this.setStyle(hover)});
+    layer.on('mouseout',function(){this.setStyle(style)});
+    if(onClick){
+      layer.on('click', onClick);
+    } else {
+      layer.bindPopup(
+        '<div class="hood-popup">'+
+        '<h3>'+hood.name+'</h3>'+
+        '<p>'+hood.desc+'</p>'+
+        '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
+        '</div>',
+        {maxWidth:280}
+      );
+    }
+    return layer;
+  }
 
-    layer.on('mouseover',function(){this.setStyle(hoverStyle)});
-    layer.on('mouseout',function(){this.setStyle(hoodStyle)});
+  // Build metro view
+  function buildMetro(){
+    // Tribal lands
+    var tribalStyle = {color:'#6a8290',weight:1,fillColor:'#6a8290',fillOpacity:0.1,dashArray:'6 3'};
+    MAPDATA.tribal.forEach(function(t){
+      var tLayer;
+      if(t.type === 'MultiPolygon'){
+        tLayer = L.polygon(t.coords, tribalStyle).addTo(metroLayers);
+      } else {
+        tLayer = L.polygon(t.coords[0], tribalStyle).addTo(metroLayers);
+      }
+      var center = tLayer.getBounds().getCenter();
+      L.marker(center, {
+        icon: L.divIcon({
+          className:'neighborhood-label',
+          html:'<span style="color:#6a8290;font-style:italic">'+t.name+'</span>',
+          iconSize:[160,20],
+          iconAnchor:[80,10]
+        })
+      }).addTo(metroLayers);
+    });
 
-    layer.bindPopup(
-      '<div class="hood-popup">'+
-      '<h3>'+hood.name+'</h3>'+
-      '<p>'+hood.desc+'</p>'+
-      '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
-      '</div>',
-      {maxWidth:280}
-    );
-  });
+    // Cities
+    MAPDATA.neighborhoods.forEach(function(hood){
+      var hasDrill = drillData[hood.name] ? true : false;
+      var clickFn = null;
+      if(hasDrill){
+        clickFn = function(){ drillInto(hood.name); };
+      }
+      var layer = addPolygon(hood, metroLayers, hoodStyle, hoverStyle, clickFn);
+      if(!hasDrill){
+        layer.bindPopup(
+          '<div class="hood-popup">'+
+          '<h3>'+hood.name+'</h3>'+
+          '<p>'+hood.desc+'</p>'+
+          '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
+          '</div>',
+          {maxWidth:280}
+        );
+      }
+    });
+  }
+
+  function drillInto(cityName){
+    var hoods = drillData[cityName];
+    if(!hoods) return;
+
+    map.closePopup();
+    map.removeLayer(metroLayers);
+    drillLayers.clearLayers();
+    drillLayers.addTo(map);
+
+    hoods.forEach(function(hood){
+      addPolygon(hood, drillLayers, drillStyle, drillHover);
+    });
+
+    // Zoom to fit
+    var bounds = drillLayers.getBounds();
+    map.fitBounds(bounds, {padding:[40,40]});
+
+    // Update UI
+    backBtn.classList.add('active');
+    mapTitle.textContent = cityName + ' Neighborhoods';
+    mapSubtitle.textContent = 'Click a neighborhood to search homes';
+    drillLabel.textContent = 'Viewing neighborhoods within ' + cityName;
+    drillLabel.classList.add('active');
+  }
+
+  function backToMetro(){
+    map.removeLayer(drillLayers);
+    drillLayers.clearLayers();
+    metroLayers.addTo(map);
+    map.setView([33.50,-111.95],10);
+
+    backBtn.classList.remove('active');
+    mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
+    mapSubtitle.textContent = 'Click any city to explore neighborhoods';
+    drillLabel.classList.remove('active');
+  }
+
+  backBtn.addEventListener('click', backToMetro);
+  buildMetro();
 })();
 </script>
 </body>
