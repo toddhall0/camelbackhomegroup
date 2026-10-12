@@ -123,11 +123,22 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
 
-  // Base layer: Maricopa County (light fill for unincorporated areas)
-  var countyStyle = {color:'#6a8290',weight:1,fillColor:'#d4c4a8',fillOpacity:0.1,dashArray:'4 4'};
+  // Base layer: Maricopa County (fills unincorporated gaps, clickable)
+  var countyStyle = {color:'#1f4e60',weight:1,fillColor:'#cc624c',fillOpacity:0.06};
+  var countyHover = {fillOpacity:0.25,weight:1.5};
   if(MAPDATA.county){
     MAPDATA.county.forEach(function(part){
-      L.polygon(part, countyStyle).addTo(map);
+      var cLayer = L.polygon(part, countyStyle).addTo(map);
+      cLayer.on('mouseover',function(){this.setStyle(countyHover)});
+      cLayer.on('mouseout',function(){this.setStyle(countyStyle)});
+      cLayer.bindPopup(
+        '<div class="hood-popup">'+
+        '<h3>Maricopa County</h3>'+
+        '<p>Unincorporated area — homes available throughout the county.</p>'+
+        '<a href="'+searchBase+'" target="_blank">Search Homes</a>'+
+        '</div>',
+        {maxWidth:280}
+      );
     });
   }
 
