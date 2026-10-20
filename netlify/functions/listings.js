@@ -61,7 +61,6 @@ exports.handler = async (event) => {
     params.append("points", `${north},${west}`);
     params.append("points", `${north},${east}`);
     params.append("points", `${south},${east}`);
-    });
 
     const url = `https://api.simplyrets.com/properties?${params.toString()}`;
 
