@@ -416,9 +416,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
 
   function searchUrl(coords){
-    // Build polygon search URL from coordinates [[lat,lon],...]
-    // Flatten MultiPolygon to use the largest part
-    var pts = Array.isArray(coords[0][0]) ? coords.reduce(function(a,b){return a.length>b.length?a:b}) : coords;
+    // Build polygon search URL from coordinates
+    // coords is always [[ring],...] — use the longest ring
+    var pts = coords.reduce(function(a,b){return a.length>b.length?a:b});
     // Bounding box
     var lats = pts.map(function(p){return p[0]});
     var lons = pts.map(function(p){return p[1]});
@@ -783,7 +783,13 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 
   function fetchListingsForPolygon(hood){
     currentHood = hood;
-    var pts = Array.isArray(hood.coords[0][0]) ? hood.coords.reduce(function(a,b){return a.length>b.length?a:b}) : hood.coords[0];
+    // Extract the largest polygon ring from coords
+    var pts;
+    if(hood.type === 'MultiPolygon'){
+      pts = hood.coords.reduce(function(a,b){return a.length>b.length?a:b});
+    } else {
+      pts = hood.coords[0];
+    }
     // Simplify polygon for API (max ~30 points)
     var step = Math.max(1, Math.floor(pts.length / 30));
     var simplified = [];
