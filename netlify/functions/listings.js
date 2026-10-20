@@ -47,11 +47,17 @@ exports.handler = async (event) => {
     const maxResults = Math.min(limit || 50, 200);
 
     const params = new URLSearchParams({
-      "points": `${south},${west},${north},${east}`,
       "status": "active",
       "type": "residential",
       "limit": String(maxResults),
       "sort": "-listprice",
+    });
+
+    // points requires a polygon (min 3 points) — use 4 corners of bounding box
+    params.append("points", `${south},${west}`);
+    params.append("points", `${north},${west}`);
+    params.append("points", `${north},${east}`);
+    params.append("points", `${south},${east}`);
     });
 
     const url = `https://api.simplyrets.com/properties?${params.toString()}`;
