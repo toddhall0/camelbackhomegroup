@@ -21,8 +21,9 @@ exports.handler = async (event) => {
 
   const apiKey = process.env.SIMPLYRETS_API_KEY;
   const apiSecret = process.env.SIMPLYRETS_API_SECRET;
+  const token = process.env.SIMPLYRETS_TOKEN;
 
-  if (!apiKey || !apiSecret) {
+  if (!token && (!apiKey || !apiSecret)) {
     return {
       statusCode: 200,
       headers,
@@ -43,8 +44,10 @@ exports.handler = async (event) => {
   }
 
   try {
-    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
     const maxResults = Math.min(limit || 50, 200);
+    const authHeader = token
+      ? `Bearer ${token}`
+      : `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`;
 
     const params = new URLSearchParams({
       "status": "active",
@@ -65,7 +68,7 @@ exports.handler = async (event) => {
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        "Authorization": `Basic ${auth}`,
+        "Authorization": authHeader,
         "Accept": "application/json",
       },
     });
