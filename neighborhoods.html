@@ -21,6 +21,7 @@
 }
 body{font-family:var(--font-sans);color:var(--text-dark);margin:0;overflow-x:hidden}
 a{text-decoration:none;color:inherit}
+
 /* NAV */
 .nav{position:fixed;top:0;left:0;right:0;z-index:1000;
 background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
@@ -45,7 +46,148 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 .map-header{background:var(--charcoal);padding:24px 32px;text-align:center}
 .map-header h1{font-family:var(--font-serif);font-size:1.6rem;font-weight:400;color:var(--white);margin-bottom:4px}
 .map-header p{font-size:0.92rem;font-weight:300;color:rgba(255,255,255,0.55)}
-#map{flex:1;width:100%;z-index:1}
+
+/* MAP + PANEL CONTAINER */
+.map-body{flex:1;display:flex;position:relative;overflow:hidden}
+.map-container{flex:1;position:relative;min-width:0;transition:flex 0.35s ease}
+#map{width:100%;height:100%;z-index:1}
+
+/* LISTINGS SIDE PANEL */
+.listings-panel{
+  width:0;min-width:0;overflow:hidden;
+  background:var(--white);
+  display:flex;flex-direction:column;
+  border-left:1px solid var(--cream-dark);
+  transition:width 0.35s ease, min-width 0.35s ease;
+  position:relative;z-index:2;
+}
+.listings-panel.open{
+  width:38%;min-width:340px;
+}
+
+/* Panel header */
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;background:var(--charcoal);color:var(--white);
+  flex-shrink:0;
+}
+.panel-header-text{flex:1;min-width:0}
+.panel-area-name{
+  font-family:var(--font-serif);font-size:1.15rem;font-weight:500;
+  color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.panel-listing-count{font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:2px}
+.panel-close-btn{
+  background:none;border:1px solid rgba(255,255,255,0.25);color:var(--white);
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;margin-left:12px;font-size:1.1rem;
+  transition:background 0.2s, border-color 0.2s;
+}
+.panel-close-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.5)}
+
+/* Filter bar */
+.panel-filters{
+  padding:14px 20px;background:var(--cream);border-bottom:1px solid var(--cream-dark);
+  flex-shrink:0;
+}
+.filter-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:3px;flex:1;min-width:80px}
+.filter-group label{font-size:0.7rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-light)}
+.filter-group input,
+.filter-group select{
+  font-family:var(--font-sans);font-size:0.82rem;
+  padding:7px 10px;border:1px solid var(--cream-dark);background:var(--white);
+  color:var(--text-dark);outline:none;transition:border-color 0.2s;
+}
+.filter-group input:focus,
+.filter-group select:focus{border-color:var(--charcoal)}
+.filter-group input::placeholder{color:var(--text-light)}
+.filter-actions{display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.filter-apply-btn{
+  font-family:var(--font-sans);font-size:0.78rem;font-weight:500;
+  letter-spacing:0.06em;text-transform:uppercase;
+  padding:8px 16px;background:var(--gold);color:var(--white);
+  border:none;cursor:pointer;transition:background 0.2s;white-space:nowrap;
+}
+.filter-apply-btn:hover{background:var(--gold-light)}
+.filter-reset-btn{
+  font-family:var(--font-sans);font-size:0.75rem;font-weight:400;
+  color:var(--text-light);background:none;border:none;cursor:pointer;
+  padding:8px 4px;white-space:nowrap;transition:color 0.2s;
+}
+.filter-reset-btn:hover{color:var(--text-dark)}
+
+/* Listing cards list */
+.panel-listings{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:0;
+}
+.panel-listings::-webkit-scrollbar{width:6px}
+.panel-listings::-webkit-scrollbar-track{background:var(--cream)}
+.panel-listings::-webkit-scrollbar-thumb{background:var(--sand);border-radius:3px}
+.panel-listings::-webkit-scrollbar-thumb:hover{background:var(--text-light)}
+
+/* Empty / loading states */
+.panel-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 24px;text-align:center;color:var(--text-light);
+}
+.panel-empty-icon{font-size:2.4rem;margin-bottom:12px;opacity:0.4}
+.panel-empty-text{font-size:0.92rem;line-height:1.5}
+.panel-loading{
+  display:flex;align-items:center;justify-content:center;
+  padding:60px 24px;color:var(--text-light);font-size:0.92rem;gap:10px;
+}
+.panel-loading-spinner{
+  width:20px;height:20px;border:2px solid var(--cream-dark);
+  border-top-color:var(--gold);border-radius:50%;
+  animation:panelSpin 0.8s linear infinite;
+}
+@keyframes panelSpin{to{transform:rotate(360deg)}}
+
+/* Listing card */
+.listing-card{
+  display:flex;gap:14px;padding:16px 20px;
+  border-bottom:1px solid var(--cream);
+  cursor:pointer;transition:background 0.15s;
+}
+.listing-card:hover{background:var(--cream)}
+.listing-card.active{background:var(--gold-pale)}
+.listing-card-photo{
+  width:110px;height:82px;flex-shrink:0;overflow:hidden;
+  background:var(--cream-dark);position:relative;
+}
+.listing-card-photo img{width:100%;height:100%;object-fit:cover}
+.listing-card-photo-placeholder{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  color:var(--text-light);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;
+}
+.listing-card-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.listing-card-price{
+  font-family:var(--font-serif);font-size:1.15rem;font-weight:600;
+  color:var(--text-dark);margin-bottom:3px;
+}
+.listing-card-address{
+  font-size:0.8rem;color:var(--text-mid);margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.listing-card-details{display:flex;gap:10px;font-size:0.78rem;color:var(--text-light);flex-wrap:wrap}
+.listing-card-details span{white-space:nowrap}
+.listing-card-year{font-size:0.73rem;color:var(--text-light);margin-top:4px}
+.listing-card-link{
+  display:inline-block;font-size:0.72rem;font-weight:500;letter-spacing:0.05em;
+  text-transform:uppercase;color:var(--gold);margin-top:4px;transition:color 0.2s;
+}
+.listing-card-link:hover{color:var(--gold-light)}
+
+/* IDX link at bottom of panel */
+.panel-idx-link{
+  display:block;text-align:center;padding:14px 20px;
+  background:var(--cream);border-top:1px solid var(--cream-dark);
+  font-size:0.82rem;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;
+  color:var(--gold);transition:background 0.2s, color 0.2s;flex-shrink:0;
+}
+.panel-idx-link:hover{background:var(--gold);color:var(--white)}
 
 /* CUSTOM POPUP */
 .leaflet-popup-content-wrapper{border-radius:0;font-family:var(--font-sans);box-shadow:0 4px 16px rgba(0,0,0,0.2)}
@@ -83,16 +225,22 @@ background:var(--charcoal);color:var(--white);padding:8px 16px;font-size:0.82rem
 box-shadow:0 2px 8px rgba(0,0,0,0.3);display:none}
 .listings-count.active{display:block}
 
-@media(max-width:640px){
-.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
-background:var(--charcoal);flex-direction:column;padding:80px 32px;
-gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
-.nav-links.open{right:0}
-.nav-mobile-toggle{display:block}
-.map-header h1{font-size:1.3rem}
+/* Highlighted marker */
+.listing-marker-highlight div{
+  background:#1f4e60 !important;
+  transform:scale(1.5);
+  transition:transform 0.2s, background 0.2s;
 }
+@keyframes markerBounce{
+  0%,100%{transform:translateY(0)}
+  25%{transform:translateY(-14px)}
+  50%{transform:translateY(0)}
+  75%{transform:translateY(-7px)}
+}
+.listing-marker-bounce{animation:markerBounce 0.6s ease}
+
 /* Back button */
-.back-btn{display:none;position:absolute;top:82px;left:12px;z-index:800;
+.back-btn{display:none;position:absolute;top:10px;left:12px;z-index:800;
 font-family:var(--font-sans);font-size:0.88rem;font-weight:500;padding:10px 18px;
 background:var(--charcoal);color:var(--white);border:none;cursor:pointer;
 box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
@@ -100,6 +248,53 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 .back-btn.active{display:block}
 .map-header-subtitle{font-size:0.85rem;color:var(--gold);display:none;margin-top:4px}
 .map-header-subtitle.active{display:block}
+
+/* MOBILE: nav + bottom sheet */
+@media(max-width:768px){
+  .nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+  background:var(--charcoal);flex-direction:column;padding:80px 32px;
+  gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+  .nav-links.open{right:0}
+  .nav-mobile-toggle{display:block}
+  .map-header h1{font-size:1.3rem}
+  .map-header{padding:16px 20px}
+
+  /* Bottom sheet instead of side panel */
+  .map-body{flex-direction:column}
+  .listings-panel{
+    width:100% !important;min-width:0 !important;
+    border-left:none;border-top:1px solid var(--cream-dark);
+    position:fixed;bottom:0;left:0;right:0;
+    height:0;max-height:70vh;
+    transition:height 0.35s ease;
+    z-index:900;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.15);
+  }
+  .listings-panel.open{
+    height:60vh;
+  }
+
+  /* Drag handle */
+  .panel-drag-handle{
+    display:flex;align-items:center;justify-content:center;
+    padding:8px 0 4px;background:var(--white);flex-shrink:0;
+  }
+  .panel-drag-handle::after{
+    content:'';display:block;width:40px;height:4px;
+    background:var(--cream-dark);border-radius:2px;
+  }
+
+  .panel-header{padding:12px 16px}
+  .panel-filters{padding:10px 16px}
+  .filter-group{min-width:70px}
+  .listing-card{padding:12px 16px}
+  .listing-card-photo{width:90px;height:68px}
+}
+
+/* Desktop: hide drag handle */
+@media(min-width:769px){
+  .panel-drag-handle{display:none}
+}
 </style>
 </head>
 <body>
@@ -130,10 +325,74 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <p id="mapSubtitle">Click any city to explore neighborhoods</p>
 <p class="map-header-subtitle" id="mapDrillLabel"></p>
 </div>
+<div class="map-body">
+<div class="map-container">
 <button class="back-btn" id="backBtn">&larr; Back to Metro View</button>
 <div class="listings-loading" id="listingsLoading">Loading listings...</div>
 <div class="listings-count" id="listingsCount"></div>
 <div id="map"></div>
+</div>
+<div class="listings-panel" id="listingsPanel">
+<div class="panel-drag-handle"></div>
+<div class="panel-header">
+<div class="panel-header-text">
+<div class="panel-area-name" id="panelAreaName">Listings</div>
+<div class="panel-listing-count" id="panelListingCount"></div>
+</div>
+<button class="panel-close-btn" id="panelCloseBtn" aria-label="Close listings panel">&times;</button>
+</div>
+<div class="panel-filters" id="panelFilters">
+<div class="filter-row">
+<div class="filter-group">
+<label for="filterMinPrice">Min Price</label>
+<input type="number" id="filterMinPrice" placeholder="No min" min="0" step="10000">
+</div>
+<div class="filter-group">
+<label for="filterMaxPrice">Max Price</label>
+<input type="number" id="filterMaxPrice" placeholder="No max" min="0" step="10000">
+</div>
+<div class="filter-group">
+<label for="filterMinBeds">Beds</label>
+<input type="number" id="filterMinBeds" placeholder="Any" min="0" max="10">
+</div>
+<div class="filter-group">
+<label for="filterMinBaths">Baths</label>
+<input type="number" id="filterMinBaths" placeholder="Any" min="0" max="10">
+</div>
+</div>
+<div class="filter-row" style="margin-top:8px">
+<div class="filter-group">
+<label for="filterMinSqft">Min Sqft</label>
+<input type="number" id="filterMinSqft" placeholder="No min" min="0" step="100">
+</div>
+<div class="filter-group">
+<label for="filterMaxSqft">Max Sqft</label>
+<input type="number" id="filterMaxSqft" placeholder="No max" min="0" step="100">
+</div>
+<div class="filter-group">
+<label for="filterSort">Sort</label>
+<select id="filterSort">
+<option value="price_desc">Price High-Low</option>
+<option value="price_asc">Price Low-High</option>
+<option value="newest">Newest</option>
+<option value="sqft">Sqft</option>
+</select>
+</div>
+<div class="filter-actions">
+<button class="filter-apply-btn" id="filterApplyBtn">Apply</button>
+<button class="filter-reset-btn" id="filterResetBtn">Reset</button>
+</div>
+</div>
+</div>
+<div class="panel-listings" id="panelListings">
+<div class="panel-empty" id="panelEmpty">
+<div class="panel-empty-icon">&#9962;</div>
+<div class="panel-empty-text">Click a neighborhood on the map to view listings</div>
+</div>
+</div>
+<a class="panel-idx-link" id="panelIdxLink" href="#" target="_blank" style="display:none">View All on IDX &rarr;</a>
+</div>
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -195,6 +454,210 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null
   };
 
+  /* ================================================================
+     LISTINGS PANEL REFERENCES
+     ================================================================ */
+  var listingsPanel = document.getElementById('listingsPanel');
+  var panelAreaName = document.getElementById('panelAreaName');
+  var panelListingCount = document.getElementById('panelListingCount');
+  var panelCloseBtn = document.getElementById('panelCloseBtn');
+  var panelListings = document.getElementById('panelListings');
+  var panelEmpty = document.getElementById('panelEmpty');
+  var panelIdxLink = document.getElementById('panelIdxLink');
+  var filterApplyBtn = document.getElementById('filterApplyBtn');
+  var filterResetBtn = document.getElementById('filterResetBtn');
+  var filterMinPrice = document.getElementById('filterMinPrice');
+  var filterMaxPrice = document.getElementById('filterMaxPrice');
+  var filterMinBeds = document.getElementById('filterMinBeds');
+  var filterMinBaths = document.getElementById('filterMinBaths');
+  var filterMinSqft = document.getElementById('filterMinSqft');
+  var filterMaxSqft = document.getElementById('filterMaxSqft');
+  var filterSort = document.getElementById('filterSort');
+
+  // Track current state for re-fetching with filters
+  var currentHood = null;
+  var currentListings = [];
+  var markerMap = {}; // listing id -> {marker, card}
+
+  function openPanel(){
+    listingsPanel.classList.add('open');
+    // Invalidate map size after transition
+    setTimeout(function(){ map.invalidateSize(); }, 380);
+  }
+  function closePanel(){
+    listingsPanel.classList.remove('open');
+    setTimeout(function(){ map.invalidateSize(); }, 380);
+  }
+  panelCloseBtn.addEventListener('click', function(){
+    closePanel();
+  });
+
+  // Mobile drag handle: tap toggles open/close
+  var dragHandle = listingsPanel.querySelector('.panel-drag-handle');
+  if(dragHandle){
+    dragHandle.addEventListener('click', function(){
+      if(listingsPanel.classList.contains('open')){
+        closePanel();
+      }
+    });
+  }
+
+  // Filter apply
+  filterApplyBtn.addEventListener('click', function(){
+    if(currentHood){
+      fetchListingsForPolygon(currentHood);
+    }
+  });
+
+  // Filter reset
+  filterResetBtn.addEventListener('click', function(){
+    filterMinPrice.value = '';
+    filterMaxPrice.value = '';
+    filterMinBeds.value = '';
+    filterMinBaths.value = '';
+    filterMinSqft.value = '';
+    filterMaxSqft.value = '';
+    filterSort.value = 'price_desc';
+    if(currentHood){
+      fetchListingsForPolygon(currentHood);
+    }
+  });
+
+  function getFilterValues(){
+    var f = {};
+    if(filterMinPrice.value) f.minPrice = parseInt(filterMinPrice.value, 10);
+    if(filterMaxPrice.value) f.maxPrice = parseInt(filterMaxPrice.value, 10);
+    if(filterMinBeds.value) f.minBeds = parseInt(filterMinBeds.value, 10);
+    if(filterMinBaths.value) f.minBaths = parseInt(filterMinBaths.value, 10);
+    if(filterMinSqft.value) f.minSqft = parseInt(filterMinSqft.value, 10);
+    if(filterMaxSqft.value) f.maxSqft = parseInt(filterMaxSqft.value, 10);
+    if(filterSort.value) f.sort = filterSort.value;
+    return f;
+  }
+
+  /* ================================================================
+     PANEL CARD RENDERING
+     ================================================================ */
+  function renderListingCards(listings, hoodName){
+    panelListings.innerHTML = '';
+    markerMap = {};
+
+    if(!listings || listings.length === 0){
+      panelListings.innerHTML = '<div class="panel-empty">' +
+        '<div class="panel-empty-icon">&#8709;</div>' +
+        '<div class="panel-empty-text">No listings found in ' + hoodName + '</div></div>';
+      panelListingCount.textContent = '0 listings';
+      return;
+    }
+
+    panelListingCount.textContent = listings.length + ' listing' + (listings.length !== 1 ? 's' : '');
+
+    listings.forEach(function(l){
+      var card = document.createElement('div');
+      card.className = 'listing-card';
+      card.setAttribute('data-id', l.id);
+
+      var photoHtml;
+      if(l.photo){
+        photoHtml = '<div class="listing-card-photo"><img src="' + l.photo + '" alt="' + escHtml(l.address) + '" loading="lazy"></div>';
+      } else {
+        photoHtml = '<div class="listing-card-photo"><div class="listing-card-photo-placeholder">No Photo</div></div>';
+      }
+
+      var detailParts = [];
+      if(l.beds) detailParts.push('<span>' + l.beds + ' bd</span>');
+      if(l.baths) detailParts.push('<span>' + l.baths + ' ba</span>');
+      if(l.sqft) detailParts.push('<span>' + l.sqft.toLocaleString() + ' sqft</span>');
+
+      var yearHtml = l.yearBuilt ? '<div class="listing-card-year">Built ' + l.yearBuilt + '</div>' : '';
+
+      card.innerHTML = photoHtml +
+        '<div class="listing-card-info">' +
+        '<div class="listing-card-price">' + formatPrice(l.price) + '</div>' +
+        '<div class="listing-card-address">' + escHtml(l.address) + (l.city ? ', ' + escHtml(l.city) : '') + '</div>' +
+        '<div class="listing-card-details">' + detailParts.join('') + '</div>' +
+        yearHtml +
+        '<a class="listing-card-link" href="' + searchBase + '?mlsId=' + l.id + '" target="_blank" onclick="event.stopPropagation()">View Listing</a>' +
+        '</div>';
+
+      // Hover: highlight marker
+      card.addEventListener('mouseenter', function(){
+        highlightMarker(l.id, false);
+      });
+      card.addEventListener('mouseleave', function(){
+        unhighlightMarker(l.id);
+      });
+      // Click: bounce marker and open popup
+      card.addEventListener('click', function(){
+        activateListingFromCard(l.id);
+      });
+
+      panelListings.appendChild(card);
+      markerMap[l.id] = markerMap[l.id] || {};
+      markerMap[l.id].card = card;
+    });
+  }
+
+  function escHtml(str){
+    if(!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ================================================================
+     MARKER HIGHLIGHT / BOUNCE
+     ================================================================ */
+  function highlightMarker(listingId, bounce){
+    var entry = markerMap[listingId];
+    if(!entry || !entry.marker) return;
+    var el = entry.marker.getElement();
+    if(!el) return;
+    el.classList.add('listing-marker-highlight');
+    if(bounce){
+      el.classList.remove('listing-marker-bounce');
+      // Force reflow
+      void el.offsetWidth;
+      el.classList.add('listing-marker-bounce');
+    }
+  }
+  function unhighlightMarker(listingId){
+    var entry = markerMap[listingId];
+    if(!entry || !entry.marker) return;
+    var el = entry.marker.getElement();
+    if(!el) return;
+    el.classList.remove('listing-marker-highlight');
+    el.classList.remove('listing-marker-bounce');
+  }
+
+  function activateListingFromCard(listingId){
+    var entry = markerMap[listingId];
+    if(!entry || !entry.marker) return;
+
+    // Clear any previous active card
+    var prev = panelListings.querySelector('.listing-card.active');
+    if(prev) prev.classList.remove('active');
+
+    // Highlight card
+    if(entry.card) entry.card.classList.add('active');
+
+    // Pan map to marker
+    map.panTo(entry.marker.getLatLng());
+
+    // Bounce marker
+    highlightMarker(listingId, true);
+
+    // Open popup
+    entry.marker.openPopup();
+
+    // Remove bounce after animation
+    setTimeout(function(){
+      var el = entry.marker.getElement();
+      if(el) el.classList.remove('listing-marker-bounce');
+    }, 700);
+  }
+
+  /* ================================================================
+     POLYGON + ADDPOLYGON (unchanged logic, same drill/popup behavior)
+     ================================================================ */
   function addPolygon(hood, layerGroup, style, hover, onClick){
     var layer;
     if(hood.type === 'MultiPolygon'){
@@ -299,7 +762,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     drillLabel.classList.add('active');
   }
 
-  // LISTING MARKERS
+  /* ================================================================
+     LISTING MARKERS
+     ================================================================ */
   var listingMarkers = L.layerGroup().addTo(map);
   var loadingEl = document.getElementById('listingsLoading');
   var countEl = document.getElementById('listingsCount');
@@ -317,6 +782,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   }
 
   function fetchListingsForPolygon(hood){
+    currentHood = hood;
     var pts = Array.isArray(hood.coords[0][0]) ? hood.coords.reduce(function(a,b){return a.length>b.length?a:b}) : hood.coords[0];
     // Simplify polygon for API (max ~30 points)
     var step = Math.max(1, Math.floor(pts.length / 30));
@@ -327,31 +793,55 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     countEl.classList.remove('active');
     listingMarkers.clearLayers();
 
+    // Update panel header and show panel
+    panelAreaName.textContent = hood.name;
+    panelListingCount.textContent = '';
+    panelListings.innerHTML = '<div class="panel-loading"><div class="panel-loading-spinner"></div>Loading listings...</div>';
+    panelIdxLink.href = searchUrl(hood.coords);
+    panelIdxLink.style.display = 'block';
+    openPanel();
+
+    // Build request body with filters
+    var body = {
+      polygon: simplified,
+      limit: 200
+    };
+    var filters = getFilterValues();
+    if(filters.minPrice) body.minPrice = filters.minPrice;
+    if(filters.maxPrice) body.maxPrice = filters.maxPrice;
+    if(filters.minBeds) body.minBeds = filters.minBeds;
+    if(filters.minBaths) body.minBaths = filters.minBaths;
+    if(filters.minSqft) body.minSqft = filters.minSqft;
+    if(filters.maxSqft) body.maxSqft = filters.maxSqft;
+    if(filters.sort) body.sort = filters.sort;
+
     fetch('/.netlify/functions/listings',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        polygon: simplified,
-        limit: 200
-      })
+      body:JSON.stringify(body)
     })
     .then(function(r){return r.json()})
     .then(function(data){
       loadingEl.classList.remove('active');
+      currentListings = data.listings || [];
+
       if(!data.listings || data.listings.length===0){
         countEl.textContent = 'No listings in '+hood.name;
         countEl.classList.add('active');
+        renderListingCards([], hood.name);
         return;
       }
+
+      // Build map markers and populate panel
       data.listings.forEach(function(l){
-        var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+l.address+'">' : '';
+        var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+escHtml(l.address)+'">' : '';
         var marker = L.marker([l.lat,l.lng],{icon:listingIcon}).addTo(listingMarkers);
         marker.bindPopup(
           '<div class="listing-popup">'+
           photoHtml+
           '<div class="listing-popup-body">'+
           '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
-          '<div class="listing-popup-address">'+l.address+(l.city?', '+l.city:'')+'</div>'+
+          '<div class="listing-popup-address">'+escHtml(l.address)+(l.city?', '+escHtml(l.city):'')+'</div>'+
           '<div class="listing-popup-details">'+
           (l.beds?'<span>'+l.beds+' bed</span>':'')+
           (l.baths?'<span>'+l.baths+' bath</span>':'')+
@@ -361,24 +851,56 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
           '</div></div>',
           {maxWidth:260,minWidth:220}
         );
+
+        // When popup opens from map click, highlight card in panel
+        marker.on('popupopen', function(){
+          var prev = panelListings.querySelector('.listing-card.active');
+          if(prev) prev.classList.remove('active');
+          var entry = markerMap[l.id];
+          if(entry && entry.card){
+            entry.card.classList.add('active');
+            entry.card.scrollIntoView({behavior:'smooth', block:'nearest'});
+          }
+        });
+        marker.on('popupclose', function(){
+          var entry = markerMap[l.id];
+          if(entry && entry.card) entry.card.classList.remove('active');
+          unhighlightMarker(l.id);
+        });
+
+        // Store marker reference
+        if(!markerMap[l.id]) markerMap[l.id] = {};
+        markerMap[l.id].marker = marker;
       });
+
       countEl.textContent = data.listings.length+' listings in '+hood.name;
       countEl.classList.add('active');
+
+      // Render cards in side panel
+      renderListingCards(data.listings, hood.name);
     })
     .catch(function(){
       loadingEl.classList.remove('active');
+      panelListings.innerHTML = '<div class="panel-empty">' +
+        '<div class="panel-empty-icon">&#9888;</div>' +
+        '<div class="panel-empty-text">Failed to load listings. Please try again.</div></div>';
+      panelListingCount.textContent = '';
     });
   }
 
   function clearListings(){
     listingMarkers.clearLayers();
     countEl.classList.remove('active');
+    currentHood = null;
+    currentListings = [];
+    markerMap = {};
   }
 
   function backToMetro(){
     map.removeLayer(drillLayers);
     drillLayers.clearLayers();
     clearListings();
+    closePanel();
     metroLayers.addTo(map);
     map.setView([33.50,-111.95],10);
 
