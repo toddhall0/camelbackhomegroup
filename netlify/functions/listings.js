@@ -1,4 +1,4 @@
-// Fetches active residential listings from SimplyRETS within a bounding box
+// Fetches active residential listings from SimplyRETS within a polygon
 //
 // Env vars required:
 //   SIMPLYRETS_API_KEY
@@ -21,9 +21,8 @@ exports.handler = async (event) => {
 
   const apiKey = process.env.SIMPLYRETS_API_KEY;
   const apiSecret = process.env.SIMPLYRETS_API_SECRET;
-  const token = process.env.SIMPLYRETS_TOKEN;
 
-  if (!token && (!apiKey || !apiSecret)) {
+  if (!apiKey || !apiSecret) {
     return {
       statusCode: 200,
       headers,
@@ -38,29 +37,34 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
   }
 
-  const { south, north, west, east, limit, polygon } = body;
+  const { south, north, west, east, limit, polygon, minPrice, maxPrice, minBeds, minBaths, minSqft, maxSqft, sort } = body;
   if (!polygon && (!south || !north || !west || !east)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Bounding box or polygon required" }) };
   }
 
   try {
-    const maxResults = Math.min(limit || 50, 200);
+    const maxResults = Math.min(limit || 200, 500);
     const authHeader = `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`;
 
     const params = new URLSearchParams({
       "status": "active",
       "type": "residential",
       "limit": String(maxResults),
-      "sort": "-listprice",
+      "sort": sort || "-listprice",
     });
 
+    if (minPrice) params.set("minprice", String(minPrice));
+    if (maxPrice) params.set("maxprice", String(maxPrice));
+    if (minBeds) params.set("minbeds", String(minBeds));
+    if (minBaths) params.set("minbaths", String(minBaths));
+    if (minSqft) params.set("minarea", String(minSqft));
+    if (maxSqft) params.set("maxarea", String(maxSqft));
+
     if (polygon && Array.isArray(polygon)) {
-      // Use the actual neighborhood polygon points
       polygon.forEach(function(pt) {
         params.append("points", `${pt[0]},${pt[1]}`);
       });
     } else {
-      // Fallback to bounding box corners
       params.append("points", `${south},${west}`);
       params.append("points", `${north},${west}`);
       params.append("points", `${north},${east}`);
@@ -78,7 +82,6 @@ exports.handler = async (event) => {
     });
 
     if (!response.ok) {
-      const errText = await response.text();
       return {
         statusCode: 200,
         headers,
@@ -86,6 +89,7 @@ exports.handler = async (event) => {
       };
     }
 
+    const total = response.headers.get("X-Total-Count");
     const data = await response.json();
 
     const listings = data
@@ -97,17 +101,24 @@ exports.handler = async (event) => {
         price: p.listPrice,
         address: p.address ? `${p.address.streetNumberText || ""} ${p.address.streetName || ""} ${p.address.streetSuffix || ""}`.trim() : "",
         city: p.address ? p.address.city : "",
+        zip: p.address ? p.address.postalCode : "",
         beds: p.property ? p.property.bedrooms : null,
         baths: p.property ? p.property.bathsFull : null,
+        halfBaths: p.property ? p.property.bathsHalf : null,
         sqft: p.property ? p.property.area : null,
+        lotSize: p.property ? p.property.lotSize : null,
+        yearBuilt: p.property ? p.property.yearBuilt : null,
         photo: p.photos && p.photos.length > 0 ? p.photos[0] : null,
+        photos: p.photos ? p.photos.slice(0, 5) : [],
         status: p.mls ? p.mls.status : "Active",
+        listDate: p.listDate || null,
+        propertyType: p.property ? p.property.subType : null,
       }));
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ listings }),
+      body: JSON.stringify({ listings, total: total ? parseInt(total) : listings.length }),
     };
   } catch (err) {
     return {
