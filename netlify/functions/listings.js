@@ -45,9 +45,7 @@ exports.handler = async (event) => {
 
   try {
     const maxResults = Math.min(limit || 50, 200);
-    const authHeader = token
-      ? `Basic ${Buffer.from(`${token}:`).toString("base64")}`
-      : `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`;
+    const authHeader = `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`;
 
     const params = new URLSearchParams({
       "status": "active",
