@@ -47,6 +47,31 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 .map-header h1{font-family:var(--font-serif);font-size:1.6rem;font-weight:400;color:var(--white);margin-bottom:4px}
 .map-header p{font-size:0.92rem;font-weight:300;color:rgba(255,255,255,0.55)}
 
+/* VIEW TOGGLE */
+.view-toggle{display:flex;justify-content:center;gap:4px;margin-top:14px}
+.view-btn{
+  font-family:var(--font-sans);font-size:0.82rem;font-weight:500;
+  letter-spacing:0.06em;text-transform:uppercase;
+  padding:8px 20px;border:none;cursor:pointer;
+  background:var(--charcoal-mid);color:rgba(255,255,255,0.55);
+  transition:all 0.2s;
+}
+.view-btn:hover{color:rgba(255,255,255,0.85)}
+.view-btn.active{background:var(--gold);color:var(--white)}
+
+/* SCHOOL SUB-TOGGLE */
+.school-toggle{display:none;justify-content:center;gap:3px;margin-top:8px}
+.school-toggle.visible{display:flex}
+.school-btn{
+  font-family:var(--font-sans);font-size:0.75rem;font-weight:400;
+  letter-spacing:0.05em;text-transform:uppercase;
+  padding:6px 14px;border:none;cursor:pointer;
+  background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);
+  transition:all 0.2s;
+}
+.school-btn:hover{color:rgba(255,255,255,0.75)}
+.school-btn.active{background:var(--gold);color:var(--white)}
+
 /* MAP + PANEL CONTAINER */
 .map-body{flex:1;display:flex;position:relative;overflow:hidden}
 .map-container{flex:1;position:relative;min-width:0;transition:flex 0.35s ease}
@@ -204,6 +229,11 @@ text-transform:uppercase;padding:10px 20px;background:var(--gold);color:var(--wh
 color:#1f4e60;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),
 -1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8)}
 
+/* SCHOOL ZONE LABELS */
+.school-label{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
+color:#1a5276;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),
+-1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8)}
+
 /* LISTING MARKERS */
 .listing-popup{padding:0;min-width:220px;font-family:var(--font-sans)}
 .listing-popup img{width:100%;height:130px;object-fit:cover}
@@ -258,6 +288,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   .nav-mobile-toggle{display:block}
   .map-header h1{font-size:1.3rem}
   .map-header{padding:16px 20px}
+  .view-toggle{flex-wrap:wrap}
+  .view-btn{padding:7px 14px;font-size:0.75rem}
+  .school-btn{padding:5px 10px;font-size:0.7rem}
 
   /* Bottom sheet instead of side panel */
   .map-body{flex-direction:column}
@@ -324,6 +357,17 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <h1 id="mapTitle">Explore Phoenix Metro Neighborhoods</h1>
 <p id="mapSubtitle">Click any city to explore neighborhoods</p>
 <p class="map-header-subtitle" id="mapDrillLabel"></p>
+<div class="view-toggle" id="viewToggle">
+  <button class="view-btn active" data-view="cities">Cities</button>
+  <button class="view-btn" data-view="neighborhoods">Neighborhoods</button>
+  <button class="view-btn" data-view="schools">Schools</button>
+</div>
+<div class="school-toggle" id="schoolToggle">
+  <button class="school-btn active" data-level="districts">Districts</button>
+  <button class="school-btn" data-level="high">High Schools</button>
+  <button class="school-btn" data-level="middle">Middle Schools</button>
+  <button class="school-btn" data-level="elementary">Elementary</button>
+</div>
 </div>
 <div class="map-body">
 <div class="map-container">
@@ -399,6 +443,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <script src="neighborhoods-data.js"></script>
 <script src="phoenix-neighborhoods.js"></script>
 <script src="gilbert-neighborhoods.js"></script>
+<script src="school-zones.js"></script>
 <script>
 (function(){
   var toggle = document.getElementById('navToggle');
@@ -443,8 +488,16 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   var drillStyle = {color:'#1f4e60',weight:1.5,fillColor:'#1f4e60',fillOpacity:0.10};
   var drillHover = {fillOpacity:0.30,weight:2.5};
 
+  // School zone styles
+  var schoolDistrictStyle = {color:'#1a5276',weight:2,fillColor:'#2e86c1',fillOpacity:0.08,dashArray:'4 4'};
+  var schoolDistrictHover = {fillOpacity:0.22,weight:3};
+  var schoolZoneStyle = {color:'#1a5276',weight:1.5,fillColor:'#2e86c1',fillOpacity:0.12};
+  var schoolZoneHover = {fillOpacity:0.30,weight:2.5};
+
   var metroLayers = L.layerGroup().addTo(map);
   var drillLayers = L.layerGroup();
+  var neighborhoodLayers = L.layerGroup();
+  var schoolLayers = L.layerGroup();
   var backBtn = document.getElementById('backBtn');
   var mapTitle = document.getElementById('mapTitle');
   var mapSubtitle = document.getElementById('mapSubtitle');
@@ -455,6 +508,88 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null,
     'Gilbert': typeof GILBERT_HOODS !== 'undefined' ? GILBERT_HOODS : null
   };
+
+  /* ================================================================
+     VIEW TOGGLE STATE
+     ================================================================ */
+  var currentView = 'cities';     // 'cities', 'neighborhoods', 'schools'
+  var currentSchoolLevel = 'districts'; // 'districts', 'high', 'middle', 'elementary'
+  var isDrilledDown = false;
+  var drilledCity = null;
+
+  var viewToggle = document.getElementById('viewToggle');
+  var schoolToggle = document.getElementById('schoolToggle');
+
+  viewToggle.addEventListener('click', function(e){
+    var btn = e.target.closest('.view-btn');
+    if(!btn) return;
+    var view = btn.getAttribute('data-view');
+    if(view === currentView) return;
+
+    // Update button states
+    viewToggle.querySelectorAll('.view-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    currentView = view;
+    switchView(view);
+  });
+
+  schoolToggle.addEventListener('click', function(e){
+    var btn = e.target.closest('.school-btn');
+    if(!btn) return;
+    var level = btn.getAttribute('data-level');
+    if(level === currentSchoolLevel) return;
+
+    schoolToggle.querySelectorAll('.school-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    currentSchoolLevel = level;
+    buildSchoolView(level);
+  });
+
+  function switchView(view){
+    // Clear everything
+    clearAllLayers();
+    clearListings();
+    closePanel();
+    backBtn.classList.remove('active');
+    drillLabel.classList.remove('active');
+    isDrilledDown = false;
+    drilledCity = null;
+
+    // Show/hide school sub-toggle
+    if(view === 'schools'){
+      schoolToggle.classList.add('visible');
+    } else {
+      schoolToggle.classList.remove('visible');
+    }
+
+    if(view === 'cities'){
+      mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
+      mapSubtitle.textContent = 'Click any city to explore neighborhoods';
+      buildMetro();
+      map.setView([33.50,-111.95],10);
+    } else if(view === 'neighborhoods'){
+      mapTitle.textContent = 'All Neighborhoods';
+      mapSubtitle.textContent = 'Click a neighborhood to search homes';
+      buildAllNeighborhoods();
+    } else if(view === 'schools'){
+      mapTitle.textContent = 'School Attendance Zones';
+      mapSubtitle.textContent = 'Click a zone to search homes';
+      buildSchoolView(currentSchoolLevel);
+    }
+  }
+
+  function clearAllLayers(){
+    map.removeLayer(metroLayers);
+    metroLayers.clearLayers();
+    map.removeLayer(drillLayers);
+    drillLayers.clearLayers();
+    map.removeLayer(neighborhoodLayers);
+    neighborhoodLayers.clearLayers();
+    map.removeLayer(schoolLayers);
+    schoolLayers.clearLayers();
+  }
 
   /* ================================================================
      LISTINGS PANEL REFERENCES
@@ -696,8 +831,69 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     return layer;
   }
 
+  /* ================================================================
+     ADD SCHOOL POLYGON (blue style, school-specific popup)
+     ================================================================ */
+  function addSchoolPolygon(zone, layerGroup, style, hover){
+    var layer;
+    if(zone.type === 'MultiPolygon'){
+      layer = L.polygon(zone.coords, style).addTo(layerGroup);
+    } else {
+      layer = L.polygon(zone.coords[0], style).addTo(layerGroup);
+    }
+    var center = layer.getBounds().getCenter();
+    var labelClass = 'school-label';
+    L.marker(center, {
+      icon: L.divIcon({
+        className: labelClass,
+        html: zone.name,
+        iconSize:[140,20],
+        iconAnchor:[70,10]
+      })
+    }).addTo(layerGroup);
+
+    layer.on('mouseover',function(){this.setStyle(hover)});
+    layer.on('mouseout',function(){this.setStyle(style)});
+
+    // Build popup content
+    var popupDesc = '';
+    if(zone.district){
+      popupDesc = '<p>' + zone.district + ' district</p>';
+    }
+    if(zone.school){
+      // Add school marker icon
+      var schoolMarker = L.marker([zone.school.lat, zone.school.lng], {
+        icon: L.divIcon({
+          className:'',
+          html:'<div style="width:10px;height:10px;background:#1a5276;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+          iconSize:[10,10],
+          iconAnchor:[5,5]
+        })
+      }).addTo(layerGroup);
+    }
+
+    layer.bindPopup(
+      '<div class="hood-popup">'+
+      '<h3>'+zone.name+'</h3>'+
+      popupDesc+
+      '<a href="'+searchUrl(zone.coords)+'" target="_blank">Search Homes in Zone</a>'+
+      '</div>',
+      {maxWidth:280}
+    );
+
+    // Click fetches listings for this polygon
+    layer.on('click', function(){
+      fetchListingsForPolygon(zone);
+    });
+
+    return layer;
+  }
+
   // Build metro view
   function buildMetro(){
+    metroLayers.clearLayers();
+    metroLayers.addTo(map);
+
     // Tribal lands
     var tribalStyle = {color:'#6a8290',weight:1,fillColor:'#6a8290',fillOpacity:0.1,dashArray:'6 3'};
     MAPDATA.tribal.forEach(function(t){
@@ -743,6 +939,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     var hoods = drillData[cityName];
     if(!hoods) return;
 
+    isDrilledDown = true;
+    drilledCity = cityName;
+
     map.closePopup();
     map.removeLayer(metroLayers);
     drillLayers.clearLayers();
@@ -762,6 +961,73 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     mapSubtitle.textContent = 'Click a neighborhood to search homes';
     drillLabel.textContent = 'Viewing neighborhoods within ' + cityName;
     drillLabel.classList.add('active');
+  }
+
+  /* ================================================================
+     BUILD ALL NEIGHBORHOODS VIEW
+     ================================================================ */
+  function buildAllNeighborhoods(){
+    neighborhoodLayers.clearLayers();
+    neighborhoodLayers.addTo(map);
+
+    // Gather all neighborhoods from all drill-down data
+    var allHoods = [];
+    Object.keys(drillData).forEach(function(cityName){
+      var hoods = drillData[cityName];
+      if(hoods && hoods.length){
+        allHoods = allHoods.concat(hoods);
+      }
+    });
+
+    if(allHoods.length === 0){
+      // Fallback: just show cities
+      mapSubtitle.textContent = 'No neighborhood data available yet';
+      return;
+    }
+
+    allHoods.forEach(function(hood){
+      addPolygon(hood, neighborhoodLayers, drillStyle, drillHover);
+    });
+
+    // Zoom to fit all neighborhoods
+    var bounds = neighborhoodLayers.getBounds();
+    if(bounds.isValid()){
+      map.fitBounds(bounds, {padding:[40,40]});
+    }
+  }
+
+  /* ================================================================
+     BUILD SCHOOL ZONES VIEW
+     ================================================================ */
+  function buildSchoolView(level){
+    schoolLayers.clearLayers();
+    schoolLayers.addTo(map);
+
+    if(typeof SCHOOL_ZONES === 'undefined') return;
+
+    var zones = SCHOOL_ZONES[level];
+    if(!zones || zones.length === 0){
+      mapSubtitle.textContent = level === 'middle' || level === 'elementary'
+        ? 'Coming soon -- ' + level + ' school zones not yet available'
+        : 'No data available for this level';
+      return;
+    }
+
+    mapSubtitle.textContent = 'Click a zone to search homes';
+
+    var isDistrict = (level === 'districts');
+    var style = isDistrict ? schoolDistrictStyle : schoolZoneStyle;
+    var hover = isDistrict ? schoolDistrictHover : schoolZoneHover;
+
+    zones.forEach(function(zone){
+      addSchoolPolygon(zone, schoolLayers, style, hover);
+    });
+
+    // Zoom to fit
+    var bounds = schoolLayers.getBounds();
+    if(bounds.isValid()){
+      map.fitBounds(bounds, {padding:[40,40]});
+    }
   }
 
   /* ================================================================
@@ -958,20 +1224,27 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   });
 
   function backToMetro(){
-    map.removeLayer(drillLayers);
-    drillLayers.clearLayers();
-    clearListings();
-    closePanel();
-    metroLayers.addTo(map);
-    map.setView([33.50,-111.95],10);
+    // If we are in a drill-down within cities view, go back to cities
+    if(isDrilledDown && currentView === 'cities'){
+      map.removeLayer(drillLayers);
+      drillLayers.clearLayers();
+      clearListings();
+      closePanel();
+      buildMetro();
+      map.setView([33.50,-111.95],10);
 
-    backBtn.classList.remove('active');
-    mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
-    mapSubtitle.textContent = 'Click any city to explore neighborhoods';
-    drillLabel.classList.remove('active');
+      isDrilledDown = false;
+      drilledCity = null;
+      backBtn.classList.remove('active');
+      mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
+      mapSubtitle.textContent = 'Click any city to explore neighborhoods';
+      drillLabel.classList.remove('active');
+    }
   }
 
   backBtn.addEventListener('click', backToMetro);
+
+  // Initial build
   buildMetro();
 })();
 </script>
