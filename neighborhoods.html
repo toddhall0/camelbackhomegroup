@@ -902,6 +902,59 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     markerMap = {};
   }
 
+  function filterListingsToView(){
+    if(!currentListings || currentListings.length === 0) return;
+    var bounds = map.getBounds();
+    var visible = currentListings.filter(function(l){
+      return bounds.contains([l.lat, l.lng]);
+    });
+
+    // Update markers — show only visible
+    listingMarkers.clearLayers();
+    markerMap = {};
+    visible.forEach(function(l){
+      var marker = L.marker([l.lat,l.lng],{icon:listingIcon}).addTo(listingMarkers);
+      var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+escHtml(l.address)+'">' : '';
+      marker.bindPopup(
+        '<div class="listing-popup">'+
+        photoHtml+
+        '<div class="listing-popup-body">'+
+        '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
+        '<div class="listing-popup-address">'+escHtml(l.address)+(l.city?', '+escHtml(l.city):'')+'</div>'+
+        '<div class="listing-popup-details">'+
+        (l.beds?'<span>'+l.beds+' bed</span>':'')+
+        (l.baths?'<span>'+l.baths+' bath</span>':'')+
+        (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
+        '</div>'+
+        '<a href="'+searchBase+'?mlsId='+l.id+'" target="_blank">View Listing</a>'+
+        '</div></div>',
+        {maxWidth:260,minWidth:220}
+      );
+      marker.on('click', function(){
+        highlightCard(l.id);
+      });
+      marker.on('popupclose', function(){
+        var entry = markerMap[l.id];
+        if(entry && entry.card) entry.card.classList.remove('active');
+        unhighlightMarker(l.id);
+      });
+      if(!markerMap[l.id]) markerMap[l.id] = {};
+      markerMap[l.id].marker = marker;
+    });
+
+    // Update panel cards
+    renderListingCards(visible, currentHood ? currentHood.name : '');
+    countEl.textContent = visible.length + ' of ' + currentListings.length + ' listings in view';
+    countEl.classList.add('active');
+  }
+
+  var viewFilterTimer;
+  map.on('moveend', function(){
+    if(!currentListings || currentListings.length === 0) return;
+    clearTimeout(viewFilterTimer);
+    viewFilterTimer = setTimeout(filterListingsToView, 300);
+  });
+
   function backToMetro(){
     map.removeLayer(drillLayers);
     drillLayers.clearLayers();
