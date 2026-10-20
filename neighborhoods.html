@@ -62,6 +62,27 @@ text-transform:uppercase;padding:10px 20px;background:var(--gold);color:var(--wh
 color:#1f4e60;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),
 -1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8)}
 
+/* LISTING MARKERS */
+.listing-popup{padding:0;min-width:220px;font-family:var(--font-sans)}
+.listing-popup img{width:100%;height:130px;object-fit:cover}
+.listing-popup-body{padding:14px 16px}
+.listing-popup-price{font-family:var(--font-serif);font-size:1.3rem;color:var(--text-dark);margin-bottom:4px}
+.listing-popup-address{font-size:0.82rem;color:var(--text-light);margin-bottom:8px}
+.listing-popup-details{font-size:0.82rem;color:var(--text-mid);margin-bottom:10px}
+.listing-popup-details span{margin-right:10px}
+.listing-popup a{display:block;text-align:center;font-size:0.78rem;font-weight:500;
+letter-spacing:0.06em;text-transform:uppercase;padding:8px;background:var(--gold);
+color:var(--white);transition:background 0.3s}
+.listing-popup a:hover{background:var(--gold-light)}
+.listings-loading{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+z-index:800;background:var(--charcoal);color:var(--white);padding:10px 24px;
+font-size:0.88rem;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:none}
+.listings-loading.active{display:block}
+.listings-count{position:absolute;bottom:24px;right:12px;z-index:800;
+background:var(--charcoal);color:var(--white);padding:8px 16px;font-size:0.82rem;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);display:none}
+.listings-count.active{display:block}
+
 @media(max-width:640px){
 .nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
 background:var(--charcoal);flex-direction:column;padding:80px 32px;
@@ -110,6 +131,8 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <p class="map-header-subtitle" id="mapDrillLabel"></p>
 </div>
 <button class="back-btn" id="backBtn">&larr; Back to Metro View</button>
+<div class="listings-loading" id="listingsLoading">Loading listings...</div>
+<div class="listings-count" id="listingsCount"></div>
 <div id="map"></div>
 </div>
 
@@ -273,9 +296,94 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     drillLabel.classList.add('active');
   }
 
+  // LISTING MARKERS
+  var listingMarkers = L.layerGroup().addTo(map);
+  var loadingEl = document.getElementById('listingsLoading');
+  var countEl = document.getElementById('listingsCount');
+  var listingIcon = L.divIcon({
+    className:'',
+    html:'<div style="width:12px;height:12px;background:#cc624c;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+    iconSize:[12,12],
+    iconAnchor:[6,6]
+  });
+
+  function formatPrice(n){
+    if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
+    if(n>=1000) return '$'+(n/1000).toFixed(0)+'K';
+    return '$'+n;
+  }
+
+  function fetchListings(){
+    var bounds = map.getBounds();
+    var zoom = map.getZoom();
+    if(zoom < 11){ clearListings(); return; }
+
+    loadingEl.classList.add('active');
+    countEl.classList.remove('active');
+
+    fetch('/.netlify/functions/listings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        south:bounds.getSouth(),
+        north:bounds.getNorth(),
+        west:bounds.getWest(),
+        east:bounds.getEast(),
+        limit: zoom >= 14 ? 200 : zoom >= 12 ? 100 : 50
+      })
+    })
+    .then(function(r){return r.json()})
+    .then(function(data){
+      loadingEl.classList.remove('active');
+      listingMarkers.clearLayers();
+      if(!data.listings || data.listings.length===0){
+        countEl.textContent = 'No listings in view';
+        countEl.classList.add('active');
+        return;
+      }
+      data.listings.forEach(function(l){
+        var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+l.address+'">' : '';
+        var marker = L.marker([l.lat,l.lng],{icon:listingIcon}).addTo(listingMarkers);
+        marker.bindPopup(
+          '<div class="listing-popup">'+
+          photoHtml+
+          '<div class="listing-popup-body">'+
+          '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
+          '<div class="listing-popup-address">'+l.address+(l.city?', '+l.city:'')+'</div>'+
+          '<div class="listing-popup-details">'+
+          (l.beds?'<span>'+l.beds+' bed</span>':'')+
+          (l.baths?'<span>'+l.baths+' bath</span>':'')+
+          (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
+          '</div>'+
+          '<a href="'+searchBase+'?mlsId='+l.id+'" target="_blank">View Listing</a>'+
+          '</div></div>',
+          {maxWidth:260,minWidth:220}
+        );
+      });
+      countEl.textContent = data.listings.length+' listings in view';
+      countEl.classList.add('active');
+    })
+    .catch(function(){
+      loadingEl.classList.remove('active');
+    });
+  }
+
+  function clearListings(){
+    listingMarkers.clearLayers();
+    countEl.classList.remove('active');
+  }
+
+  // Fetch listings when map moves/zooms (debounced)
+  var fetchTimer;
+  map.on('moveend',function(){
+    clearTimeout(fetchTimer);
+    fetchTimer = setTimeout(fetchListings, 400);
+  });
+
   function backToMetro(){
     map.removeLayer(drillLayers);
     drillLayers.clearLayers();
+    clearListings();
     metroLayers.addTo(map);
     map.setView([33.50,-111.95],10);
 
