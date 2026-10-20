@@ -398,6 +398,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="neighborhoods-data.js"></script>
 <script src="phoenix-neighborhoods.js"></script>
+<script src="gilbert-neighborhoods.js"></script>
 <script>
 (function(){
   var toggle = document.getElementById('navToggle');
@@ -451,7 +452,8 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 
   // Neighborhood data registry — add more cities here later
   var drillData = {
-    'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null
+    'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null,
+    'Gilbert': typeof GILBERT_HOODS !== 'undefined' ? GILBERT_HOODS : null
   };
 
   /* ================================================================
