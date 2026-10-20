@@ -216,6 +216,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     if(onClick){
       layer.on('click', onClick);
     } else {
+      layer.on('click', function(){
+        fetchListingsForPolygon(hood);
+      });
       layer.bindPopup(
         '<div class="hood-popup">'+
         '<h3>'+hood.name+'</h3>'+
@@ -313,31 +316,30 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     return '$'+n;
   }
 
-  function fetchListings(){
-    var bounds = map.getBounds();
-    var zoom = map.getZoom();
-    if(zoom < 11){ clearListings(); return; }
+  function fetchListingsForPolygon(hood){
+    var pts = Array.isArray(hood.coords[0][0]) ? hood.coords.reduce(function(a,b){return a.length>b.length?a:b}) : hood.coords[0];
+    // Simplify polygon for API (max ~30 points)
+    var step = Math.max(1, Math.floor(pts.length / 30));
+    var simplified = [];
+    for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
 
     loadingEl.classList.add('active');
     countEl.classList.remove('active');
+    listingMarkers.clearLayers();
 
     fetch('/.netlify/functions/listings',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        south:bounds.getSouth(),
-        north:bounds.getNorth(),
-        west:bounds.getWest(),
-        east:bounds.getEast(),
-        limit: zoom >= 14 ? 200 : zoom >= 12 ? 100 : 50
+        polygon: simplified,
+        limit: 200
       })
     })
     .then(function(r){return r.json()})
     .then(function(data){
       loadingEl.classList.remove('active');
-      listingMarkers.clearLayers();
       if(!data.listings || data.listings.length===0){
-        countEl.textContent = 'No listings in view';
+        countEl.textContent = 'No listings in '+hood.name;
         countEl.classList.add('active');
         return;
       }
@@ -360,7 +362,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
           {maxWidth:260,minWidth:220}
         );
       });
-      countEl.textContent = data.listings.length+' listings in view';
+      countEl.textContent = data.listings.length+' listings in '+hood.name;
       countEl.classList.add('active');
     })
     .catch(function(){
@@ -372,13 +374,6 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     listingMarkers.clearLayers();
     countEl.classList.remove('active');
   }
-
-  // Fetch listings when map moves/zooms (debounced)
-  var fetchTimer;
-  map.on('moveend',function(){
-    clearTimeout(fetchTimer);
-    fetchTimer = setTimeout(fetchListings, 400);
-  });
 
   function backToMetro(){
     map.removeLayer(drillLayers);

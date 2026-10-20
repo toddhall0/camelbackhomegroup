@@ -38,9 +38,9 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
   }
 
-  const { south, north, west, east, limit } = body;
-  if (!south || !north || !west || !east) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Bounding box required" }) };
+  const { south, north, west, east, limit, polygon } = body;
+  if (!polygon && (!south || !north || !west || !east)) {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Bounding box or polygon required" }) };
   }
 
   try {
@@ -54,11 +54,18 @@ exports.handler = async (event) => {
       "sort": "-listprice",
     });
 
-    // points requires a polygon (min 3 points) — use 4 corners of bounding box
-    params.append("points", `${south},${west}`);
-    params.append("points", `${north},${west}`);
-    params.append("points", `${north},${east}`);
-    params.append("points", `${south},${east}`);
+    if (polygon && Array.isArray(polygon)) {
+      // Use the actual neighborhood polygon points
+      polygon.forEach(function(pt) {
+        params.append("points", `${pt[0]},${pt[1]}`);
+      });
+    } else {
+      // Fallback to bounding box corners
+      params.append("points", `${south},${west}`);
+      params.append("points", `${north},${west}`);
+      params.append("points", `${north},${east}`);
+      params.append("points", `${south},${east}`);
+    }
 
     const url = `https://api.simplyrets.com/properties?${params.toString()}`;
 
