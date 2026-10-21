@@ -37,9 +37,9 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
   }
 
-  const { south, north, west, east, limit, polygon, minPrice, maxPrice, minBeds, minBaths, minSqft, maxSqft, sort } = body;
-  if (!polygon && (!south || !north || !west || !east)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Bounding box or polygon required" }) };
+  const { south, north, west, east, limit, polygon, minPrice, maxPrice, minBeds, minBaths, minSqft, maxSqft, sort, q } = body;
+  if (!q && !polygon && (!south || !north || !west || !east)) {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Search query, bounding box, or polygon required" }) };
   }
 
   try {
@@ -60,11 +60,13 @@ exports.handler = async (event) => {
     if (minSqft) params.set("minarea", String(minSqft));
     if (maxSqft) params.set("maxarea", String(maxSqft));
 
-    if (polygon && Array.isArray(polygon)) {
+    if (q) {
+      params.set("q", q);
+    } else if (polygon && Array.isArray(polygon)) {
       polygon.forEach(function(pt) {
         params.append("points", `${pt[0]},${pt[1]}`);
       });
-    } else {
+    } else if (south && north && west && east) {
       params.append("points", `${south},${west}`);
       params.append("points", `${north},${west}`);
       params.append("points", `${north},${east}`);
