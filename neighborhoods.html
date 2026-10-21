@@ -1326,15 +1326,19 @@ function initMap(){
 
   function fetchListingsForPolygon(hood){
     currentHood = hood;
-    var pts;
-    if(hood.type === 'MultiPolygon'){
-      pts = hood.coords.reduce(function(a,b){return a.length>b.length?a:b});
-    } else {
-      pts = hood.coords[0];
-    }
-    var step = Math.max(1, Math.floor(pts.length / 30));
     var simplified = [];
-    for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
+    if(!hood.qOnly && hood.coords && hood.coords.length > 0){
+      var pts;
+      if(hood.type === 'MultiPolygon'){
+        pts = hood.coords.reduce(function(a,b){return a.length>b.length?a:b});
+      } else {
+        pts = hood.coords[0];
+      }
+      if(pts && pts.length > 0){
+        var step = Math.max(1, Math.floor(pts.length / 30));
+        for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
+      }
+    }
 
     loadingEl.classList.add('active');
     countEl.classList.remove('active');
@@ -1348,9 +1352,9 @@ function initMap(){
     openPanel();
 
     var body = {
-      polygon: simplified,
       limit: 200
     };
+    if(simplified.length > 0) body.polygon = simplified;
     if(hood.searchQ) body.q = hood.searchQ;
     var filters = getFilterValues();
     if(filters.minPrice) body.minPrice = filters.minPrice;
@@ -1498,17 +1502,14 @@ function initMap(){
             // Use the exact city polygon — limits results to that city only
             fetchListingsForPolygon(matchedHood);
           } else {
-            // Use the geocoded bounds as a polygon, plus pass q for server-side filtering
-            var mb = map.getBounds();
+            // Not a city — use q parameter only (works for addresses, zips, neighborhoods)
             var hood = {
               name: urlQ,
               desc: 'Search results for "' + urlQ + '"',
               type: 'Polygon',
-              coords: [[[mb.getNorthEast().lat(), mb.getNorthEast().lng()],
-                        [mb.getNorthEast().lat(), mb.getSouthWest().lng()],
-                        [mb.getSouthWest().lat(), mb.getSouthWest().lng()],
-                        [mb.getSouthWest().lat(), mb.getNorthEast().lng()]]],
-              searchQ: urlQ
+              coords: [],
+              searchQ: urlQ,
+              qOnly: true
             };
             fetchListingsForPolygon(hood);
           }
