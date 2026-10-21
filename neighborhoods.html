@@ -261,6 +261,14 @@ text-transform:uppercase;padding:10px 20px;background:var(--gold);color:var(--wh
   pointer-events:none;
 }
 
+/* ZIP CODE LABELS */
+.gm-zip-label{
+  font-family:'Jost',sans-serif;font-size:13px;font-weight:600;
+  color:#4a235a;text-align:center;white-space:nowrap;
+  background:rgba(255,255,255,0.7);padding:2px 6px;border-radius:3px;
+  pointer-events:none;
+}
+
 /* LISTING POPUP (inside InfoWindow) */
 .listing-popup{padding:0;min-width:220px;font-family:var(--font-sans)}
 .listing-popup img{width:100%;height:130px;object-fit:cover}
@@ -1228,8 +1236,8 @@ function initMap(){
   /* ================================================================
      ZIP CODE VIEW
      ================================================================ */
-  var zipStyle = {fillColor:'#8e44ad', fillOpacity:0.10, strokeColor:'#6c3483', strokeWeight:1.5, strokeOpacity:1};
-  var zipHover = {fillOpacity:0.30, strokeWeight:2.5};
+  var zipStyle = {fillColor:'#8e44ad', fillOpacity:0.18, strokeColor:'#4a235a', strokeWeight:2, strokeOpacity:1};
+  var zipHover = {fillOpacity:0.35, strokeWeight:3};
 
   function buildZipCodeView(){
     clearMapObjects(zipcodeObjects);
@@ -1256,7 +1264,7 @@ function initMap(){
 
       var bounds = getPolygonBounds(polygon);
       var center = bounds.getCenter();
-      var label = new LabelOverlay(center, zip.name, 'gm-neighborhood-label', map);
+      var label = new LabelOverlay(center, zip.name, 'gm-zip-label', map);
       zipcodeObjects.push(label);
 
       google.maps.event.addListener(polygon, 'mouseover', function(){
