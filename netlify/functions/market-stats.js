@@ -146,7 +146,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ city, error: "Failed to calculate stats" }),
+      body: JSON.stringify({ city, error: "Failed to calculate stats", detail: err.message }),
     };
   }
 };
