@@ -876,7 +876,6 @@ function initMap(){
         '<div class="listing-card-address">' + escHtml(l.address) + (l.city ? ', ' + escHtml(l.city) : '') + '</div>' +
         '<div class="listing-card-badges">' + badgeParts.join('') + '</div>' +
         yearHtml +
-        '<a class="listing-card-link" href="property.html?id=' + l.id + '" onclick="event.stopPropagation()">View Property</a>' +
         '</div>';
 
       card.addEventListener('mouseenter', function(){
@@ -886,7 +885,7 @@ function initMap(){
         unhighlightMarker(l.id);
       });
       card.addEventListener('click', function(){
-        activateListingFromCard(l.id);
+        window.open('property.html?id=' + l.id, '_blank');
       });
 
       panelListings.appendChild(card);
