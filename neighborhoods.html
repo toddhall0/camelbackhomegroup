@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -214,9 +213,12 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 }
 .panel-idx-link:hover{background:var(--gold);color:var(--white)}
 
-/* CUSTOM POPUP */
-.leaflet-popup-content-wrapper{border-radius:0;font-family:var(--font-sans);box-shadow:0 4px 16px rgba(0,0,0,0.2)}
-.leaflet-popup-content{margin:0;padding:0}
+/* GOOGLE MAPS INFOWINDOW OVERRIDES */
+.gm-style .gm-style-iw-c{padding:0 !important;border-radius:0 !important;box-shadow:0 4px 16px rgba(0,0,0,0.2) !important}
+.gm-style .gm-style-iw-d{overflow:hidden !important}
+.gm-style .gm-style-iw-tc::after{background:var(--white) !important}
+
+/* CUSTOM POPUP (inside InfoWindow) */
 .hood-popup{padding:20px 24px;min-width:200px}
 .hood-popup h3{font-family:var(--font-serif);font-size:1.2rem;color:var(--text-dark);margin-bottom:8px}
 .hood-popup p{font-size:0.88rem;color:var(--text-light);margin-bottom:14px;line-height:1.5}
@@ -224,17 +226,34 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 text-transform:uppercase;padding:10px 20px;background:var(--gold);color:var(--white);transition:background 0.3s}
 .hood-popup a:hover{background:var(--gold-light)}
 
-/* NEIGHBORHOOD LABELS */
-.neighborhood-label{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
-color:#1f4e60;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),
--1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8)}
+/* NEIGHBORHOOD LABELS (custom overlay) */
+.gm-neighborhood-label{
+  font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
+  color:#1f4e60;text-align:center;white-space:nowrap;
+  text-shadow:1px 1px 2px rgba(255,255,255,0.9),
+  -1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8);
+  pointer-events:none;
+}
+
+/* TRIBAL LABELS */
+.gm-tribal-label{
+  font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
+  color:#6a8290;font-style:italic;text-align:center;white-space:nowrap;
+  text-shadow:1px 1px 2px rgba(255,255,255,0.9),
+  -1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8);
+  pointer-events:none;
+}
 
 /* SCHOOL ZONE LABELS */
-.school-label{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
-color:#1a5276;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),
--1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8)}
+.gm-school-label{
+  font-family:'Jost',sans-serif;font-size:11px;font-weight:500;
+  color:#1a5276;text-align:center;white-space:nowrap;
+  text-shadow:1px 1px 2px rgba(255,255,255,0.9),
+  -1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8);
+  pointer-events:none;
+}
 
-/* LISTING MARKERS */
+/* LISTING POPUP (inside InfoWindow) */
 .listing-popup{padding:0;min-width:220px;font-family:var(--font-sans)}
 .listing-popup img{width:100%;height:130px;object-fit:cover}
 .listing-popup-body{padding:14px 16px}
@@ -254,20 +273,6 @@ font-size:0.88rem;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:none}
 background:var(--charcoal);color:var(--white);padding:8px 16px;font-size:0.82rem;
 box-shadow:0 2px 8px rgba(0,0,0,0.3);display:none}
 .listings-count.active{display:block}
-
-/* Highlighted marker */
-.listing-marker-highlight div{
-  background:#1f4e60 !important;
-  transform:scale(1.5);
-  transition:transform 0.2s, background 0.2s;
-}
-@keyframes markerBounce{
-  0%,100%{transform:translateY(0)}
-  25%{transform:translateY(-14px)}
-  50%{transform:translateY(0)}
-  75%{transform:translateY(-7px)}
-}
-.listing-marker-bounce{animation:markerBounce 0.6s ease}
 
 /* Back button */
 .back-btn{display:none;position:absolute;top:10px;left:12px;z-index:800;
@@ -439,12 +444,14 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="neighborhoods-data.js"></script>
 <script src="phoenix-neighborhoods.js"></script>
 <script src="gilbert-neighborhoods.js"></script>
 <script src="school-zones.js"></script>
 <script>
+/* ================================================================
+   NAV TOGGLE (runs immediately, no map dependency)
+   ================================================================ */
 (function(){
   var toggle = document.getElementById('navToggle');
   var links = document.getElementById('navLinks');
@@ -452,20 +459,141 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   links.querySelectorAll('a').forEach(function(a){
     a.addEventListener('click', function(){links.classList.remove('open')});
   });
+})();
 
-  var map = L.map('map',{zoomControl:true}).setView([33.50,-111.95],10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom:18
-  }).addTo(map);
+/* ================================================================
+   LABEL OVERLAY CLASS
+   Custom overlay for neighborhood/school/tribal labels that
+   floats text over the map without blocking polygon click events.
+   ================================================================ */
+function LabelOverlay(position, text, className, mapInstance){
+  this.position_ = position;
+  this.text_ = text;
+  this.className_ = className;
+  this.div_ = null;
+  this.setMap(mapInstance);
+}
 
+/* ================================================================
+   GOOGLE MAPS INIT CALLBACK
+   All map logic lives here, called when the API is ready.
+   ================================================================ */
+function initMap(){
+  /* --- Set up LabelOverlay prototype (needs google.maps.OverlayView) --- */
+  LabelOverlay.prototype = Object.create(google.maps.OverlayView.prototype);
+  LabelOverlay.prototype.constructor = LabelOverlay;
+
+  LabelOverlay.prototype.onAdd = function(){
+    var div = document.createElement('div');
+    div.className = this.className_;
+    div.style.position = 'absolute';
+    div.textContent = this.text_;
+    this.div_ = div;
+    var panes = this.getPanes();
+    panes.overlayLayer.appendChild(div);
+  };
+
+  LabelOverlay.prototype.draw = function(){
+    var projection = this.getProjection();
+    if(!projection || !this.div_) return;
+    var pos = projection.fromLatLngToDivPixel(this.position_);
+    if(pos){
+      this.div_.style.left = (pos.x - this.div_.offsetWidth / 2) + 'px';
+      this.div_.style.top = (pos.y - this.div_.offsetHeight / 2) + 'px';
+    }
+  };
+
+  LabelOverlay.prototype.onRemove = function(){
+    if(this.div_ && this.div_.parentNode){
+      this.div_.parentNode.removeChild(this.div_);
+      this.div_ = null;
+    }
+  };
+
+  /* --- Silver map style for a clean professional look --- */
+  var silverStyle = [
+    {elementType:'geometry',stylers:[{color:'#f5f5f5'}]},
+    {elementType:'labels.icon',stylers:[{visibility:'off'}]},
+    {elementType:'labels.text.fill',stylers:[{color:'#616161'}]},
+    {elementType:'labels.text.stroke',stylers:[{color:'#f5f5f5'}]},
+    {featureType:'administrative.land_parcel',elementType:'labels.text.fill',stylers:[{color:'#bdbdbd'}]},
+    {featureType:'poi',elementType:'geometry',stylers:[{color:'#eeeeee'}]},
+    {featureType:'poi',elementType:'labels.text.fill',stylers:[{color:'#757575'}]},
+    {featureType:'poi.park',elementType:'geometry',stylers:[{color:'#e5e5e5'}]},
+    {featureType:'poi.park',elementType:'labels.text.fill',stylers:[{color:'#9e9e9e'}]},
+    {featureType:'road',elementType:'geometry',stylers:[{color:'#ffffff'}]},
+    {featureType:'road.arterial',elementType:'labels.text.fill',stylers:[{color:'#757575'}]},
+    {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#dadada'}]},
+    {featureType:'road.highway',elementType:'labels.text.fill',stylers:[{color:'#616161'}]},
+    {featureType:'road.local',elementType:'labels.text.fill',stylers:[{color:'#9e9e9e'}]},
+    {featureType:'transit.line',elementType:'geometry',stylers:[{color:'#e5e5e5'}]},
+    {featureType:'transit.station',elementType:'geometry',stylers:[{color:'#eeeeee'}]},
+    {featureType:'water',elementType:'geometry',stylers:[{color:'#c9c9c9'}]},
+    {featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#9e9e9e'}]}
+  ];
+
+  /* --- Create the map --- */
+  var map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: 33.50, lng: -111.95},
+    zoom: 10,
+    styles: silverStyle,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false
+  });
+
+  /* --- Single shared InfoWindow --- */
+  var infoWindow = new google.maps.InfoWindow();
+  var activeListingId = null;
+
+  // When InfoWindow closes, clean up marker/card highlights
+  google.maps.event.addListener(infoWindow, 'closeclick', function(){
+    if(activeListingId){
+      unhighlightMarker(activeListingId);
+      var entry = markerMap[activeListingId];
+      if(entry && entry.card) entry.card.classList.remove('active');
+      activeListingId = null;
+    }
+  });
+
+  /* ================================================================
+     COORDINATE HELPERS
+     Data files use [[lat,lng],...] — Google Maps needs [{lat,lng},...]
+     ================================================================ */
+  function toGooglePath(ring){
+    return ring.map(function(p){ return {lat: p[0], lng: p[1]}; });
+  }
+
+  function getPolygonBounds(polygon){
+    var bounds = new google.maps.LatLngBounds();
+    polygon.getPaths().forEach(function(path){
+      path.forEach(function(pt){ bounds.extend(pt); });
+    });
+    return bounds;
+  }
+
+  function getObjectsBounds(objects){
+    var bounds = new google.maps.LatLngBounds();
+    objects.forEach(function(obj){
+      if(obj.getPaths){ // Polygon
+        obj.getPaths().forEach(function(path){
+          path.forEach(function(pt){ bounds.extend(pt); });
+        });
+      } else if(obj.getPosition){ // Marker
+        bounds.extend(obj.getPosition());
+      }
+    });
+    return bounds;
+  }
+
+  /* ================================================================
+     SEARCH URL (unchanged from original)
+     ================================================================ */
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
 
   function searchUrl(coords){
-    // Build polygon search URL from coordinates
-    // coords is always [[ring],...] — use the longest ring
     var pts = coords.reduce(function(a,b){return a.length>b.length?a:b});
-    // Bounding box
     var lats = pts.map(function(p){return p[0]});
     var lons = pts.map(function(p){return p[1]});
     var north = Math.max.apply(null,lats);
@@ -474,7 +602,6 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     var west = Math.min.apply(null,lons);
     var centerLat = (north+south)/2;
     var centerLon = (east+west)/2;
-    // Build WKT polygon (lon lat pairs)
     var wktPts = pts.map(function(p){return p[1]+' '+p[0]}).join(',');
     var wkt = 'POLYGON(('+wktPts+'))';
     var encoded = btoa(wkt);
@@ -483,27 +610,59 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
       '/mapregion_'+encoded+
       '/view_map/listtypeinclude_Residential/statusinclude_Active/propertysubtypeexclude_Rental/locationmatchtype_AnyOf/';
   }
-  var hoodStyle = {color:'#1f4e60',weight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
-  var hoverStyle = {fillOpacity:0.35,weight:2.5};
-  var drillStyle = {color:'#1f4e60',weight:1.5,fillColor:'#1f4e60',fillOpacity:0.10};
-  var drillHover = {fillOpacity:0.30,weight:2.5};
 
-  // School zone styles
-  var schoolDistrictStyle = {color:'#1a5276',weight:2,fillColor:'#2e86c1',fillOpacity:0.08,dashArray:'4 4'};
-  var schoolDistrictHover = {fillOpacity:0.22,weight:3};
-  var schoolZoneStyle = {color:'#1a5276',weight:1.5,fillColor:'#2e86c1',fillOpacity:0.12};
-  var schoolZoneHover = {fillOpacity:0.30,weight:2.5};
+  /* ================================================================
+     POLYGON STYLE DEFINITIONS
+     ================================================================ */
+  var hoodStyle = {strokeColor:'#1f4e60',strokeWeight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
+  var hoverStyle = {fillOpacity:0.35,strokeWeight:2.5};
+  var drillStyle = {strokeColor:'#1f4e60',strokeWeight:1.5,fillColor:'#1f4e60',fillOpacity:0.10};
+  var drillHover = {fillOpacity:0.30,strokeWeight:2.5};
 
-  var metroLayers = L.layerGroup().addTo(map);
-  var drillLayers = L.layerGroup();
-  var neighborhoodLayers = L.layerGroup();
-  var schoolLayers = L.layerGroup();
+  var schoolDistrictStyle = {strokeColor:'#1a5276',strokeWeight:2,fillColor:'#2e86c1',fillOpacity:0.08};
+  var schoolDistrictHover = {fillOpacity:0.22,strokeWeight:3};
+  var schoolZoneStyle = {strokeColor:'#1a5276',strokeWeight:1.5,fillColor:'#2e86c1',fillOpacity:0.12};
+  var schoolZoneHover = {fillOpacity:0.30,strokeWeight:2.5};
+
+  var tribalStyle = {strokeColor:'#6a8290',strokeWeight:1,fillColor:'#6a8290',fillOpacity:0.1,strokeOpacity:0.6};
+
+  /* ================================================================
+     LAYER GROUP ARRAYS — replaces Leaflet LayerGroup
+     Each array holds google.maps.Polygon, Marker, and LabelOverlay objects.
+     ================================================================ */
+  var metroObjects = [];
+  var drillObjects = [];
+  var neighborhoodObjects = [];
+  var schoolObjects = [];
+  var listingMarkerObjects = [];
+
+  function clearMapObjects(arr){
+    for(var i = 0; i < arr.length; i++){
+      if(arr[i].setMap) arr[i].setMap(null);
+    }
+    arr.length = 0;
+  }
+
+  function showMapObjects(arr){
+    for(var i = 0; i < arr.length; i++){
+      if(arr[i].setMap) arr[i].setMap(map);
+    }
+  }
+
+  function hideMapObjects(arr){
+    for(var i = 0; i < arr.length; i++){
+      if(arr[i].setMap) arr[i].setMap(null);
+    }
+  }
+
+  /* ================================================================
+     UI REFERENCES
+     ================================================================ */
   var backBtn = document.getElementById('backBtn');
   var mapTitle = document.getElementById('mapTitle');
   var mapSubtitle = document.getElementById('mapSubtitle');
   var drillLabel = document.getElementById('mapDrillLabel');
 
-  // Neighborhood data registry — add more cities here later
   var drillData = {
     'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null,
     'Gilbert': typeof GILBERT_HOODS !== 'undefined' ? GILBERT_HOODS : null
@@ -512,8 +671,8 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   /* ================================================================
      VIEW TOGGLE STATE
      ================================================================ */
-  var currentView = 'cities';     // 'cities', 'neighborhoods', 'schools'
-  var currentSchoolLevel = 'districts'; // 'districts', 'high', 'middle', 'elementary'
+  var currentView = 'cities';
+  var currentSchoolLevel = 'districts';
   var isDrilledDown = false;
   var drilledCity = null;
 
@@ -526,7 +685,6 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     var view = btn.getAttribute('data-view');
     if(view === currentView) return;
 
-    // Update button states
     viewToggle.querySelectorAll('.view-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
 
@@ -548,16 +706,15 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   });
 
   function switchView(view){
-    // Clear everything
     clearAllLayers();
     clearListings();
     closePanel();
+    infoWindow.close();
     backBtn.classList.remove('active');
     drillLabel.classList.remove('active');
     isDrilledDown = false;
     drilledCity = null;
 
-    // Show/hide school sub-toggle
     if(view === 'schools'){
       schoolToggle.classList.add('visible');
     } else {
@@ -568,7 +725,8 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
       mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
       mapSubtitle.textContent = 'Click any city to explore neighborhoods';
       buildMetro();
-      map.setView([33.50,-111.95],10);
+      map.setCenter({lat:33.50, lng:-111.95});
+      map.setZoom(10);
     } else if(view === 'neighborhoods'){
       mapTitle.textContent = 'All Neighborhoods';
       mapSubtitle.textContent = 'Click a neighborhood to search homes';
@@ -581,14 +739,10 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   }
 
   function clearAllLayers(){
-    map.removeLayer(metroLayers);
-    metroLayers.clearLayers();
-    map.removeLayer(drillLayers);
-    drillLayers.clearLayers();
-    map.removeLayer(neighborhoodLayers);
-    neighborhoodLayers.clearLayers();
-    map.removeLayer(schoolLayers);
-    schoolLayers.clearLayers();
+    clearMapObjects(metroObjects);
+    clearMapObjects(drillObjects);
+    clearMapObjects(neighborhoodObjects);
+    clearMapObjects(schoolObjects);
   }
 
   /* ================================================================
@@ -611,25 +765,22 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   var filterMaxSqft = document.getElementById('filterMaxSqft');
   var filterSort = document.getElementById('filterSort');
 
-  // Track current state for re-fetching with filters
   var currentHood = null;
   var currentListings = [];
-  var markerMap = {}; // listing id -> {marker, card}
+  var markerMap = {};
 
   function openPanel(){
     listingsPanel.classList.add('open');
-    // Invalidate map size after transition
-    setTimeout(function(){ map.invalidateSize(); }, 380);
+    setTimeout(function(){ google.maps.event.trigger(map, 'resize'); }, 380);
   }
   function closePanel(){
     listingsPanel.classList.remove('open');
-    setTimeout(function(){ map.invalidateSize(); }, 380);
+    setTimeout(function(){ google.maps.event.trigger(map, 'resize'); }, 380);
   }
   panelCloseBtn.addEventListener('click', function(){
     closePanel();
   });
 
-  // Mobile drag handle: tap toggles open/close
   var dragHandle = listingsPanel.querySelector('.panel-drag-handle');
   if(dragHandle){
     dragHandle.addEventListener('click', function(){
@@ -639,14 +790,12 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     });
   }
 
-  // Filter apply
   filterApplyBtn.addEventListener('click', function(){
     if(currentHood){
       fetchListingsForPolygon(currentHood);
     }
   });
 
-  // Filter reset
   filterResetBtn.addEventListener('click', function(){
     filterMinPrice.value = '';
     filterMaxPrice.value = '';
@@ -717,14 +866,12 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
         '<a class="listing-card-link" href="' + searchBase + '?mlsId=' + l.id + '" target="_blank" onclick="event.stopPropagation()">View Listing</a>' +
         '</div>';
 
-      // Hover: highlight marker
       card.addEventListener('mouseenter', function(){
         highlightMarker(l.id, false);
       });
       card.addEventListener('mouseleave', function(){
         unhighlightMarker(l.id);
       });
-      // Click: bounce marker and open popup
       card.addEventListener('click', function(){
         activateListingFromCard(l.id);
       });
@@ -741,177 +888,246 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   }
 
   /* ================================================================
+     LISTING MARKER ICONS
+     ================================================================ */
+  var listingIcon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 6,
+    fillColor: '#cc624c',
+    fillOpacity: 1,
+    strokeColor: '#ffffff',
+    strokeWeight: 2
+  };
+
+  var highlightedListingIcon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 9,
+    fillColor: '#1f4e60',
+    fillOpacity: 1,
+    strokeColor: '#ffffff',
+    strokeWeight: 2
+  };
+
+  /* ================================================================
      MARKER HIGHLIGHT / BOUNCE
      ================================================================ */
   function highlightMarker(listingId, bounce){
     var entry = markerMap[listingId];
     if(!entry || !entry.marker) return;
-    var el = entry.marker.getElement();
-    if(!el) return;
-    el.classList.add('listing-marker-highlight');
+    entry.marker.setIcon(highlightedListingIcon);
     if(bounce){
-      el.classList.remove('listing-marker-bounce');
-      // Force reflow
-      void el.offsetWidth;
-      el.classList.add('listing-marker-bounce');
+      entry.marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(function(){
+        if(entry.marker) entry.marker.setAnimation(null);
+      }, 700);
     }
   }
+
   function unhighlightMarker(listingId){
     var entry = markerMap[listingId];
     if(!entry || !entry.marker) return;
-    var el = entry.marker.getElement();
-    if(!el) return;
-    el.classList.remove('listing-marker-highlight');
-    el.classList.remove('listing-marker-bounce');
+    entry.marker.setIcon(listingIcon);
+    entry.marker.setAnimation(null);
   }
 
   function activateListingFromCard(listingId){
     var entry = markerMap[listingId];
     if(!entry || !entry.marker) return;
 
-    // Clear any previous active card
+    // Clear previous active card
     var prev = panelListings.querySelector('.listing-card.active');
     if(prev) prev.classList.remove('active');
+    // Unhighlight previous active listing marker
+    if(activeListingId && activeListingId !== listingId){
+      unhighlightMarker(activeListingId);
+    }
 
     // Highlight card
     if(entry.card) entry.card.classList.add('active');
 
     // Pan map to marker
-    map.panTo(entry.marker.getLatLng());
+    map.panTo(entry.marker.getPosition());
 
-    // Bounce marker
+    // Bounce + highlight marker
     highlightMarker(listingId, true);
 
-    // Open popup
-    entry.marker.openPopup();
+    // Open InfoWindow with listing popup
+    if(entry.popupHtml){
+      infoWindow.setContent(entry.popupHtml);
+      infoWindow.open(map, entry.marker);
+    }
 
-    // Remove bounce after animation
-    setTimeout(function(){
-      var el = entry.marker.getElement();
-      if(el) el.classList.remove('listing-marker-bounce');
-    }, 700);
+    activeListingId = listingId;
   }
 
   /* ================================================================
-     POLYGON + ADDPOLYGON (unchanged logic, same drill/popup behavior)
+     ADD POLYGON HELPER
+     Creates a Google Maps Polygon + label overlay from hood data.
      ================================================================ */
-  function addPolygon(hood, layerGroup, style, hover, onClick){
-    var layer;
+  function addPolygon(hood, objectsArr, style, hover, onClick){
+    var paths;
     if(hood.type === 'MultiPolygon'){
-      layer = L.polygon(hood.coords, style).addTo(layerGroup);
+      paths = hood.coords.map(toGooglePath);
     } else {
-      layer = L.polygon(hood.coords[0], style).addTo(layerGroup);
+      paths = [toGooglePath(hood.coords[0])];
     }
-    var center = layer.getBounds().getCenter();
-    L.marker(center, {
-      icon: L.divIcon({
-        className:'neighborhood-label',
-        html:hood.name,
-        iconSize:[120,20],
-        iconAnchor:[60,10]
-      })
-    }).addTo(layerGroup);
-    layer.on('mouseover',function(){this.setStyle(hover)});
-    layer.on('mouseout',function(){this.setStyle(style)});
+
+    var polygon = new google.maps.Polygon({
+      paths: paths,
+      fillColor: style.fillColor,
+      fillOpacity: style.fillOpacity,
+      strokeColor: style.strokeColor,
+      strokeWeight: style.strokeWeight,
+      strokeOpacity: 1,
+      map: map
+    });
+    objectsArr.push(polygon);
+
+    // Compute center for label
+    var bounds = getPolygonBounds(polygon);
+    var center = bounds.getCenter();
+
+    // Add text label
+    var label = new LabelOverlay(center, hood.name, 'gm-neighborhood-label', map);
+    objectsArr.push(label);
+
+    // Hover effects
+    google.maps.event.addListener(polygon, 'mouseover', function(){
+      this.setOptions({fillOpacity: hover.fillOpacity, strokeWeight: hover.strokeWeight});
+    });
+    google.maps.event.addListener(polygon, 'mouseout', function(){
+      this.setOptions({fillOpacity: style.fillOpacity, strokeWeight: style.strokeWeight});
+    });
+
     if(onClick){
-      layer.on('click', onClick);
+      google.maps.event.addListener(polygon, 'click', onClick);
     } else {
-      layer.on('click', function(){
-        fetchListingsForPolygon(hood);
-      });
-      layer.bindPopup(
+      var popupHtml =
         '<div class="hood-popup">'+
         '<h3>'+hood.name+'</h3>'+
         '<p>'+hood.desc+'</p>'+
         '<a href="'+searchUrl(hood.coords)+'" target="_blank">Search Homes in '+hood.name+'</a>'+
-        '</div>',
-        {maxWidth:280}
-      );
+        '</div>';
+
+      google.maps.event.addListener(polygon, 'click', function(e){
+        fetchListingsForPolygon(hood);
+        infoWindow.setContent(popupHtml);
+        infoWindow.setPosition(e.latLng);
+        infoWindow.open(map);
+      });
     }
-    return layer;
+
+    return polygon;
   }
 
   /* ================================================================
      ADD SCHOOL POLYGON (blue style, school-specific popup)
      ================================================================ */
-  function addSchoolPolygon(zone, layerGroup, style, hover){
-    var layer;
+  function addSchoolPolygon(zone, objectsArr, style, hover){
+    var paths;
     if(zone.type === 'MultiPolygon'){
-      layer = L.polygon(zone.coords, style).addTo(layerGroup);
+      paths = zone.coords.map(toGooglePath);
     } else {
-      layer = L.polygon(zone.coords[0], style).addTo(layerGroup);
+      paths = [toGooglePath(zone.coords[0])];
     }
-    var center = layer.getBounds().getCenter();
-    var labelClass = 'school-label';
-    L.marker(center, {
-      icon: L.divIcon({
-        className: labelClass,
-        html: zone.name,
-        iconSize:[140,20],
-        iconAnchor:[70,10]
-      })
-    }).addTo(layerGroup);
 
-    layer.on('mouseover',function(){this.setStyle(hover)});
-    layer.on('mouseout',function(){this.setStyle(style)});
+    var polygon = new google.maps.Polygon({
+      paths: paths,
+      fillColor: style.fillColor,
+      fillOpacity: style.fillOpacity,
+      strokeColor: style.strokeColor,
+      strokeWeight: style.strokeWeight,
+      strokeOpacity: 1,
+      map: map
+    });
+    objectsArr.push(polygon);
 
-    // Build popup content
+    // Center label
+    var bounds = getPolygonBounds(polygon);
+    var center = bounds.getCenter();
+    var label = new LabelOverlay(center, zone.name, 'gm-school-label', map);
+    objectsArr.push(label);
+
+    // Hover effects
+    google.maps.event.addListener(polygon, 'mouseover', function(){
+      this.setOptions({fillOpacity: hover.fillOpacity, strokeWeight: hover.strokeWeight});
+    });
+    google.maps.event.addListener(polygon, 'mouseout', function(){
+      this.setOptions({fillOpacity: style.fillOpacity, strokeWeight: style.strokeWeight});
+    });
+
+    // School location marker
+    if(zone.school){
+      var schoolMarker = new google.maps.Marker({
+        position: {lat: zone.school.lat, lng: zone.school.lng},
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 5,
+          fillColor: '#1a5276',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2
+        },
+        clickable: false
+      });
+      objectsArr.push(schoolMarker);
+    }
+
+    // Popup content
     var popupDesc = '';
     if(zone.district){
       popupDesc = '<p>' + zone.district + ' district</p>';
     }
-    if(zone.school){
-      // Add school marker icon
-      var schoolMarker = L.marker([zone.school.lat, zone.school.lng], {
-        icon: L.divIcon({
-          className:'',
-          html:'<div style="width:10px;height:10px;background:#1a5276;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
-          iconSize:[10,10],
-          iconAnchor:[5,5]
-        })
-      }).addTo(layerGroup);
-    }
 
-    layer.bindPopup(
+    var popupHtml =
       '<div class="hood-popup">'+
       '<h3>'+zone.name+'</h3>'+
       popupDesc+
       '<a href="'+searchUrl(zone.coords)+'" target="_blank">Search Homes in Zone</a>'+
-      '</div>',
-      {maxWidth:280}
-    );
+      '</div>';
 
-    // Click fetches listings for this polygon
-    layer.on('click', function(){
+    google.maps.event.addListener(polygon, 'click', function(e){
       fetchListingsForPolygon(zone);
+      infoWindow.setContent(popupHtml);
+      infoWindow.setPosition(e.latLng);
+      infoWindow.open(map);
     });
 
-    return layer;
+    return polygon;
   }
 
-  // Build metro view
+  /* ================================================================
+     BUILD METRO VIEW
+     ================================================================ */
   function buildMetro(){
-    metroLayers.clearLayers();
-    metroLayers.addTo(map);
+    clearMapObjects(metroObjects);
 
     // Tribal lands
-    var tribalStyle = {color:'#6a8290',weight:1,fillColor:'#6a8290',fillOpacity:0.1,dashArray:'6 3'};
     MAPDATA.tribal.forEach(function(t){
-      var tLayer;
+      var paths;
       if(t.type === 'MultiPolygon'){
-        tLayer = L.polygon(t.coords, tribalStyle).addTo(metroLayers);
+        paths = t.coords.map(toGooglePath);
       } else {
-        tLayer = L.polygon(t.coords[0], tribalStyle).addTo(metroLayers);
+        paths = [toGooglePath(t.coords[0])];
       }
-      var center = tLayer.getBounds().getCenter();
-      L.marker(center, {
-        icon: L.divIcon({
-          className:'neighborhood-label',
-          html:'<span style="color:#6a8290;font-style:italic">'+t.name+'</span>',
-          iconSize:[160,20],
-          iconAnchor:[80,10]
-        })
-      }).addTo(metroLayers);
+
+      var polygon = new google.maps.Polygon({
+        paths: paths,
+        fillColor: tribalStyle.fillColor,
+        fillOpacity: tribalStyle.fillOpacity,
+        strokeColor: tribalStyle.strokeColor,
+        strokeWeight: tribalStyle.strokeWeight,
+        strokeOpacity: tribalStyle.strokeOpacity,
+        clickable: false,
+        map: map
+      });
+      metroObjects.push(polygon);
+
+      var bounds = getPolygonBounds(polygon);
+      var center = bounds.getCenter();
+      var label = new LabelOverlay(center, t.name, 'gm-tribal-label', map);
+      metroObjects.push(label);
     });
 
     // Cities
@@ -921,20 +1137,16 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
       if(hasDrill){
         clickFn = function(){ drillInto(hood.name); };
       }
-      var layer = addPolygon(hood, metroLayers, hoodStyle, hoverStyle, clickFn);
-      if(!hasDrill){
-        layer.bindPopup(
-          '<div class="hood-popup">'+
-          '<h3>'+hood.name+'</h3>'+
-          '<p>'+hood.desc+'</p>'+
-          '<a href="'+searchUrl(hood.coords)+'" target="_blank">Search Homes in '+hood.name+'</a>'+
-          '</div>',
-          {maxWidth:280}
-        );
-      }
+      var polygon = addPolygon(hood, metroObjects, hoodStyle, hoverStyle, clickFn);
+
+      // For non-drill cities, popup is already handled inside addPolygon (onClick is null)
+      // For drill cities, clicking drills in (no popup needed)
     });
   }
 
+  /* ================================================================
+     DRILL INTO CITY NEIGHBORHOODS
+     ================================================================ */
   function drillInto(cityName){
     var hoods = drillData[cityName];
     if(!hoods) return;
@@ -942,20 +1154,21 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     isDrilledDown = true;
     drilledCity = cityName;
 
-    map.closePopup();
-    map.removeLayer(metroLayers);
-    drillLayers.clearLayers();
-    drillLayers.addTo(map);
+    infoWindow.close();
+    hideMapObjects(metroObjects);
+    clearMapObjects(drillObjects);
 
     hoods.forEach(function(hood){
-      addPolygon(hood, drillLayers, drillStyle, drillHover);
+      addPolygon(hood, drillObjects, drillStyle, drillHover);
     });
 
-    // Zoom to fit
-    var bounds = drillLayers.getBounds();
-    map.fitBounds(bounds, {padding:[40,40]});
+    // Zoom to fit all drill polygons
+    var polyOnly = drillObjects.filter(function(obj){ return obj.getPaths; });
+    if(polyOnly.length > 0){
+      var bounds = getObjectsBounds(polyOnly);
+      map.fitBounds(bounds, 40);
+    }
 
-    // Update UI
     backBtn.classList.add('active');
     mapTitle.textContent = cityName + ' Neighborhoods';
     mapSubtitle.textContent = 'Click a neighborhood to search homes';
@@ -967,10 +1180,8 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
      BUILD ALL NEIGHBORHOODS VIEW
      ================================================================ */
   function buildAllNeighborhoods(){
-    neighborhoodLayers.clearLayers();
-    neighborhoodLayers.addTo(map);
+    clearMapObjects(neighborhoodObjects);
 
-    // Gather all neighborhoods from all drill-down data
     var allHoods = [];
     Object.keys(drillData).forEach(function(cityName){
       var hoods = drillData[cityName];
@@ -980,19 +1191,20 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     });
 
     if(allHoods.length === 0){
-      // Fallback: just show cities
       mapSubtitle.textContent = 'No neighborhood data available yet';
       return;
     }
 
     allHoods.forEach(function(hood){
-      addPolygon(hood, neighborhoodLayers, drillStyle, drillHover);
+      addPolygon(hood, neighborhoodObjects, drillStyle, drillHover);
     });
 
-    // Zoom to fit all neighborhoods
-    var bounds = neighborhoodLayers.getBounds();
-    if(bounds.isValid()){
-      map.fitBounds(bounds, {padding:[40,40]});
+    var polyOnly = neighborhoodObjects.filter(function(obj){ return obj.getPaths; });
+    if(polyOnly.length > 0){
+      var bounds = getObjectsBounds(polyOnly);
+      if(!bounds.isEmpty()){
+        map.fitBounds(bounds, 40);
+      }
     }
   }
 
@@ -1000,8 +1212,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
      BUILD SCHOOL ZONES VIEW
      ================================================================ */
   function buildSchoolView(level){
-    schoolLayers.clearLayers();
-    schoolLayers.addTo(map);
+    clearMapObjects(schoolObjects);
 
     if(typeof SCHOOL_ZONES === 'undefined') return;
 
@@ -1020,28 +1231,23 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     var hover = isDistrict ? schoolDistrictHover : schoolZoneHover;
 
     zones.forEach(function(zone){
-      addSchoolPolygon(zone, schoolLayers, style, hover);
+      addSchoolPolygon(zone, schoolObjects, style, hover);
     });
 
-    // Zoom to fit
-    var bounds = schoolLayers.getBounds();
-    if(bounds.isValid()){
-      map.fitBounds(bounds, {padding:[40,40]});
+    var polyOnly = schoolObjects.filter(function(obj){ return obj.getPaths; });
+    if(polyOnly.length > 0){
+      var bounds = getObjectsBounds(polyOnly);
+      if(!bounds.isEmpty()){
+        map.fitBounds(bounds, 40);
+      }
     }
   }
 
   /* ================================================================
-     LISTING MARKERS
+     LISTING MARKERS + FETCH
      ================================================================ */
-  var listingMarkers = L.layerGroup().addTo(map);
   var loadingEl = document.getElementById('listingsLoading');
   var countEl = document.getElementById('listingsCount');
-  var listingIcon = L.divIcon({
-    className:'',
-    html:'<div style="width:12px;height:12px;background:#cc624c;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
-    iconSize:[12,12],
-    iconAnchor:[6,6]
-  });
 
   function formatPrice(n){
     if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
@@ -1049,25 +1255,79 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     return '$'+n;
   }
 
+  function buildListingPopupHtml(l){
+    var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+escHtml(l.address)+'">' : '';
+    return '<div class="listing-popup">'+
+      photoHtml+
+      '<div class="listing-popup-body">'+
+      '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
+      '<div class="listing-popup-address">'+escHtml(l.address)+(l.city?', '+escHtml(l.city):'')+'</div>'+
+      '<div class="listing-popup-details">'+
+      (l.beds?'<span>'+l.beds+' bed</span>':'')+
+      (l.baths?'<span>'+l.baths+' bath</span>':'')+
+      (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
+      '</div>'+
+      '<a href="'+searchBase+'?mlsId='+l.id+'" target="_blank">View Listing</a>'+
+      '</div></div>';
+  }
+
+  function createListingMarker(l){
+    var marker = new google.maps.Marker({
+      position: {lat: l.lat, lng: l.lng},
+      map: map,
+      icon: listingIcon
+    });
+
+    var popupHtml = buildListingPopupHtml(l);
+
+    google.maps.event.addListener(marker, 'click', function(){
+      // Unhighlight previous
+      if(activeListingId && activeListingId !== l.id){
+        unhighlightMarker(activeListingId);
+        var prevEntry = markerMap[activeListingId];
+        if(prevEntry && prevEntry.card) prevEntry.card.classList.remove('active');
+      }
+
+      infoWindow.setContent(popupHtml);
+      infoWindow.open(map, marker);
+
+      // Highlight this marker's card in panel
+      var prev = panelListings.querySelector('.listing-card.active');
+      if(prev) prev.classList.remove('active');
+      var entry = markerMap[l.id];
+      if(entry && entry.card){
+        entry.card.classList.add('active');
+        entry.card.scrollIntoView({behavior:'smooth', block:'nearest'});
+      }
+
+      activeListingId = l.id;
+    });
+
+    listingMarkerObjects.push(marker);
+
+    if(!markerMap[l.id]) markerMap[l.id] = {};
+    markerMap[l.id].marker = marker;
+    markerMap[l.id].popupHtml = popupHtml;
+
+    return marker;
+  }
+
   function fetchListingsForPolygon(hood){
     currentHood = hood;
-    // Extract the largest polygon ring from coords
     var pts;
     if(hood.type === 'MultiPolygon'){
       pts = hood.coords.reduce(function(a,b){return a.length>b.length?a:b});
     } else {
       pts = hood.coords[0];
     }
-    // Simplify polygon for API (max ~30 points)
     var step = Math.max(1, Math.floor(pts.length / 30));
     var simplified = [];
     for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
 
     loadingEl.classList.add('active');
     countEl.classList.remove('active');
-    listingMarkers.clearLayers();
+    clearMapObjects(listingMarkerObjects);
 
-    // Update panel header and show panel
     panelAreaName.textContent = hood.name;
     panelListingCount.textContent = '';
     panelListings.innerHTML = '<div class="panel-loading"><div class="panel-loading-spinner"></div>Loading listings...</div>';
@@ -1075,7 +1335,6 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
     panelIdxLink.style.display = 'block';
     openPanel();
 
-    // Build request body with filters
     var body = {
       polygon: simplified,
       limit: 200
@@ -1106,51 +1365,13 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
         return;
       }
 
-      // Build map markers and populate panel
       data.listings.forEach(function(l){
-        var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+escHtml(l.address)+'">' : '';
-        var marker = L.marker([l.lat,l.lng],{icon:listingIcon}).addTo(listingMarkers);
-        marker.bindPopup(
-          '<div class="listing-popup">'+
-          photoHtml+
-          '<div class="listing-popup-body">'+
-          '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
-          '<div class="listing-popup-address">'+escHtml(l.address)+(l.city?', '+escHtml(l.city):'')+'</div>'+
-          '<div class="listing-popup-details">'+
-          (l.beds?'<span>'+l.beds+' bed</span>':'')+
-          (l.baths?'<span>'+l.baths+' bath</span>':'')+
-          (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
-          '</div>'+
-          '<a href="'+searchBase+'?mlsId='+l.id+'" target="_blank">View Listing</a>'+
-          '</div></div>',
-          {maxWidth:260,minWidth:220}
-        );
-
-        // When popup opens from map click, highlight card in panel
-        marker.on('popupopen', function(){
-          var prev = panelListings.querySelector('.listing-card.active');
-          if(prev) prev.classList.remove('active');
-          var entry = markerMap[l.id];
-          if(entry && entry.card){
-            entry.card.classList.add('active');
-            entry.card.scrollIntoView({behavior:'smooth', block:'nearest'});
-          }
-        });
-        marker.on('popupclose', function(){
-          var entry = markerMap[l.id];
-          if(entry && entry.card) entry.card.classList.remove('active');
-          unhighlightMarker(l.id);
-        });
-
-        // Store marker reference
-        if(!markerMap[l.id]) markerMap[l.id] = {};
-        markerMap[l.id].marker = marker;
+        createListingMarker(l);
       });
 
       countEl.textContent = data.listings.length+' listings in '+hood.name;
       countEl.classList.add('active');
 
-      // Render cards in side panel
       renderListingCards(data.listings, hood.name);
     })
     .catch(function(){
@@ -1163,75 +1384,59 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   }
 
   function clearListings(){
-    listingMarkers.clearLayers();
+    clearMapObjects(listingMarkerObjects);
     countEl.classList.remove('active');
     currentHood = null;
     currentListings = [];
     markerMap = {};
+    activeListingId = null;
   }
 
+  /* ================================================================
+     FILTER LISTINGS TO CURRENT MAP VIEW (pan/zoom)
+     ================================================================ */
   function filterListingsToView(){
     if(!currentListings || currentListings.length === 0) return;
     var bounds = map.getBounds();
+    if(!bounds) return;
+
     var visible = currentListings.filter(function(l){
-      return bounds.contains([l.lat, l.lng]);
+      return bounds.contains(new google.maps.LatLng(l.lat, l.lng));
     });
 
-    // Update markers — show only visible
-    listingMarkers.clearLayers();
+    // Clear existing listing markers
+    clearMapObjects(listingMarkerObjects);
     markerMap = {};
+    activeListingId = null;
+
     visible.forEach(function(l){
-      var marker = L.marker([l.lat,l.lng],{icon:listingIcon}).addTo(listingMarkers);
-      var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+escHtml(l.address)+'">' : '';
-      marker.bindPopup(
-        '<div class="listing-popup">'+
-        photoHtml+
-        '<div class="listing-popup-body">'+
-        '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
-        '<div class="listing-popup-address">'+escHtml(l.address)+(l.city?', '+escHtml(l.city):'')+'</div>'+
-        '<div class="listing-popup-details">'+
-        (l.beds?'<span>'+l.beds+' bed</span>':'')+
-        (l.baths?'<span>'+l.baths+' bath</span>':'')+
-        (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
-        '</div>'+
-        '<a href="'+searchBase+'?mlsId='+l.id+'" target="_blank">View Listing</a>'+
-        '</div></div>',
-        {maxWidth:260,minWidth:220}
-      );
-      marker.on('click', function(){
-        highlightCard(l.id);
-      });
-      marker.on('popupclose', function(){
-        var entry = markerMap[l.id];
-        if(entry && entry.card) entry.card.classList.remove('active');
-        unhighlightMarker(l.id);
-      });
-      if(!markerMap[l.id]) markerMap[l.id] = {};
-      markerMap[l.id].marker = marker;
+      createListingMarker(l);
     });
 
-    // Update panel cards
     renderListingCards(visible, currentHood ? currentHood.name : '');
     countEl.textContent = visible.length + ' of ' + currentListings.length + ' listings in view';
     countEl.classList.add('active');
   }
 
   var viewFilterTimer;
-  map.on('moveend', function(){
+  google.maps.event.addListener(map, 'idle', function(){
     if(!currentListings || currentListings.length === 0) return;
     clearTimeout(viewFilterTimer);
     viewFilterTimer = setTimeout(filterListingsToView, 300);
   });
 
+  /* ================================================================
+     BACK TO METRO
+     ================================================================ */
   function backToMetro(){
-    // If we are in a drill-down within cities view, go back to cities
     if(isDrilledDown && currentView === 'cities'){
-      map.removeLayer(drillLayers);
-      drillLayers.clearLayers();
+      clearMapObjects(drillObjects);
       clearListings();
       closePanel();
-      buildMetro();
-      map.setView([33.50,-111.95],10);
+      infoWindow.close();
+      showMapObjects(metroObjects);
+      map.setCenter({lat:33.50, lng:-111.95});
+      map.setZoom(10);
 
       isDrilledDown = false;
       drilledCity = null;
@@ -1244,9 +1449,13 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 
   backBtn.addEventListener('click', backToMetro);
 
-  // Initial build
+  /* ================================================================
+     INITIAL BUILD
+     ================================================================ */
   buildMetro();
-})();
+
+} /* end initMap */
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Fj9WOSHEUnly6N0r9A8NkczCHPHmmjI&callback=initMap" async defer></script>
 </body>
 </html>
