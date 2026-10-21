@@ -57,7 +57,7 @@ exports.handler = async (event) => {
           : "Website lead registration",
       };
 
-      const response = await fetch("https://api.sierrainteractive.com/leads", {
+      const response = await fetch("https://api.sierrainteractivedev.com/leads", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
