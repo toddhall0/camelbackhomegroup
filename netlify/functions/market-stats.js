@@ -1,5 +1,5 @@
 // Calculates market snapshot stats for a city from SimplyRETS
-// Fetches across price brackets to get representative data
+// Uses price bracket counts + representative sample for stats
 
 exports.handler = async (event) => {
   const headers = {
@@ -26,49 +26,49 @@ exports.handler = async (event) => {
 
   const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
 
-  async function fetchBracket(minPrice, maxPrice, limit) {
-    const params = new URLSearchParams({
-      q: city,
-      status: "active",
-      type: "residential",
-      limit: String(limit),
-    });
-    if (minPrice > 0) params.set("minprice", String(minPrice));
-    if (maxPrice < Infinity) params.set("maxprice", String(maxPrice));
-
+  async function fetchListings(params) {
     const res = await fetch(`https://api.simplyrets.com/properties?${params.toString()}`, {
       headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
     });
-    if (!res.ok) return { listings: [], count: 0 };
+    if (!res.ok) return { listings: [], total: 0 };
     const total = parseInt(res.headers.get("X-Total-Count") || "0");
     const data = await res.json();
-    return { listings: data, count: total || data.length };
+    return { listings: data, total };
   }
 
   try {
-    // Fetch across price brackets to get representative sample
     const brackets = [
-      { label: "Under $300K", min: 0, max: 300000 },
-      { label: "$300K - $500K", min: 300000, max: 500000 },
-      { label: "$500K - $750K", min: 500000, max: 750000 },
-      { label: "$750K - $1M", min: 750000, max: 1000000 },
-      { label: "$1M - $2M", min: 1000000, max: 2000000 },
+      { label: "Under $300K", min: 0, max: 299999 },
+      { label: "$300K - $500K", min: 300000, max: 499999 },
+      { label: "$500K - $750K", min: 500000, max: 749999 },
+      { label: "$750K - $1M", min: 750000, max: 999999 },
+      { label: "$1M - $2M", min: 1000000, max: 1999999 },
       { label: "$2M+", min: 2000000, max: 99999999 },
     ];
 
+    // Fetch each bracket — get up to 500 to know the real count
     const results = await Promise.all(
-      brackets.map((b) => fetchBracket(b.min, b.max, 100))
+      brackets.map((b) => {
+        const p = new URLSearchParams({
+          q: city, status: "active", type: "residential",
+          limit: "500", minprice: String(b.min), maxprice: String(b.max),
+        });
+        return fetchListings(p);
+      })
     );
 
-    // Merge all listings and deduplicate
+    // Build distribution from actual result counts
+    const distribution = [];
     const seen = new Set();
     const allListings = [];
     let totalActive = 0;
-    const distribution = [];
 
     results.forEach((r, i) => {
-      distribution.push({ label: brackets[i].label, count: r.count });
-      totalActive += r.count;
+      // Use X-Total-Count if available, otherwise use array length
+      const bracketCount = r.total > 0 ? r.total : r.listings.length;
+      distribution.push({ label: brackets[i].label, count: bracketCount });
+      totalActive += bracketCount;
+
       r.listings.forEach((p) => {
         const id = p.mlsId || p.listingId;
         if (!seen.has(id) && p.property && p.property.bedrooms && p.property.bedrooms > 0) {
@@ -86,12 +86,10 @@ exports.handler = async (event) => {
       };
     }
 
-    // Calculate stats
     const prices = allListings.map((p) => p.listPrice).filter((p) => p > 0).sort((a, b) => a - b);
     const sqftPrices = allListings
       .filter((p) => p.property.area && p.property.area > 0)
       .map((p) => p.listPrice / p.property.area);
-    const sqfts = allListings.map((p) => p.property.area).filter((s) => s > 0);
 
     const now = Date.now();
     const doms = allListings
@@ -118,7 +116,7 @@ exports.handler = async (event) => {
     }
 
     const stats = {
-      activeListings: totalActive || allListings.length,
+      activeListings: totalActive,
       medianPrice: Math.round(median(prices)),
       avgPricePerSqft: Math.round(avg(sqftPrices)),
       avgDaysOnMarket: doms.length > 0 ? Math.round(avg(doms)) : null,
