@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://camelbackhomegroup.netlify.app/sitemap.xml
