@@ -1021,6 +1021,7 @@ function initMap(){
         '</div>';
 
       google.maps.event.addListener(polygon, 'click', function(e){
+        hood.filterCity = hood.name;
         fetchListingsForPolygon(hood);
         infoWindow.setContent(popupHtml);
         infoWindow.setPosition(e.latLng);
@@ -1419,27 +1420,16 @@ function initMap(){
     if(!bounds) return;
     var zoom = map.getZoom();
 
-    // If zoomed in past level 12, re-fetch but still constrained to original search area
+    // If zoomed in past level 12, re-fetch for the visible area
+    // but filter results to stay within the original search city
     if(zoom >= 12){
-      // Re-use the original search polygon or q parameter
-      var body = { limit: 200 };
-
-      // If original search had a polygon, use it (keeps results within the city/neighborhood)
-      if(!currentHood.qOnly && currentHood.coords && currentHood.coords.length > 0){
-        var pts;
-        if(currentHood.type === 'MultiPolygon'){
-          pts = currentHood.coords.reduce(function(a,b){return a.length>b.length?a:b});
-        } else {
-          pts = currentHood.coords[0];
-        }
-        if(pts && pts.length > 0){
-          var step = Math.max(1, Math.floor(pts.length / 30));
-          var simplified = [];
-          for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
-          body.polygon = simplified;
-        }
-      }
-      // If original search had a q parameter, include it
+      var sw = bounds.getSouthWest();
+      var ne = bounds.getNorthEast();
+      var body = {
+        south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng(),
+        limit: 200
+      };
+      // For q-only searches (addresses/zips), pass the q parameter
       if(currentHood.searchQ) body.q = currentHood.searchQ;
 
       // Apply current filters
@@ -1452,6 +1442,9 @@ function initMap(){
       if(filters.maxSqft) body.maxSqft = filters.maxSqft;
       if(filters.sort) body.sort = filters.sort;
 
+      // Remember the city name for client-side filtering
+      var filterCity = currentHood.filterCity || null;
+
       fetch('/.netlify/functions/listings',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -1462,7 +1455,15 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Merge with existing — add any new listings not already in the set
+        // Client-side filter: if the original search was a city, only keep listings in that city
+        if(filterCity){
+          var cityLower = filterCity.toLowerCase();
+          newListings = newListings.filter(function(l){
+            return l.city && l.city.toLowerCase() === cityLower;
+          });
+        }
+
+        // Merge with existing
         var existingIds = {};
         currentListings.forEach(function(l){ existingIds[l.id] = true; });
         newListings.forEach(function(l){
@@ -1564,7 +1565,8 @@ function initMap(){
 
         google.maps.event.addListenerOnce(map, 'idle', function(){
           if(matchedHood){
-            // Use the exact city polygon — limits results to that city only
+            // Use the exact city polygon for initial fetch, and set filterCity for zoom re-fetches
+            matchedHood.filterCity = matchedHood.name;
             fetchListingsForPolygon(matchedHood);
           } else {
             // Not a city — use q parameter only (works for addresses, zips, neighborhoods)
