@@ -1400,6 +1400,7 @@ function initMap(){
      ================================================================ */
   function filterListingsToView(){
     if(!currentListings || currentListings.length === 0) return;
+    if(activeListingId) return; // Don't rebuild markers while an InfoWindow is open
     var bounds = map.getBounds();
     if(!bounds) return;
 
