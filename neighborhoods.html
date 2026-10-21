@@ -602,6 +602,7 @@ function initMap(){
   var searchBase = 'https://www.camelbackhomegroup.com/property-search/results/';
 
   function searchUrl(coords){
+    if(!coords || coords.length === 0) return searchBase;
     var pts = coords.reduce(function(a,b){return a.length>b.length?a:b});
     var lats = pts.map(function(p){return p[0]});
     var lons = pts.map(function(p){return p[1]});
