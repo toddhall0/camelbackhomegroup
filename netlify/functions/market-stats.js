@@ -37,7 +37,8 @@ exports.handler = async (event) => {
   }
 
   try {
-    const brackets = [
+    // Display brackets (what users see)
+    const displayBrackets = [
       { label: "Under $300K", min: 0, max: 299999 },
       { label: "$300K - $500K", min: 300000, max: 499999 },
       { label: "$500K - $750K", min: 500000, max: 749999 },
@@ -46,9 +47,21 @@ exports.handler = async (event) => {
       { label: "$2M+", min: 2000000, max: 99999999 },
     ];
 
-    // Fetch each bracket — get up to 500 to know the real count
+    // Fetch brackets — split large ranges to avoid 500 cap
+    const fetchBrackets = [
+      { min: 0, max: 299999 },
+      { min: 300000, max: 499999 },
+      { min: 500000, max: 749999 },
+      { min: 750000, max: 999999 },
+      { min: 1000000, max: 1499999 },
+      { min: 1500000, max: 1999999 },
+      { min: 2000000, max: 3499999 },
+      { min: 3500000, max: 5999999 },
+      { min: 6000000, max: 99999999 },
+    ];
+
     const results = await Promise.all(
-      brackets.map((b) => {
+      fetchBrackets.map((b) => {
         const p = new URLSearchParams({
           q: city, status: "active", type: "residential",
           limit: "500", minprice: String(b.min), maxprice: String(b.max),
@@ -57,17 +70,21 @@ exports.handler = async (event) => {
       })
     );
 
-    // Build distribution from actual result counts
-    const distribution = [];
+    // Merge into display brackets
+    const bracketCounts = {};
+    displayBrackets.forEach((d) => { bracketCounts[d.label] = 0; });
+
     const seen = new Set();
     const allListings = [];
-    let totalActive = 0;
 
     results.forEach((r, i) => {
-      // Use X-Total-Count if available, otherwise use array length
-      const bracketCount = r.total > 0 ? r.total : r.listings.length;
-      distribution.push({ label: brackets[i].label, count: bracketCount });
-      totalActive += bracketCount;
+      const fb = fetchBrackets[i];
+      // Find which display bracket this fetch bracket belongs to
+      const db = displayBrackets.find((d) => fb.min >= d.min && fb.max <= d.max);
+      if (db) {
+        const count = r.total > 0 ? r.total : r.listings.length;
+        bracketCounts[db.label] += count;
+      }
 
       r.listings.forEach((p) => {
         const id = p.mlsId || p.listingId;
@@ -77,6 +94,13 @@ exports.handler = async (event) => {
         }
       });
     });
+
+    const distribution = displayBrackets.map((d) => ({
+      label: d.label,
+      count: bracketCounts[d.label],
+    }));
+
+    let totalActive = distribution.reduce((sum, d) => sum + d.count, 0);
 
     if (allListings.length === 0) {
       return {
