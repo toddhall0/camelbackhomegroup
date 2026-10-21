@@ -1543,7 +1543,7 @@ function initMap(){
   if(urlQ){
     // Use Google Geocoding to find the location, then search that area
     var geocoder = new google.maps.Geocoder();
-    geocoder.geocode({address: urlQ + ', Arizona'}, function(results, status){
+    geocoder.geocode({address: urlQ, componentRestrictions: {country: 'US', administrativeArea: 'AZ'}}, function(results, status){
       if(status === 'OK' && results[0]){
         var loc = results[0].geometry.location;
         var bounds = results[0].geometry.viewport || results[0].geometry.bounds;
@@ -1581,6 +1581,17 @@ function initMap(){
             fetchListingsForPolygon(hood);
           }
         });
+      } else {
+        // Geocode failed — still try searching via q parameter
+        var hood = {
+          name: urlQ,
+          desc: 'Search results for "' + urlQ + '"',
+          type: 'Polygon',
+          coords: [],
+          searchQ: urlQ,
+          qOnly: true
+        };
+        fetchListingsForPolygon(hood);
       }
     });
   }
