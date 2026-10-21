@@ -75,18 +75,17 @@ exports.handler = async (event) => {
         };
       } else {
         const errText = await response.text();
-        // Still return success to user — lead is saved via Netlify Forms backup
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify({ success: true, crm: "fallback", note: "Saved for follow-up" }),
+          body: JSON.stringify({ success: true, crm: "fallback", sierraStatus: response.status, sierraError: errText }),
         };
       }
-    } catch {
+    } catch (err) {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ success: true, crm: "fallback", note: "Saved for follow-up" }),
+        body: JSON.stringify({ success: true, crm: "fallback", error: err.message }),
       };
     }
   }
