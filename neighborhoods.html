@@ -368,12 +368,11 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 
 <div class="map-page">
 <div class="map-header">
-<h1 id="mapTitle">Explore Phoenix Metro Neighborhoods</h1>
-<p id="mapSubtitle">Click any city to explore neighborhoods</p>
+<h1 id="mapTitle">Explore Phoenix Metro</h1>
+<p id="mapSubtitle">Click any city to search homes for sale</p>
 <p class="map-header-subtitle" id="mapDrillLabel"></p>
 <div class="view-toggle" id="viewToggle">
   <button class="view-btn active" data-view="cities">Cities</button>
-  <button class="view-btn" data-view="neighborhoods">Neighborhoods</button>
   <button class="view-btn" data-view="schools">Schools</button>
 </div>
 <div class="school-toggle" id="schoolToggle">
@@ -454,8 +453,6 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 </div>
 
 <script src="neighborhoods-data.js"></script>
-<script src="phoenix-neighborhoods.js"></script>
-<script src="gilbert-neighborhoods.js"></script>
 <script src="school-zones.js"></script>
 <script>
 /* ================================================================
@@ -673,10 +670,7 @@ function initMap(){
   var mapSubtitle = document.getElementById('mapSubtitle');
   var drillLabel = document.getElementById('mapDrillLabel');
 
-  var drillData = {
-    'Phoenix': typeof PHOENIX_HOODS !== 'undefined' ? PHOENIX_HOODS : null,
-    'Gilbert': typeof GILBERT_HOODS !== 'undefined' ? GILBERT_HOODS : null
-  };
+  var drillData = {};
 
   /* ================================================================
      VIEW TOGGLE STATE
@@ -732,15 +726,11 @@ function initMap(){
     }
 
     if(view === 'cities'){
-      mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
-      mapSubtitle.textContent = 'Click any city to explore neighborhoods';
+      mapTitle.textContent = 'Explore Phoenix Metro';
+      mapSubtitle.textContent = 'Click any city to search homes for sale';
       buildMetro();
       map.setCenter({lat:33.50, lng:-111.95});
       map.setZoom(10);
-    } else if(view === 'neighborhoods'){
-      mapTitle.textContent = 'All Neighborhoods';
-      mapSubtitle.textContent = 'Click a neighborhood to search homes';
-      buildAllNeighborhoods();
     } else if(view === 'schools'){
       mapTitle.textContent = 'School Attendance Zones';
       mapSubtitle.textContent = 'Click a zone to search homes';
@@ -1532,8 +1522,8 @@ function initMap(){
       isDrilledDown = false;
       drilledCity = null;
       backBtn.classList.remove('active');
-      mapTitle.textContent = 'Explore Phoenix Metro Neighborhoods';
-      mapSubtitle.textContent = 'Click any city to explore neighborhoods';
+      mapTitle.textContent = 'Explore Phoenix Metro';
+      mapSubtitle.textContent = 'Click any city to search homes for sale';
       drillLabel.classList.remove('active');
     }
   }
