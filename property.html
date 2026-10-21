@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Details — Camelback Home Group</title>
+<meta name="description" content="View property details, photos, and features. Camelback Home Group — your Phoenix metro real estate brokerage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden;background:var(--white)}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);padding:0 32px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0;transition:all 0.3s}
+
+/* MAIN CONTENT */
+.page-body{padding-top:72px}
+
+/* LOADING / ERROR STATES */
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+min-height:60vh;gap:16px;color:var(--text-light)}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--cream-dark);
+border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+min-height:60vh;gap:16px;color:var(--text-mid);text-align:center;padding:24px}
+.error-state h2{font-size:1.6rem;color:var(--text-dark)}
+.error-state p{font-size:1rem;max-width:480px}
+.error-state a{display:inline-block;margin-top:12px;font-size:0.88rem;font-weight:500;
+letter-spacing:0.08em;text-transform:uppercase;padding:12px 28px;background:var(--gold);
+color:var(--white);transition:background 0.3s}
+.error-state a:hover{background:var(--gold-light)}
+
+/* PHOTO GALLERY */
+.gallery{background:var(--cream);padding:0}
+.gallery-main{width:100%;max-height:520px;overflow:hidden;background:#1a1a1a;
+display:flex;align-items:center;justify-content:center;position:relative}
+.gallery-main img{width:100%;height:520px;object-fit:cover;display:block}
+.gallery-main .no-photo{color:var(--text-light);font-size:1rem;padding:60px;
+text-align:center;width:100%;height:320px;display:flex;align-items:center;
+justify-content:center;background:var(--cream-dark)}
+.gallery-count{position:absolute;bottom:16px;right:16px;background:rgba(0,0,0,0.6);
+color:var(--white);font-size:0.82rem;padding:6px 14px;z-index:2}
+.gallery-thumbs{display:flex;gap:4px;padding:4px 0;overflow-x:auto;background:var(--cream-dark)}
+.gallery-thumbs::-webkit-scrollbar{height:4px}
+.gallery-thumbs::-webkit-scrollbar-thumb{background:var(--sand);border-radius:2px}
+.gallery-thumb{width:100px;height:68px;flex-shrink:0;cursor:pointer;opacity:0.6;
+transition:opacity 0.2s;overflow:hidden}
+.gallery-thumb:hover,.gallery-thumb.active{opacity:1}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover}
+
+/* PROPERTY CONTENT */
+.property-content{max-width:1000px;margin:0 auto;padding:32px 16px 0}
+
+/* PRICE + STATUS */
+.property-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:8px}
+.property-price{font-family:var(--font-serif);font-size:2.4rem;font-weight:600;color:var(--text-dark)}
+.property-status{font-size:0.78rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+padding:5px 14px;background:var(--gold);color:var(--white)}
+.property-status.sold{background:var(--charcoal)}
+
+/* ADDRESS */
+.property-address{font-size:1.1rem;color:var(--text-mid);margin-bottom:24px}
+
+/* KEY STATS BAR */
+.stats-bar{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--cream-dark);
+border-bottom:1px solid var(--cream-dark);margin-bottom:32px}
+.stat-item{flex:1;min-width:100px;text-align:center;padding:18px 12px;
+border-right:1px solid var(--cream-dark)}
+.stat-item:last-child{border-right:none}
+.stat-value{font-family:var(--font-serif);font-size:1.35rem;font-weight:600;color:var(--text-dark)}
+.stat-label{font-size:0.72rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:var(--text-light);margin-top:2px}
+
+/* DESCRIPTION */
+.section-title{font-family:var(--font-serif);font-size:1.5rem;font-weight:500;
+color:var(--text-dark);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--cream-dark)}
+.property-description{font-size:0.95rem;color:var(--text-mid);line-height:1.7;margin-bottom:40px}
+
+/* DETAILS GRID */
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:40px;
+border:1px solid var(--cream-dark)}
+.detail-row{display:flex;justify-content:space-between;padding:12px 16px;
+border-bottom:1px solid var(--cream-dark);font-size:0.9rem}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:var(--text-light);font-weight:400}
+.detail-value{color:var(--text-dark);font-weight:500;text-align:right}
+
+/* MAP */
+.property-map{margin-bottom:40px}
+#propertyMap{width:100%;height:320px;background:var(--cream-dark)}
+
+/* CTA SECTION */
+.cta-section{background:var(--charcoal);padding:48px 32px;text-align:center;margin-bottom:0}
+.cta-section h2{font-family:var(--font-serif);font-size:1.8rem;font-weight:400;color:var(--white);margin-bottom:8px}
+.cta-section p{font-size:1rem;color:rgba(255,255,255,0.65);margin-bottom:20px}
+.cta-phone{display:inline-block;font-family:var(--font-serif);font-size:1.5rem;
+font-weight:500;color:var(--gold);margin-bottom:20px;transition:color 0.3s}
+.cta-phone:hover{color:var(--gold-light)}
+.cta-btn{display:inline-block;font-size:0.88rem;font-weight:500;letter-spacing:0.08em;
+text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);
+color:var(--gold);transition:all 0.3s}
+.cta-btn:hover{background:var(--gold);color:var(--white)}
+
+/* FOOTER */
+.footer{background:var(--charcoal);color:rgba(255,255,255,0.65);padding:40px 32px 24px}
+.footer-inner{max-width:1000px;margin:0 auto}
+.footer-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:32px;
+padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.footer-brand{flex:1;min-width:200px}
+.footer-brand-name{font-family:var(--font-serif);font-size:1.15rem;color:var(--white);font-weight:500}
+.footer-brand-tag{font-size:0.75rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--gold);margin-top:2px}
+.footer-brand-desc{font-size:0.85rem;margin-top:10px;line-height:1.6;max-width:340px}
+.footer-links{display:flex;gap:40px}
+.footer-col h4{font-family:var(--font-sans);font-size:0.78rem;font-weight:500;
+letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:12px}
+.footer-col a,.footer-col p{display:block;font-size:0.85rem;color:rgba(255,255,255,0.55);
+margin-bottom:6px;transition:color 0.2s}
+.footer-col a:hover{color:var(--white)}
+.footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;
+padding-top:20px;gap:12px}
+.footer-copy{font-size:0.78rem;color:rgba(255,255,255,0.4)}
+.footer-mls{display:flex;align-items:center;gap:8px}
+.footer-mls img{height:40px;width:auto;opacity:0.7}
+.footer-legal{display:flex;gap:16px}
+.footer-legal a{font-size:0.75rem;color:rgba(255,255,255,0.4);transition:color 0.2s}
+.footer-legal a:hover{color:rgba(255,255,255,0.7)}
+
+/* MLS DISCLAIMER */
+.mls-disclaimer{font-size:0.72rem;color:rgba(255,255,255,0.35);max-width:600px;line-height:1.5;margin-top:12px}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+  background:var(--charcoal);flex-direction:column;padding:80px 32px;
+  gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+  .nav-links.open{right:0}
+  .nav-mobile-toggle{display:block}
+
+  .gallery-main img,.gallery-main .no-photo{height:260px}
+  .gallery-thumb{width:72px;height:50px}
+
+  .property-content{padding:24px 16px 0}
+  .property-price{font-size:1.8rem}
+  .property-address{font-size:0.95rem}
+  .stats-bar{flex-wrap:wrap}
+  .stat-item{min-width:33.33%;border-bottom:1px solid var(--cream-dark)}
+  .details-grid{grid-template-columns:1fr}
+  .footer-links{flex-direction:column;gap:24px}
+  .footer-top{flex-direction:column}
+  .cta-section{padding:36px 16px}
+  .cta-section h2{font-size:1.4rem}
+  .cta-phone{font-size:1.2rem}
+}
+@media(max-width:480px){
+  .stat-item{min-width:50%}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="search.html" class="nav-link">Search Homes</a>
+<a href="index.html#services" class="nav-link">Services</a>
+<a href="neighborhoods.html" class="nav-link">Neighborhoods</a>
+<a href="agents.html" class="nav-link">Join Our Team</a>
+<a href="index.html#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<!-- PAGE BODY -->
+<div class="page-body">
+
+<!-- Loading State -->
+<div class="loading-state" id="loadingState">
+<div class="loading-spinner"></div>
+<span>Loading property details...</span>
+</div>
+
+<!-- Error State (hidden by default) -->
+<div class="error-state" id="errorState" style="display:none">
+<h2 id="errorTitle">Property Not Found</h2>
+<p id="errorMessage">We could not find a property with that MLS ID. It may have been removed or the ID may be incorrect.</p>
+<a href="search.html">Search All Homes</a>
+</div>
+
+<!-- Property Content (hidden until loaded) -->
+<div id="propertyPage" style="display:none">
+
+<!-- PHOTO GALLERY -->
+<div class="gallery">
+<div class="gallery-main" id="galleryMain">
+<div class="no-photo">No photos available</div>
+</div>
+<div class="gallery-thumbs" id="galleryThumbs"></div>
+</div>
+
+<!-- PROPERTY INFO -->
+<div class="property-content">
+
+<div class="property-header">
+<div class="property-price" id="propPrice"></div>
+<div class="property-status" id="propStatus"></div>
+</div>
+
+<div class="property-address" id="propAddress"></div>
+
+<!-- KEY STATS -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- DESCRIPTION -->
+<div id="descriptionSection" style="display:none">
+<h2 class="section-title">About This Property</h2>
+<div class="property-description" id="propDescription"></div>
+</div>
+
+<!-- PROPERTY DETAILS -->
+<div id="detailsSection" style="display:none">
+<h2 class="section-title">Property Details</h2>
+<div class="details-grid" id="detailsGrid"></div>
+</div>
+
+<!-- MAP -->
+<div class="property-map" id="mapSection" style="display:none">
+<h2 class="section-title">Location</h2>
+<div id="propertyMap"></div>
+</div>
+
+</div><!-- end property-content -->
+
+<!-- CTA -->
+<div class="cta-section">
+<h2>Interested in This Property?</h2>
+<p>Our team of licensed agents and attorneys is ready to help.</p>
+<a href="tel:4802033039" class="cta-phone">(480) 203-3039</a><br>
+<a href="index.html#contact" class="cta-btn">Contact Us</a>
+</div>
+
+</div><!-- end propertyPage -->
+
+</div><!-- end page-body -->
+
+<!-- FOOTER -->
+<footer class="footer">
+<div class="footer-inner">
+<div class="footer-top">
+<div class="footer-brand">
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction.</p>
+</div>
+<div class="footer-links">
+<div class="footer-col">
+<h4>Company</h4>
+<a href="index.html#services">Services</a>
+<a href="neighborhoods.html">Neighborhoods</a>
+<a href="agents.html">Join Our Team</a>
+<a href="index.html#contact">Contact</a>
+</div>
+<div class="footer-col">
+<h4>Get In Touch</h4>
+<p>(480) 203-3039</p>
+<p>info@camelbackhomegroup.com</p>
+<p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
+</div>
+</div>
+</div>
+<div class="footer-bottom">
+<span class="footer-copy">&copy; 2025 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
+<div class="footer-mls">
+<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity">
+</div>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Use</a>
+<a href="#">Fair Housing</a>
+</div>
+</div>
+<p class="mls-disclaimer">Listing data provided by Arizona Regional MLS. Information deemed reliable but not guaranteed. All properties subject to prior sale, change or withdrawal.</p>
+</div>
+</footer>
+
+<script>
+(function(){
+  /* NAV TOGGLE */
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){ links.classList.toggle('open'); });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){ links.classList.remove('open'); });
+  });
+
+  /* GET MLS ID FROM URL */
+  var params = new URLSearchParams(window.location.search);
+  var mlsId = params.get('id');
+
+  if(!mlsId){
+    showError('No Property ID', 'Please provide a property MLS ID in the URL, for example: property.html?id=12345');
+    return;
+  }
+
+  /* FETCH PROPERTY DATA */
+  fetch('/.netlify/functions/property?id=' + encodeURIComponent(mlsId))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.error || !data.listing){
+        showError('Property Not Found', data.error || 'We could not find a property with MLS ID ' + escHtml(mlsId) + '.');
+        return;
+      }
+      renderProperty(data.listing);
+    })
+    .catch(function(){
+      showError('Connection Error', 'Unable to load property data. Please check your connection and try again.');
+    });
+
+  function showError(title, message){
+    document.getElementById('loadingState').style.display = 'none';
+    var el = document.getElementById('errorState');
+    el.style.display = '';
+    document.getElementById('errorTitle').textContent = title;
+    document.getElementById('errorMessage').textContent = message;
+  }
+
+  function escHtml(str){
+    if(!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatPrice(n){
+    if(!n) return '';
+    return '$' + n.toLocaleString();
+  }
+
+  function formatNumber(n){
+    if(!n && n !== 0) return '--';
+    return n.toLocaleString();
+  }
+
+  /* RENDER PROPERTY */
+  function renderProperty(listing){
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('propertyPage').style.display = '';
+
+    /* Update page title */
+    var addr = listing.address || 'Property';
+    document.title = addr + ' — Camelback Home Group';
+
+    /* GALLERY */
+    var photos = listing.photos || [];
+    var galleryMain = document.getElementById('galleryMain');
+    var galleryThumbs = document.getElementById('galleryThumbs');
+
+    if(photos.length > 0){
+      galleryMain.innerHTML = '<img id="mainPhoto" src="' + photos[0] + '" alt="' + escHtml(addr) + '">' +
+        (photos.length > 1 ? '<div class="gallery-count">' + photos.length + ' Photos</div>' : '');
+
+      if(photos.length > 1){
+        photos.forEach(function(url, i){
+          var thumb = document.createElement('div');
+          thumb.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
+          thumb.innerHTML = '<img src="' + url + '" alt="Photo ' + (i+1) + '">';
+          thumb.addEventListener('click', function(){
+            document.getElementById('mainPhoto').src = url;
+            galleryThumbs.querySelectorAll('.gallery-thumb').forEach(function(t){ t.classList.remove('active'); });
+            thumb.classList.add('active');
+          });
+          galleryThumbs.appendChild(thumb);
+        });
+      }
+    }
+
+    /* PRICE + STATUS */
+    document.getElementById('propPrice').textContent = formatPrice(listing.price);
+    var statusEl = document.getElementById('propStatus');
+    var status = listing.status || 'Active';
+    statusEl.textContent = status;
+    if(status.toLowerCase() === 'closed' || status.toLowerCase() === 'sold'){
+      statusEl.classList.add('sold');
+    }
+
+    /* ADDRESS */
+    var addressParts = [listing.address];
+    if(listing.city) addressParts.push(listing.city);
+    if(listing.state) addressParts.push(listing.state);
+    if(listing.zip) addressParts[addressParts.length-1] += ' ' + listing.zip;
+    document.getElementById('propAddress').textContent = addressParts.join(', ');
+
+    /* STATS BAR */
+    var statsBar = document.getElementById('statsBar');
+    var stats = [];
+    if(listing.beds != null) stats.push({value: listing.beds, label: 'Beds'});
+    if(listing.baths != null){
+      var bathVal = listing.baths;
+      if(listing.halfBaths) bathVal += listing.halfBaths > 0 ? '/' + listing.halfBaths : '';
+      stats.push({value: bathVal, label: 'Baths'});
+    }
+    if(listing.sqft) stats.push({value: formatNumber(listing.sqft), label: 'Sq Ft'});
+    if(listing.lotSize) stats.push({value: formatNumber(listing.lotSize) + ' sqft', label: 'Lot Size'});
+    if(listing.yearBuilt) stats.push({value: listing.yearBuilt, label: 'Year Built'});
+    if(listing.garageSpaces != null) stats.push({value: listing.garageSpaces, label: 'Garage'});
+
+    stats.forEach(function(s){
+      var item = document.createElement('div');
+      item.className = 'stat-item';
+      item.innerHTML = '<div class="stat-value">' + s.value + '</div><div class="stat-label">' + s.label + '</div>';
+      statsBar.appendChild(item);
+    });
+
+    /* DESCRIPTION */
+    if(listing.description){
+      document.getElementById('descriptionSection').style.display = '';
+      document.getElementById('propDescription').textContent = listing.description;
+    }
+
+    /* DETAILS GRID */
+    var details = [];
+    if(listing.propertyType) details.push({label: 'Property Type', value: listing.propertyType});
+    if(listing.subdivision) details.push({label: 'Subdivision', value: listing.subdivision});
+    if(listing.stories) details.push({label: 'Stories', value: listing.stories});
+    if(listing.pool != null) details.push({label: 'Pool', value: listing.pool ? 'Yes' : 'No'});
+    if(listing.heating) details.push({label: 'Heating', value: listing.heating});
+    if(listing.cooling) details.push({label: 'Cooling', value: listing.cooling});
+    if(listing.style) details.push({label: 'Style', value: listing.style});
+    if(listing.daysOnMarket != null) details.push({label: 'Days on Market', value: listing.daysOnMarket});
+    if(listing.lotAcres) details.push({label: 'Lot (Acres)', value: listing.lotAcres + ' ac'});
+    if(listing.county) details.push({label: 'County', value: listing.county});
+    if(listing.listDate) details.push({label: 'List Date', value: new Date(listing.listDate).toLocaleDateString()});
+    if(listing.id) details.push({label: 'MLS #', value: listing.id});
+
+    if(details.length > 0){
+      document.getElementById('detailsSection').style.display = '';
+      var grid = document.getElementById('detailsGrid');
+      details.forEach(function(d){
+        var row = document.createElement('div');
+        row.className = 'detail-row';
+        row.innerHTML = '<span class="detail-label">' + escHtml(d.label) + '</span><span class="detail-value">' + escHtml(String(d.value)) + '</span>';
+        grid.appendChild(row);
+      });
+    }
+
+    /* MAP */
+    if(listing.lat && listing.lng){
+      document.getElementById('mapSection').style.display = '';
+      window._propertyLat = listing.lat;
+      window._propertyLng = listing.lng;
+      window._propertyAddr = addr;
+
+      /* Load Google Maps */
+      var script = document.createElement('script');
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Fj9WOSHEUnly6N0r9A8NkczCHPHmmjI&callback=initPropertyMap';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }
+})();
+
+/* Google Maps callback (must be global) */
+function initPropertyMap(){
+  var lat = window._propertyLat;
+  var lng = window._propertyLng;
+  if(!lat || !lng) return;
+
+  var pos = {lat: lat, lng: lng};
+  var map = new google.maps.Map(document.getElementById('propertyMap'), {
+    center: pos,
+    zoom: 15,
+    styles: [
+      {elementType:'geometry',stylers:[{color:'#f5f5f5'}]},
+      {elementType:'labels.icon',stylers:[{visibility:'off'}]},
+      {elementType:'labels.text.fill',stylers:[{color:'#616161'}]},
+      {elementType:'labels.text.stroke',stylers:[{color:'#f5f5f5'}]},
+      {featureType:'road',elementType:'geometry',stylers:[{color:'#ffffff'}]},
+      {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#dadada'}]},
+      {featureType:'water',elementType:'geometry',stylers:[{color:'#c9c9c9'}]}
+    ],
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false
+  });
+
+  new google.maps.Marker({
+    position: pos,
+    map: map,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: '#cc624c',
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 3
+    },
+    title: window._propertyAddr || 'Property Location'
+  });
+}
+</script>
+</body>
+</html>

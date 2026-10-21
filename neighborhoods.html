@@ -171,36 +171,44 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 
 /* Listing card */
 .listing-card{
-  display:flex;gap:14px;padding:16px 20px;
+  display:flex;flex-direction:column;
   border-bottom:1px solid var(--cream);
-  cursor:pointer;transition:background 0.15s;
+  cursor:pointer;transition:background 0.15s, box-shadow 0.25s, transform 0.25s;
+  background:var(--white);
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  margin:10px 12px;border-radius:4px;overflow:hidden;
 }
-.listing-card:hover{background:var(--cream)}
-.listing-card.active{background:var(--gold-pale)}
+.listing-card:hover{box-shadow:0 6px 20px rgba(0,0,0,0.1);transform:translateY(-2px)}
+.listing-card.active{background:var(--gold-pale);box-shadow:0 4px 14px rgba(204,98,76,0.18)}
 .listing-card-photo{
-  width:110px;height:82px;flex-shrink:0;overflow:hidden;
+  width:100%;height:200px;flex-shrink:0;overflow:hidden;
   background:var(--cream-dark);position:relative;
 }
 .listing-card-photo img{width:100%;height:100%;object-fit:cover}
 .listing-card-photo-placeholder{
   width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-  color:var(--text-light);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text-light);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;
 }
-.listing-card-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.listing-card-info{padding:14px 16px;display:flex;flex-direction:column;gap:4px}
 .listing-card-price{
-  font-family:var(--font-serif);font-size:1.15rem;font-weight:600;
-  color:var(--text-dark);margin-bottom:3px;
+  font-family:var(--font-serif);font-size:1.4rem;font-weight:600;
+  color:var(--gold);margin-bottom:2px;
 }
 .listing-card-address{
-  font-size:0.8rem;color:var(--text-mid);margin-bottom:6px;
+  font-size:0.82rem;color:var(--text-mid);margin-bottom:6px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.listing-card-details{display:flex;gap:10px;font-size:0.78rem;color:var(--text-light);flex-wrap:wrap}
-.listing-card-details span{white-space:nowrap}
-.listing-card-year{font-size:0.73rem;color:var(--text-light);margin-top:4px}
+.listing-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.listing-card-badge{
+  display:inline-block;font-size:0.72rem;font-weight:500;
+  letter-spacing:0.04em;padding:4px 10px;
+  background:var(--cream);color:var(--text-mid);border-radius:20px;
+  white-space:nowrap;
+}
+.listing-card-year{font-size:0.73rem;color:var(--text-light);margin-top:2px}
 .listing-card-link{
   display:inline-block;font-size:0.72rem;font-weight:500;letter-spacing:0.05em;
-  text-transform:uppercase;color:var(--gold);margin-top:4px;transition:color 0.2s;
+  text-transform:uppercase;color:var(--gold);margin-top:6px;transition:color 0.2s;
 }
 .listing-card-link:hover{color:var(--gold-light)}
 
@@ -325,8 +333,9 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   .panel-header{padding:12px 16px}
   .panel-filters{padding:10px 16px}
   .filter-group{min-width:70px}
-  .listing-card{padding:12px 16px}
-  .listing-card-photo{width:90px;height:68px}
+  .listing-card{margin:8px 10px}
+  .listing-card-photo{height:160px}
+  .listing-card-info{padding:12px 14px}
 }
 
 /* Desktop: hide drag handle */
@@ -850,10 +859,10 @@ function initMap(){
         photoHtml = '<div class="listing-card-photo"><div class="listing-card-photo-placeholder">No Photo</div></div>';
       }
 
-      var detailParts = [];
-      if(l.beds) detailParts.push('<span>' + l.beds + ' bd</span>');
-      if(l.baths) detailParts.push('<span>' + l.baths + ' ba</span>');
-      if(l.sqft) detailParts.push('<span>' + l.sqft.toLocaleString() + ' sqft</span>');
+      var badgeParts = [];
+      if(l.beds) badgeParts.push('<span class="listing-card-badge">' + l.beds + ' Bed</span>');
+      if(l.baths) badgeParts.push('<span class="listing-card-badge">' + l.baths + ' Bath</span>');
+      if(l.sqft) badgeParts.push('<span class="listing-card-badge">' + l.sqft.toLocaleString() + ' Sqft</span>');
 
       var yearHtml = l.yearBuilt ? '<div class="listing-card-year">Built ' + l.yearBuilt + '</div>' : '';
 
@@ -861,9 +870,9 @@ function initMap(){
         '<div class="listing-card-info">' +
         '<div class="listing-card-price">' + formatPrice(l.price) + '</div>' +
         '<div class="listing-card-address">' + escHtml(l.address) + (l.city ? ', ' + escHtml(l.city) : '') + '</div>' +
-        '<div class="listing-card-details">' + detailParts.join('') + '</div>' +
+        '<div class="listing-card-badges">' + badgeParts.join('') + '</div>' +
         yearHtml +
-        '<a class="listing-card-link" href="' + searchBase + '?mlsId=' + l.id + '" target="_blank" onclick="event.stopPropagation()">View Listing</a>' +
+        '<a class="listing-card-link" href="property.html?id=' + l.id + '" onclick="event.stopPropagation()">View Property</a>' +
         '</div>';
 
       card.addEventListener('mouseenter', function(){
@@ -1269,7 +1278,7 @@ function initMap(){
       (l.baths?'<span>'+l.baths+' bath</span>':'')+
       (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
       '</div>'+
-      '<a href="'+searchBase+'?mlsId='+l.id+'" target="_blank">View Listing</a>'+
+      '<a href="property.html?id='+l.id+'">View Property</a>'+
       '</div></div>';
   }
 
