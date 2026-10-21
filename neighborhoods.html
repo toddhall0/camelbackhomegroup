@@ -1467,6 +1467,44 @@ function initMap(){
      ================================================================ */
   buildMetro();
 
+  // Handle ?q= search parameter from the search page
+  var urlQ = new URLSearchParams(window.location.search).get('q');
+  if(urlQ){
+    // Use Google Geocoding to find the location, then search that area
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({address: urlQ + ', Arizona'}, function(results, status){
+      if(status === 'OK' && results[0]){
+        var loc = results[0].geometry.location;
+        var bounds = results[0].geometry.viewport || results[0].geometry.bounds;
+        if(bounds){
+          map.fitBounds(bounds);
+        } else {
+          map.setCenter(loc);
+          map.setZoom(13);
+        }
+        // Build a bounding box polygon around the result
+        var b = map.getBounds() || new google.maps.LatLngBounds(
+          new google.maps.LatLng(loc.lat()-0.05, loc.lng()-0.05),
+          new google.maps.LatLng(loc.lat()+0.05, loc.lng()+0.05)
+        );
+        // Wait for map to settle then fetch listings
+        google.maps.event.addListenerOnce(map, 'idle', function(){
+          var mb = map.getBounds();
+          var hood = {
+            name: urlQ,
+            desc: 'Search results for "' + urlQ + '"',
+            type: 'Polygon',
+            coords: [[[mb.getNorthEast().lat(), mb.getNorthEast().lng()],
+                      [mb.getNorthEast().lat(), mb.getSouthWest().lng()],
+                      [mb.getSouthWest().lat(), mb.getSouthWest().lng()],
+                      [mb.getSouthWest().lat(), mb.getNorthEast().lng()]]]
+          };
+          fetchListingsForPolygon(hood);
+        });
+      }
+    });
+  }
+
 } /* end initMap */
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Fj9WOSHEUnly6N0r9A8NkczCHPHmmjI&callback=initMap" async defer></script>
