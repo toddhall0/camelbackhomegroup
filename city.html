@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Homes for Sale — Camelback Home Group</title>
+<meta name="description" id="pageMeta" content="Search homes for sale. Camelback Home Group — full-service real estate brokerage with built-in legal support.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Camelback Home Group">
+<meta property="og:image" content="https://camelbackhomegroup.netlify.app/assets/logo/logo.png">
+<meta name="twitter:card" content="summary">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden;background:var(--white)}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);padding:0 32px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0;transition:all 0.3s}
+
+/* HERO */
+.city-hero{position:relative;padding:140px 24px 60px;text-align:center;background:var(--charcoal);overflow:hidden}
+.city-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.25}
+.city-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(22,58,73,0.8),rgba(22,58,73,0.6))}
+.city-hero-content{position:relative;z-index:2}
+.city-hero h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:300;color:var(--white);margin-bottom:8px}
+.city-hero h1 span{color:var(--gold);font-style:italic}
+.city-hero>p,.city-hero-content>p{font-size:1.1rem;font-weight:300;color:rgba(255,255,255,0.65);max-width:640px;margin:0 auto 28px}
+.city-search{max-width:700px;margin:0 auto}
+.city-search-form{display:flex;background:var(--white);border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.2);overflow:hidden}
+.city-search-input{flex:1;font-family:var(--font-sans);font-size:1.05rem;padding:16px 20px;background:var(--white);border:none;color:var(--text-dark);outline:none}
+.city-search-input::placeholder{color:var(--text-light)}
+.city-search-btn{font-family:var(--font-sans);font-size:0.9rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:16px 28px;background:var(--gold);color:var(--white);border:none;cursor:pointer;transition:background 0.3s;white-space:nowrap}
+.city-search-btn:hover{background:var(--gold-light)}
+
+/* QUICK STATS */
+.city-stats{background:var(--cream);padding:0}
+.city-stats-inner{max-width:1000px;margin:0 auto;display:flex;flex-wrap:wrap}
+.city-stat{flex:1;min-width:150px;text-align:center;padding:24px 16px;border-right:1px solid var(--cream-dark)}
+.city-stat:last-child{border-right:none}
+.city-stat-value{font-family:var(--font-serif);font-size:1.5rem;font-weight:600;color:var(--gold)}
+.city-stat-label{font-size:0.78rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-light);margin-top:2px}
+
+/* SECTIONS */
+.city-section{max-width:1000px;margin:0 auto;padding:48px 24px}
+.city-section h2{font-size:1.8rem;color:var(--text-dark);margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--gold)}
+.city-section p{font-size:0.95rem;color:var(--text-mid);line-height:1.8;margin-bottom:16px}
+
+/* SCHOOL CARDS */
+.school-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:20px}
+.school-card{background:var(--cream);padding:24px;transition:transform 0.2s}
+.school-card:hover{transform:translateY(-2px)}
+.school-card h3{font-size:1.1rem;color:var(--text-dark);margin-bottom:4px}
+.school-card-type{font-size:0.78rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.school-card p{font-size:0.88rem;color:var(--text-light);line-height:1.5;margin-bottom:8px}
+.school-card a{font-size:0.82rem;font-weight:500;color:var(--gold);transition:color 0.2s}
+.school-card a:hover{color:var(--gold-light)}
+
+/* NEIGHBORHOOD LIST */
+.hood-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.hood-item{background:var(--cream);padding:20px;cursor:pointer;transition:all 0.2s}
+.hood-item:hover{background:var(--gold-pale);transform:translateY(-2px)}
+.hood-item h3{font-size:1rem;color:var(--text-dark);margin-bottom:4px}
+.hood-item p{font-size:0.85rem;color:var(--text-light);line-height:1.5;margin:0}
+
+/* EVENTS */
+.events-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:20px}
+.event-card{background:var(--cream);padding:24px;border-left:4px solid var(--gold)}
+.event-card h3{font-size:1.05rem;color:var(--text-dark);margin-bottom:4px}
+.event-date{font-size:0.82rem;font-weight:500;color:var(--gold);margin-bottom:8px}
+.event-card p{font-size:0.88rem;color:var(--text-light);line-height:1.5;margin:0}
+
+/* LISTINGS PREVIEW */
+.listings-preview{background:var(--cream);padding:48px 24px}
+.listings-preview-inner{max-width:1000px;margin:0 auto}
+.listings-preview h2{font-family:var(--font-serif);font-size:1.8rem;color:var(--text-dark);margin-bottom:20px}
+.listings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:24px}
+.listing-prev-card{background:var(--white);overflow:hidden;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s}
+.listing-prev-card:hover{transform:translateY(-3px);box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.listing-prev-card img{width:100%;height:180px;object-fit:cover}
+.listing-prev-noimg{width:100%;height:180px;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.88rem}
+.listing-prev-body{padding:14px 16px}
+.listing-prev-price{font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);margin-bottom:2px}
+.listing-prev-addr{font-size:0.85rem;color:var(--text-mid);margin-bottom:6px}
+.listing-prev-details{font-size:0.82rem;color:var(--text-light)}
+.listing-prev-details span{margin-right:8px}
+.view-all-btn{display:inline-block;font-family:var(--font-sans);font-size:0.9rem;font-weight:500;
+letter-spacing:0.06em;text-transform:uppercase;padding:14px 32px;background:var(--gold);
+color:var(--white);transition:background 0.3s}
+.view-all-btn:hover{background:var(--gold-light)}
+
+/* CTA */
+.city-cta{background:var(--charcoal);padding:48px 24px;text-align:center}
+.city-cta h2{font-family:var(--font-serif);font-size:1.8rem;color:var(--white);margin-bottom:8px}
+.city-cta p{font-size:1rem;color:rgba(255,255,255,0.6);margin-bottom:20px}
+.city-cta-phone{font-family:var(--font-serif);font-size:1.4rem;color:var(--gold);display:inline-block;margin-bottom:16px;transition:color 0.2s}
+.city-cta-phone:hover{color:var(--gold-light)}
+.city-cta-btn{display:inline-block;font-size:0.88rem;font-weight:500;letter-spacing:0.08em;
+text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);color:var(--gold);transition:all 0.3s}
+.city-cta-btn:hover{background:var(--gold);color:var(--white)}
+
+/* FOOTER */
+.footer{background:#0f2530;padding:40px 24px;text-align:center}
+.footer p{font-size:0.82rem;color:rgba(255,255,255,0.35)}
+.footer a{color:var(--gold)}
+.footer-mls{margin-top:12px}
+
+/* LOADING */
+.city-loading{text-align:center;padding:120px 24px;padding-top:200px}
+.city-loading p{font-size:1rem;color:var(--text-light)}
+
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.city-stats-inner{flex-direction:column}
+.city-stat{border-right:none;border-bottom:1px solid var(--cream-dark)}
+.school-cards,.hood-list,.events-list,.listings-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="search.html" class="nav-link">Search Homes</a>
+<a href="index.html#services" class="nav-link">Services</a>
+<a href="neighborhoods.html" class="nav-link">Map</a>
+<a href="agents.html" class="nav-link">Join Our Team</a>
+<a href="index.html#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<!-- Page content inserted by JS -->
+<div id="cityPage">
+<div class="city-loading"><p>Loading...</p></div>
+</div>
+
+<script src="city-data.js"></script>
+<script>
+(function(){
+  // Mobile nav
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){links.classList.toggle('open')});
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){links.classList.remove('open')});
+  });
+
+  var cityKey = new URLSearchParams(window.location.search).get('c');
+  if(!cityKey || typeof CITY_DATA === 'undefined' || !CITY_DATA[cityKey]){
+    document.getElementById('cityPage').innerHTML =
+      '<div class="city-loading"><p>City not found. <a href="search.html" style="color:var(--gold)">Search homes</a></p></div>';
+    return;
+  }
+
+  var city = CITY_DATA[cityKey];
+  var page = document.getElementById('cityPage');
+
+  // Set page title and meta
+  document.title = city.name + ' Homes for Sale — Camelback Home Group';
+  var metaDesc = document.getElementById('pageMeta');
+  if(metaDesc) metaDesc.content = 'Search homes for sale in ' + city.name + ', Arizona. ' + city.tagline;
+
+  function esc(s){ if(!s) return ''; var d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+  function formatPrice(n){
+    if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
+    if(n>=1000) return '$'+(n/1000).toFixed(0)+'K';
+    return '$'+n;
+  }
+
+  // Build schools HTML
+  var schoolsHtml = '';
+  if(city.schools && city.schools.length > 0){
+    schoolsHtml = '<div class="school-cards">';
+    city.schools.forEach(function(s){
+      schoolsHtml += '<div class="school-card">' +
+        '<div class="school-card-type">' + esc(s.type) + '</div>' +
+        '<h3>' + esc(s.name) + '</h3>' +
+        '<p>' + esc(s.desc) + '</p>' +
+        (s.url ? '<a href="' + s.url + '" target="_blank">Visit Website &rarr;</a>' : '') +
+        '</div>';
+    });
+    schoolsHtml += '</div>';
+  }
+
+  // Build neighborhoods HTML
+  var hoodsHtml = '';
+  if(city.neighborhoods && city.neighborhoods.length > 0){
+    hoodsHtml = '<div class="hood-list">';
+    city.neighborhoods.forEach(function(n){
+      hoodsHtml += '<div class="hood-item" onclick="window.location.href=\'neighborhoods.html?q=' + encodeURIComponent(n.name + ', ' + city.name) + '\'">' +
+        '<h3>' + esc(n.name) + '</h3>' +
+        '<p>' + esc(n.desc) + '</p></div>';
+    });
+    hoodsHtml += '</div>';
+  }
+
+  // Build events HTML
+  var eventsHtml = '';
+  if(city.events && city.events.length > 0){
+    eventsHtml = '<div class="events-list">';
+    city.events.forEach(function(e){
+      eventsHtml += '<div class="event-card">' +
+        '<div class="event-date">' + esc(e.date) + '</div>' +
+        '<h3>' + esc(e.name) + '</h3>' +
+        '<p>' + esc(e.desc) + '</p></div>';
+    });
+    eventsHtml += '</div>';
+  }
+
+  // Build page
+  page.innerHTML =
+    // HERO
+    '<section class="city-hero">' +
+    '<div class="city-hero-bg" style="background-image:url(\'' + (city.heroImg || 'assets/logo/hero.jpg') + '\')"></div>' +
+    '<div class="city-hero-overlay"></div>' +
+    '<div class="city-hero-content">' +
+    '<h1>' + esc(city.name) + ' <span>Homes for Sale</span></h1>' +
+    '<p>' + esc(city.tagline) + '</p>' +
+    '<div class="city-search">' +
+    '<form class="city-search-form" id="citySearchForm">' +
+    '<input type="text" class="city-search-input" id="citySearchInput" placeholder="Search in ' + esc(city.name) + '..." value="' + esc(city.name) + '">' +
+    '<button type="submit" class="city-search-btn">Search</button>' +
+    '</form></div></div></section>' +
+
+    // QUICK STATS
+    '<div class="city-stats"><div class="city-stats-inner">' +
+    (city.stats || []).map(function(s){
+      return '<div class="city-stat"><div class="city-stat-value">' + esc(s.value) + '</div><div class="city-stat-label">' + esc(s.label) + '</div></div>';
+    }).join('') +
+    '</div></div>' +
+
+    // ABOUT
+    '<div class="city-section" id="about">' +
+    '<h2>About ' + esc(city.name) + '</h2>' +
+    city.about.map(function(p){ return '<p>' + p + '</p>'; }).join('') +
+    '</div>' +
+
+    // SCHOOLS
+    '<div class="city-section" id="schools">' +
+    '<h2>Schools in ' + esc(city.name) + '</h2>' +
+    '<p>' + esc(city.schoolsIntro || '') + '</p>' +
+    schoolsHtml +
+    '</div>' +
+
+    // NEIGHBORHOODS
+    '<div class="city-section" id="neighborhoods">' +
+    '<h2>' + esc(city.name) + ' Neighborhoods</h2>' +
+    '<p>Click a neighborhood to search homes in that area.</p>' +
+    hoodsHtml +
+    '</div>' +
+
+    // EVENTS
+    '<div class="city-section" id="events">' +
+    '<h2>Events &amp; Festivals</h2>' +
+    eventsHtml +
+    '</div>' +
+
+    // LISTINGS PREVIEW
+    '<div class="listings-preview">' +
+    '<div class="listings-preview-inner">' +
+    '<h2>Latest Listings in ' + esc(city.name) + '</h2>' +
+    '<div class="listings-grid" id="cityListings"><p style="color:var(--text-light)">Loading listings...</p></div>' +
+    '<a href="neighborhoods.html?q=' + encodeURIComponent(city.name) + '" class="view-all-btn">View All ' + esc(city.name) + ' Homes</a>' +
+    '</div></div>' +
+
+    // CTA
+    '<div class="city-cta">' +
+    '<h2>Ready to find your home in ' + esc(city.name) + '?</h2>' +
+    '<p>Our team of licensed agents and attorneys is ready to help.</p>' +
+    '<a href="tel:4802033039" class="city-cta-phone">(480) 203-3039</a><br>' +
+    '<a href="index.html#contact" class="city-cta-btn">Contact Us</a>' +
+    '</div>' +
+
+    // FOOTER
+    '<footer class="footer">' +
+    '<p>&copy; 2025 Camelback Home Group. All rights reserved. Licensed in Arizona. | <a href="index.html">Home</a></p>' +
+    '<div class="footer-mls"><img src="assets/logo/mls-logo.png" alt="MLS" style="height:36px;width:auto;margin:0 auto"></div>' +
+    '</footer>';
+
+  // Search form
+  document.getElementById('citySearchForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var q = document.getElementById('citySearchInput').value.trim();
+    if(q) window.location.href = 'neighborhoods.html?q=' + encodeURIComponent(q);
+  });
+
+  // Fetch latest listings
+  fetch('/.netlify/functions/listings', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({q: city.name, limit: 6})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var grid = document.getElementById('cityListings');
+    if(!data.listings || data.listings.length === 0){
+      grid.innerHTML = '<p style="color:var(--text-light)">No listings available right now.</p>';
+      return;
+    }
+    var html = '';
+    data.listings.forEach(function(l){
+      var photo = l.photo ? '<img src="' + l.photo + '" alt="' + esc(l.address) + '">' : '<div class="listing-prev-noimg">No Photo</div>';
+      html += '<div class="listing-prev-card" onclick="window.open(\'property.html?id=' + l.id + '\',\'_blank\')">' +
+        photo +
+        '<div class="listing-prev-body">' +
+        '<div class="listing-prev-price">' + formatPrice(l.price) + '</div>' +
+        '<div class="listing-prev-addr">' + esc(l.address) + (l.city ? ', ' + esc(l.city) : '') + '</div>' +
+        '<div class="listing-prev-details">' +
+        (l.beds ? '<span>' + l.beds + ' bed</span>' : '') +
+        (l.baths ? '<span>' + l.baths + ' bath</span>' : '') +
+        (l.sqft ? '<span>' + l.sqft.toLocaleString() + ' sqft</span>' : '') +
+        '</div></div></div>';
+    });
+    grid.innerHTML = html;
+  })
+  .catch(function(){
+    document.getElementById('cityListings').innerHTML = '<p style="color:var(--text-light)">Unable to load listings.</p>';
+  });
+})();
+</script>
+</body>
+</html>
