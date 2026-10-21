@@ -39,18 +39,25 @@ exports.handler = async (event) => {
   // If Sierra API key is configured, push to CRM
   if (sierraKey) {
     try {
+      // Generate a random password for the lead's Sierra account
+      const randomPwd = Math.random().toString(36).slice(-10) + "A1!";
+
       const leadData = {
         firstName: firstName || "",
         lastName: lastName || "",
         email: email || "",
+        password: randomPwd,
         phone: phone || "",
         source: source || "Camelback Home Group Website",
+        sourceType: "AgentSite",
+        leadType: 1,
+        sendRegistrationEmail: false,
         note: propertyAddress
           ? `Interested in: ${propertyAddress}${propertyMlsId ? " (MLS# " + propertyMlsId + ")" : ""}`
           : "Website lead registration",
       };
 
-      const response = await fetch("https://api.sierrainteractive.com/v2/leads", {
+      const response = await fetch("https://api.sierrainteractive.com/leads", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
