@@ -132,6 +132,38 @@ text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);
 color:var(--gold);transition:all 0.3s}
 .cta-btn:hover{background:var(--gold);color:var(--white)}
 
+/* LEAD MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;
+align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:var(--white);width:100%;max-width:440px;padding:40px 36px;position:relative;
+box-shadow:0 8px 40px rgba(0,0,0,0.3)}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;
+font-size:1.5rem;color:var(--text-light);cursor:pointer;padding:4px 8px}
+.modal-close:hover{color:var(--text-dark)}
+.modal h3{font-family:var(--font-serif);font-size:1.5rem;color:var(--text-dark);margin-bottom:4px}
+.modal p{font-size:0.9rem;color:var(--text-light);margin-bottom:24px;line-height:1.5}
+.modal .form-group{margin-bottom:16px}
+.modal .form-group label{display:block;font-size:0.8rem;font-weight:500;letter-spacing:0.06em;
+text-transform:uppercase;color:var(--text-light);margin-bottom:5px}
+.modal .form-group input{width:100%;font-family:var(--font-sans);font-size:0.95rem;
+padding:12px 14px;border:1px solid var(--sand);background:var(--cream);color:var(--text-dark);
+outline:none;transition:border-color 0.3s}
+.modal .form-group input:focus{border-color:var(--gold)}
+.modal-submit{width:100%;padding:14px;font-family:var(--font-sans);font-size:0.95rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);
+color:var(--white);border:none;cursor:pointer;transition:background 0.3s;margin-top:8px}
+.modal-submit:hover{background:var(--gold-light)}
+.modal-submit:disabled{opacity:0.6;cursor:not-allowed}
+.modal-disclaimer{font-size:0.75rem;color:var(--text-light);margin-top:12px;line-height:1.4;text-align:center}
+.modal-success{text-align:center;padding:20px 0}
+.modal-success-icon{font-size:2.5rem;color:var(--gold);margin-bottom:12px}
+.modal-success h4{font-family:var(--font-serif);font-size:1.3rem;color:var(--text-dark);margin-bottom:8px}
+.modal-success p{font-size:0.9rem;color:var(--text-light)}
+@media(max-width:480px){
+.modal{padding:28px 20px;margin:16px}
+}
+
 /* FOOTER */
 .footer{background:var(--charcoal);color:rgba(255,255,255,0.65);padding:40px 32px 24px}
 .footer-inner{max-width:1000px;margin:0 auto}
@@ -277,7 +309,48 @@ padding-top:20px;gap:12px}
 <h2>Interested in This Property?</h2>
 <p>Our team of licensed agents and attorneys is ready to help.</p>
 <a href="tel:4802033039" class="cta-phone">(480) 203-3039</a><br>
-<a href="index.html#contact" class="cta-btn">Contact Us</a>
+<button class="cta-btn" id="openLeadModal" style="background:var(--gold);color:var(--white);cursor:pointer">Request More Info</button>
+</div>
+
+<!-- LEAD CAPTURE MODAL -->
+<div class="modal-overlay" id="leadModal">
+<div class="modal">
+<button class="modal-close" id="closeLeadModal">&times;</button>
+<div id="leadFormState">
+<h3>Get More Information</h3>
+<p id="modalPropertyLine">Register below and we'll send you details about this property.</p>
+<form id="leadForm" name="property-lead" method="POST" data-netlify="true">
+<input type="hidden" name="form-name" value="property-lead">
+<input type="hidden" name="propertyId" id="leadPropertyId">
+<input type="hidden" name="propertyAddress" id="leadPropertyAddress">
+<div class="form-group">
+<label for="leadFirstName">First Name</label>
+<input type="text" id="leadFirstName" name="firstName" required>
+</div>
+<div class="form-group">
+<label for="leadLastName">Last Name</label>
+<input type="text" id="leadLastName" name="lastName" required>
+</div>
+<div class="form-group">
+<label for="leadEmail">Email</label>
+<input type="email" id="leadEmail" name="email" required>
+</div>
+<div class="form-group">
+<label for="leadPhone">Phone</label>
+<input type="tel" id="leadPhone" name="phone">
+</div>
+<button type="submit" class="modal-submit" id="leadSubmitBtn">Send My Info</button>
+</form>
+<p class="modal-disclaimer">Your information is confidential. By submitting, you agree to be contacted by Camelback Home Group.</p>
+</div>
+<div id="leadSuccessState" style="display:none">
+<div class="modal-success">
+<div class="modal-success-icon">&#10003;</div>
+<h4>We've Got Your Info!</h4>
+<p>A member of our team will reach out shortly with more details about this property.</p>
+</div>
+</div>
+</div>
 </div>
 
 </div><!-- end propertyPage -->
@@ -497,6 +570,78 @@ padding-top:20px;gap:12px}
       document.body.appendChild(script);
     }
   }
+})();
+
+/* LEAD MODAL */
+(function(){
+  var modal = document.getElementById('leadModal');
+  var openBtn = document.getElementById('openLeadModal');
+  var closeBtn = document.getElementById('closeLeadModal');
+  var form = document.getElementById('leadForm');
+  var formState = document.getElementById('leadFormState');
+  var successState = document.getElementById('leadSuccessState');
+  var submitBtn = document.getElementById('leadSubmitBtn');
+
+  openBtn.addEventListener('click', function(){
+    // Pre-fill hidden fields with property info
+    var addrEl = document.querySelector('.property-address');
+    var addr = addrEl ? addrEl.textContent : '';
+    document.getElementById('leadPropertyId').value = new URLSearchParams(window.location.search).get('id') || '';
+    document.getElementById('leadPropertyAddress').value = addr;
+    document.getElementById('modalPropertyLine').textContent = addr
+      ? 'Register below and we\'ll send you details about ' + addr + '.'
+      : 'Register below and we\'ll send you details about this property.';
+    formState.style.display = '';
+    successState.style.display = 'none';
+    modal.classList.add('active');
+  });
+
+  closeBtn.addEventListener('click', function(){ modal.classList.remove('active'); });
+  modal.addEventListener('click', function(e){ if(e.target === modal) modal.classList.remove('active'); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    var data = {
+      firstName: document.getElementById('leadFirstName').value,
+      lastName: document.getElementById('leadLastName').value,
+      email: document.getElementById('leadEmail').value,
+      phone: document.getElementById('leadPhone').value,
+      propertyAddress: document.getElementById('leadPropertyAddress').value,
+      propertyMlsId: document.getElementById('leadPropertyId').value,
+      source: 'Property Detail Page'
+    };
+
+    // Submit to Netlify Forms as backup
+    var formData = new FormData(form);
+    fetch('/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams(formData).toString()
+    }).catch(function(){});
+
+    // Submit to Sierra CRM via function
+    fetch('/.netlify/functions/lead', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(){
+      formState.style.display = 'none';
+      successState.style.display = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send My Info';
+    })
+    .catch(function(){
+      formState.style.display = 'none';
+      successState.style.display = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send My Info';
+    });
+  });
 })();
 
 /* Google Maps callback (must be global) */
