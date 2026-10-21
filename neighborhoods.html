@@ -374,6 +374,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <div class="view-toggle" id="viewToggle">
   <button class="view-btn active" data-view="cities">Cities</button>
   <button class="view-btn" data-view="schools">Schools</button>
+  <button class="view-btn" data-view="zipcodes">Zip Codes</button>
 </div>
 <div class="school-toggle" id="schoolToggle" style="display:none">
 </div>
@@ -450,6 +451,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 
 <script src="neighborhoods-data.js"></script>
 <script src="school-zones.js"></script>
+<script src="zipcode-data.js"></script>
 <script>
 /* ================================================================
    NAV TOGGLE (runs immediately, no map dependency)
@@ -637,6 +639,7 @@ function initMap(){
   var drillObjects = [];
   var neighborhoodObjects = [];
   var schoolObjects = [];
+  var zipcodeObjects = [];
   var listingMarkerObjects = [];
 
   function clearMapObjects(arr){
@@ -731,6 +734,10 @@ function initMap(){
       mapTitle.textContent = 'School Districts';
       mapSubtitle.textContent = 'Click a district to search homes';
       buildSchoolView('districts');
+    } else if(view === 'zipcodes'){
+      mapTitle.textContent = 'Zip Codes';
+      mapSubtitle.textContent = 'Click a zip code to search homes';
+      buildZipCodeView();
     }
   }
 
@@ -739,6 +746,7 @@ function initMap(){
     clearMapObjects(drillObjects);
     clearMapObjects(neighborhoodObjects);
     clearMapObjects(schoolObjects);
+    clearMapObjects(zipcodeObjects);
   }
 
   /* ================================================================
@@ -1215,6 +1223,58 @@ function initMap(){
         map.fitBounds(bounds, 40);
       }
     }
+  }
+
+  /* ================================================================
+     ZIP CODE VIEW
+     ================================================================ */
+  var zipStyle = {fillColor:'#8e44ad', fillOpacity:0.10, strokeColor:'#6c3483', strokeWeight:1.5, strokeOpacity:1};
+  var zipHover = {fillOpacity:0.30, strokeWeight:2.5};
+
+  function buildZipCodeView(){
+    clearMapObjects(zipcodeObjects);
+    if(typeof ZIPCODE_DATA === 'undefined') return;
+
+    ZIPCODE_DATA.forEach(function(zip){
+      var paths;
+      if(zip.type === 'MultiPolygon'){
+        paths = zip.coords.map(toGooglePath);
+      } else {
+        paths = [toGooglePath(zip.coords[0])];
+      }
+
+      var polygon = new google.maps.Polygon({
+        paths: paths,
+        fillColor: zipStyle.fillColor,
+        fillOpacity: zipStyle.fillOpacity,
+        strokeColor: zipStyle.strokeColor,
+        strokeWeight: zipStyle.strokeWeight,
+        strokeOpacity: 1,
+        map: map
+      });
+      zipcodeObjects.push(polygon);
+
+      var bounds = getPolygonBounds(polygon);
+      var center = bounds.getCenter();
+      var label = new LabelOverlay(center, zip.name, 'gm-neighborhood-label', map);
+      zipcodeObjects.push(label);
+
+      google.maps.event.addListener(polygon, 'mouseover', function(){
+        this.setOptions({fillOpacity: zipHover.fillOpacity, strokeWeight: zipHover.strokeWeight});
+      });
+      google.maps.event.addListener(polygon, 'mouseout', function(){
+        this.setOptions({fillOpacity: zipStyle.fillOpacity, strokeWeight: zipStyle.strokeWeight});
+      });
+
+      google.maps.event.addListener(polygon, 'click', function(){
+        zip.filterCity = null;
+        zip.searchQ = zip.name;
+        fetchListingsForPolygon(zip);
+      });
+    });
+
+    map.setCenter({lat:33.50, lng:-111.95});
+    map.setZoom(10);
   }
 
   /* ================================================================
