@@ -96,6 +96,12 @@ exports.handler = async (event) => {
 
     const listings = data
       .filter((p) => p.geo && p.geo.lat && p.geo.lng)
+      .filter((p) => {
+        // Exclude commercial-like properties: no bedrooms or very large sqft with no beds
+        const beds = p.property ? p.property.bedrooms : null;
+        if (beds === null || beds === 0) return false;
+        return true;
+      })
       .map((p) => ({
         id: p.mlsId || p.listingId,
         lat: p.geo.lat,
