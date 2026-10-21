@@ -1419,16 +1419,30 @@ function initMap(){
     if(!bounds) return;
     var zoom = map.getZoom();
 
-    // If zoomed in past level 12, re-fetch for the visible area to get listings
-    // that may have been excluded by the initial 200-result cap
+    // If zoomed in past level 12, re-fetch but still constrained to original search area
     if(zoom >= 12){
-      var sw = bounds.getSouthWest();
-      var ne = bounds.getNorthEast();
-      var body = {
-        south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng(),
-        limit: 200
-      };
-      // Also apply current filters
+      // Re-use the original search polygon or q parameter
+      var body = { limit: 200 };
+
+      // If original search had a polygon, use it (keeps results within the city/neighborhood)
+      if(!currentHood.qOnly && currentHood.coords && currentHood.coords.length > 0){
+        var pts;
+        if(currentHood.type === 'MultiPolygon'){
+          pts = currentHood.coords.reduce(function(a,b){return a.length>b.length?a:b});
+        } else {
+          pts = currentHood.coords[0];
+        }
+        if(pts && pts.length > 0){
+          var step = Math.max(1, Math.floor(pts.length / 30));
+          var simplified = [];
+          for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
+          body.polygon = simplified;
+        }
+      }
+      // If original search had a q parameter, include it
+      if(currentHood.searchQ) body.q = currentHood.searchQ;
+
+      // Apply current filters
       var filters = getFilterValues();
       if(filters.minPrice) body.minPrice = filters.minPrice;
       if(filters.maxPrice) body.maxPrice = filters.maxPrice;
