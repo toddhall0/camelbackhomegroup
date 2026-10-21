@@ -140,7 +140,9 @@ padding-bottom:12px;border-bottom:2px solid var(--gold)}
 .market-dist{margin-top:20px}
 .market-dist h3{font-size:0.85rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
 color:rgba(255,255,255,0.5);margin-bottom:12px}
-.market-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.market-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;
+padding:4px 8px;margin-left:-8px;margin-right:-8px;border-radius:4px;transition:background 0.2s}
+.market-bar-row:hover{background:rgba(255,255,255,0.08)}
 .market-bar-label{font-size:0.82rem;color:rgba(255,255,255,0.6);width:120px;flex-shrink:0;text-align:right}
 .market-bar-track{flex:1;height:24px;background:rgba(255,255,255,0.06);position:relative;overflow:hidden}
 .market-bar-fill{height:100%;background:var(--gold);transition:width 0.6s ease}
@@ -419,10 +421,13 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
     var distHtml = '<div class="market-dist"><h3>Price Distribution</h3>';
     s.priceDistribution.forEach(function(d){
       var pct = Math.round((d.count / maxCount) * 100);
-      distHtml += '<div class="market-bar-row">' +
+      var searchParams = 'q=' + encodeURIComponent(city.name);
+      if(d.min > 0) searchParams += '&minPrice=' + d.min;
+      if(d.max < 99999999) searchParams += '&maxPrice=' + d.max;
+      distHtml += '<div class="market-bar-row" onclick="window.location.href=\'neighborhoods.html?' + searchParams + '\'" title="Search ' + city.name + ' homes ' + d.label + '">' +
         '<div class="market-bar-label">' + d.label + '</div>' +
         '<div class="market-bar-track"><div class="market-bar-fill" style="width:' + pct + '%"></div></div>' +
-        '<div class="market-bar-count">' + d.count + '</div></div>';
+        '<div class="market-bar-count">' + d.count + ' &rarr;</div></div>';
     });
     distHtml += '</div>';
 

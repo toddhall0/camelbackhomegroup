@@ -1580,7 +1580,21 @@ function initMap(){
   buildMetro();
 
   // Handle ?q= search parameter from the search page
-  var urlQ = new URLSearchParams(window.location.search).get('q');
+  var urlParams = new URLSearchParams(window.location.search);
+  var urlQ = urlParams.get('q');
+  var urlMinPrice = urlParams.get('minPrice');
+  var urlMaxPrice = urlParams.get('maxPrice');
+
+  // Pre-fill filters from URL params
+  if(urlMinPrice){
+    var fp = document.getElementById('filterMinPrice');
+    if(fp) fp.value = urlMinPrice;
+  }
+  if(urlMaxPrice){
+    var fp2 = document.getElementById('filterMaxPrice');
+    if(fp2) fp2.value = urlMaxPrice;
+  }
+
   if(urlQ){
     // Use Google Geocoding to find the location, then search that area
     var geocoder = new google.maps.Geocoder();

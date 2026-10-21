@@ -98,6 +98,8 @@ exports.handler = async (event) => {
     const distribution = displayBrackets.map((d) => ({
       label: d.label,
       count: bracketCounts[d.label],
+      min: d.min,
+      max: d.max,
     }));
 
     let totalActive = distribution.reduce((sum, d) => sum + d.count, 0);
