@@ -1,5 +1,5 @@
 // Calculates market snapshot stats for a city from SimplyRETS
-// Fetches from both price ends to get accurate stats across the full range
+// Fetches across price brackets to get representative data
 
 exports.handler = async (event) => {
   const headers = {
@@ -26,42 +26,57 @@ exports.handler = async (event) => {
 
   const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
 
-  async function fetchPage(sort, limit) {
+  async function fetchBracket(minPrice, maxPrice, limit) {
     const params = new URLSearchParams({
       q: city,
       status: "active",
       type: "residential",
       limit: String(limit),
-      sort: sort,
     });
+    if (minPrice > 0) params.set("minprice", String(minPrice));
+    if (maxPrice < Infinity) params.set("maxprice", String(maxPrice));
+
     const res = await fetch(`https://api.simplyrets.com/properties?${params.toString()}`, {
       headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
     });
-    if (!res.ok) return { listings: [], total: 0 };
+    if (!res.ok) return { listings: [], count: 0 };
     const total = parseInt(res.headers.get("X-Total-Count") || "0");
     const data = await res.json();
-    return { listings: data, total };
+    return { listings: data, count: total || data.length };
   }
 
   try {
-    // Fetch from BOTH ends to get full price range
-    const [lowEnd, highEnd] = await Promise.all([
-      fetchPage("listprice", 250),   // cheapest 250
-      fetchPage("-listprice", 250),   // most expensive 250
-    ]);
+    // Fetch across price brackets to get representative sample
+    const brackets = [
+      { label: "Under $300K", min: 0, max: 300000 },
+      { label: "$300K - $500K", min: 300000, max: 500000 },
+      { label: "$500K - $750K", min: 500000, max: 750000 },
+      { label: "$750K - $1M", min: 750000, max: 1000000 },
+      { label: "$1M - $2M", min: 1000000, max: 2000000 },
+      { label: "$2M+", min: 2000000, max: 99999999 },
+    ];
 
-    // Merge and deduplicate
+    const results = await Promise.all(
+      brackets.map((b) => fetchBracket(b.min, b.max, 100))
+    );
+
+    // Merge all listings and deduplicate
     const seen = new Set();
     const allListings = [];
-    [...lowEnd.listings, ...highEnd.listings].forEach((p) => {
-      const id = p.mlsId || p.listingId;
-      if (!seen.has(id) && p.property && p.property.bedrooms && p.property.bedrooms > 0) {
-        seen.add(id);
-        allListings.push(p);
-      }
-    });
+    let totalActive = 0;
+    const distribution = [];
 
-    const totalActive = Math.max(lowEnd.total, highEnd.total) || allListings.length;
+    results.forEach((r, i) => {
+      distribution.push({ label: brackets[i].label, count: r.count });
+      totalActive += r.count;
+      r.listings.forEach((p) => {
+        const id = p.mlsId || p.listingId;
+        if (!seen.has(id) && p.property && p.property.bedrooms && p.property.bedrooms > 0) {
+          seen.add(id);
+          allListings.push(p);
+        }
+      });
+    });
 
     if (allListings.length === 0) {
       return {
@@ -78,13 +93,10 @@ exports.handler = async (event) => {
       .map((p) => p.listPrice / p.property.area);
     const sqfts = allListings.map((p) => p.property.area).filter((s) => s > 0);
 
-    // Calculate DOM from listDate if daysOnMarket is 0/null
     const now = Date.now();
     const doms = allListings
       .map((p) => {
-        if (p.mls && p.mls.daysOnMarket && p.mls.daysOnMarket > 0) {
-          return p.mls.daysOnMarket;
-        }
+        if (p.mls && p.mls.daysOnMarket && p.mls.daysOnMarket > 0) return p.mls.daysOnMarket;
         if (p.listDate) {
           const listed = new Date(p.listDate).getTime();
           if (listed > 0) return Math.max(0, Math.round((now - listed) / 86400000));
@@ -106,36 +118,13 @@ exports.handler = async (event) => {
     }
 
     const stats = {
-      activeListings: totalActive,
+      activeListings: totalActive || allListings.length,
       medianPrice: Math.round(median(prices)),
-      avgPrice: Math.round(avg(prices)),
-      minPrice: prices[0] || 0,
-      maxPrice: prices[prices.length - 1] || 0,
       avgPricePerSqft: Math.round(avg(sqftPrices)),
-      medianSqft: Math.round(median(sqfts)),
       avgDaysOnMarket: doms.length > 0 ? Math.round(avg(doms)) : null,
-      medianDaysOnMarket: doms.length > 0 ? Math.round(median(doms)) : null,
       sampleSize: allListings.length,
+      priceDistribution: distribution,
     };
-
-    // Price distribution
-    const ranges = [
-      { label: "Under $300K", min: 0, max: 300000 },
-      { label: "$300K - $500K", min: 300000, max: 500000 },
-      { label: "$500K - $750K", min: 500000, max: 750000 },
-      { label: "$750K - $1M", min: 750000, max: 1000000 },
-      { label: "$1M - $2M", min: 1000000, max: 2000000 },
-      { label: "$2M+", min: 2000000, max: Infinity },
-    ];
-
-    stats.priceDistribution = ranges.map((r) => ({
-      label: r.label,
-      count: prices.filter((p) => p >= r.min && p < r.max).length,
-      // Estimate count for the full dataset if we only have a sample
-      estimated: totalActive > allListings.length
-        ? Math.round((prices.filter((p) => p >= r.min && p < r.max).length / allListings.length) * totalActive)
-        : prices.filter((p) => p >= r.min && p < r.max).length,
-    }));
 
     return {
       statusCode: 200,
