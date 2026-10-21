@@ -1413,27 +1413,78 @@ function initMap(){
      FILTER LISTINGS TO CURRENT MAP VIEW (pan/zoom)
      ================================================================ */
   function filterListingsToView(){
-    if(!currentListings || currentListings.length === 0) return;
-    if(activeListingId) return; // Don't rebuild markers while an InfoWindow is open
+    if(!currentHood) return;
+    if(activeListingId) return;
     var bounds = map.getBounds();
     if(!bounds) return;
+    var zoom = map.getZoom();
 
-    var visible = currentListings.filter(function(l){
-      return bounds.contains(new google.maps.LatLng(l.lat, l.lng));
-    });
+    // If zoomed in past level 12, re-fetch for the visible area to get listings
+    // that may have been excluded by the initial 200-result cap
+    if(zoom >= 12){
+      var sw = bounds.getSouthWest();
+      var ne = bounds.getNorthEast();
+      var body = {
+        south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng(),
+        limit: 200
+      };
+      // Also apply current filters
+      var filters = getFilterValues();
+      if(filters.minPrice) body.minPrice = filters.minPrice;
+      if(filters.maxPrice) body.maxPrice = filters.maxPrice;
+      if(filters.minBeds) body.minBeds = filters.minBeds;
+      if(filters.minBaths) body.minBaths = filters.minBaths;
+      if(filters.minSqft) body.minSqft = filters.minSqft;
+      if(filters.maxSqft) body.maxSqft = filters.maxSqft;
+      if(filters.sort) body.sort = filters.sort;
 
-    // Clear existing listing markers
-    clearMapObjects(listingMarkerObjects);
-    markerMap = {};
-    activeListingId = null;
+      fetch('/.netlify/functions/listings',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      })
+      .then(function(r){return r.json()})
+      .then(function(data){
+        if(activeListingId) return;
+        var newListings = data.listings || [];
 
-    visible.forEach(function(l){
-      createListingMarker(l);
-    });
+        // Merge with existing — add any new listings not already in the set
+        var existingIds = {};
+        currentListings.forEach(function(l){ existingIds[l.id] = true; });
+        newListings.forEach(function(l){
+          if(!existingIds[l.id]){
+            currentListings.push(l);
+          }
+        });
 
-    renderListingCards(visible, currentHood ? currentHood.name : '');
-    countEl.textContent = visible.length + ' of ' + currentListings.length + ' listings in view';
-    countEl.classList.add('active');
+        // Filter to visible
+        var visible = currentListings.filter(function(l){
+          return bounds.contains(new google.maps.LatLng(l.lat, l.lng));
+        });
+
+        clearMapObjects(listingMarkerObjects);
+        markerMap = {};
+        visible.forEach(function(l){ createListingMarker(l); });
+        renderListingCards(visible, currentHood ? currentHood.name : '');
+        countEl.textContent = visible.length + ' listings in view';
+        countEl.classList.add('active');
+      })
+      .catch(function(){});
+    } else {
+      // Zoomed out — just filter the cached set
+      if(!currentListings || currentListings.length === 0) return;
+      var visible = currentListings.filter(function(l){
+        return bounds.contains(new google.maps.LatLng(l.lat, l.lng));
+      });
+
+      clearMapObjects(listingMarkerObjects);
+      markerMap = {};
+      activeListingId = null;
+      visible.forEach(function(l){ createListingMarker(l); });
+      renderListingCards(visible, currentHood ? currentHood.name : '');
+      countEl.textContent = visible.length + ' of ' + currentListings.length + ' listings in view';
+      countEl.classList.add('active');
+    }
   }
 
   var viewFilterTimer;
