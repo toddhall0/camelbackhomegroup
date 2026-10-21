@@ -375,11 +375,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
   <button class="view-btn active" data-view="cities">Cities</button>
   <button class="view-btn" data-view="schools">Schools</button>
 </div>
-<div class="school-toggle" id="schoolToggle">
-  <button class="school-btn active" data-level="districts">Districts</button>
-  <button class="school-btn" data-level="high">High Schools</button>
-  <button class="school-btn" data-level="middle">Middle Schools</button>
-  <button class="school-btn" data-level="elementary">Elementary</button>
+<div class="school-toggle" id="schoolToggle" style="display:none">
 </div>
 </div>
 <div class="map-body">
@@ -732,9 +728,9 @@ function initMap(){
       map.setCenter({lat:33.50, lng:-111.95});
       map.setZoom(10);
     } else if(view === 'schools'){
-      mapTitle.textContent = 'School Attendance Zones';
-      mapSubtitle.textContent = 'Click a zone to search homes';
-      buildSchoolView(currentSchoolLevel);
+      mapTitle.textContent = 'School Districts';
+      mapSubtitle.textContent = 'Click a district to search homes';
+      buildSchoolView('districts');
     }
   }
 
@@ -1005,19 +1001,9 @@ function initMap(){
     if(onClick){
       google.maps.event.addListener(polygon, 'click', onClick);
     } else {
-      var popupHtml =
-        '<div class="hood-popup">'+
-        '<h3>'+hood.name+'</h3>'+
-        '<p>'+hood.desc+'</p>'+
-        '<a href="'+searchUrl(hood.coords)+'" target="_blank">Search Homes in '+hood.name+'</a>'+
-        '</div>';
-
       google.maps.event.addListener(polygon, 'click', function(e){
         hood.filterCity = hood.name;
         fetchListingsForPolygon(hood);
-        infoWindow.setContent(popupHtml);
-        infoWindow.setPosition(e.latLng);
-        infoWindow.open(map);
       });
     }
 
@@ -1078,24 +1064,9 @@ function initMap(){
       objectsArr.push(schoolMarker);
     }
 
-    // Popup content
-    var popupDesc = '';
-    if(zone.district){
-      popupDesc = '<p>' + zone.district + ' district</p>';
-    }
-
-    var popupHtml =
-      '<div class="hood-popup">'+
-      '<h3>'+zone.name+'</h3>'+
-      popupDesc+
-      '<a href="'+searchUrl(zone.coords)+'" target="_blank">Search Homes in Zone</a>'+
-      '</div>';
-
     google.maps.event.addListener(polygon, 'click', function(e){
       fetchListingsForPolygon(zone);
-      infoWindow.setContent(popupHtml);
-      infoWindow.setPosition(e.latLng);
-      infoWindow.open(map);
+    });
     });
 
     return polygon;
