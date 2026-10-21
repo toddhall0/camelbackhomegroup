@@ -1,6 +1,5 @@
 // Calculates market snapshot stats for a city from SimplyRETS
-//
-// Returns: median price, avg price/sqft, active count, avg DOM, price range
+// Fetches from both price ends to get accurate stats across the full range
 
 exports.handler = async (event) => {
   const headers = {
@@ -27,13 +26,13 @@ exports.handler = async (event) => {
 
   const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
 
-  async function fetchListings(status, limit) {
+  async function fetchPage(sort, limit) {
     const params = new URLSearchParams({
       q: city,
-      status: status,
+      status: "active",
       type: "residential",
       limit: String(limit),
-      sort: "-listprice",
+      sort: sort,
     });
     const res = await fetch(`https://api.simplyrets.com/properties?${params.toString()}`, {
       headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
@@ -45,15 +44,26 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Fetch active listings (up to 500 for stats)
-    const active = await fetchListings("active", 500);
+    // Fetch from BOTH ends to get full price range
+    const [lowEnd, highEnd] = await Promise.all([
+      fetchPage("listprice", 250),   // cheapest 250
+      fetchPage("-listprice", 250),   // most expensive 250
+    ]);
 
-    // Filter to residential with bedrooms
-    const homes = active.listings.filter(
-      (p) => p.property && p.property.bedrooms && p.property.bedrooms > 0
-    );
+    const totalActive = Math.max(lowEnd.total, highEnd.total);
 
-    if (homes.length === 0) {
+    // Merge and deduplicate
+    const seen = new Set();
+    const allListings = [];
+    [...lowEnd.listings, ...highEnd.listings].forEach((p) => {
+      const id = p.mlsId || p.listingId;
+      if (!seen.has(id) && p.property && p.property.bedrooms && p.property.bedrooms > 0) {
+        seen.add(id);
+        allListings.push(p);
+      }
+    });
+
+    if (allListings.length === 0) {
       return {
         statusCode: 200,
         headers,
@@ -62,15 +72,26 @@ exports.handler = async (event) => {
     }
 
     // Calculate stats
-    const prices = homes.map((p) => p.listPrice).filter((p) => p > 0).sort((a, b) => a - b);
-    const sqftPrices = homes
+    const prices = allListings.map((p) => p.listPrice).filter((p) => p > 0).sort((a, b) => a - b);
+    const sqftPrices = allListings
       .filter((p) => p.property.area && p.property.area > 0)
       .map((p) => p.listPrice / p.property.area);
-    const doms = homes
-      .filter((p) => p.mls && p.mls.daysOnMarket !== undefined && p.mls.daysOnMarket !== null)
-      .map((p) => p.mls.daysOnMarket);
-    const beds = homes.map((p) => p.property.bedrooms).filter((b) => b > 0);
-    const sqfts = homes.map((p) => p.property.area).filter((s) => s > 0);
+    const sqfts = allListings.map((p) => p.property.area).filter((s) => s > 0);
+
+    // Calculate DOM from listDate if daysOnMarket is 0/null
+    const now = Date.now();
+    const doms = allListings
+      .map((p) => {
+        if (p.mls && p.mls.daysOnMarket && p.mls.daysOnMarket > 0) {
+          return p.mls.daysOnMarket;
+        }
+        if (p.listDate) {
+          const listed = new Date(p.listDate).getTime();
+          if (listed > 0) return Math.max(0, Math.round((now - listed) / 86400000));
+        }
+        return null;
+      })
+      .filter((d) => d !== null && d >= 0);
 
     function median(arr) {
       if (arr.length === 0) return 0;
@@ -85,17 +106,16 @@ exports.handler = async (event) => {
     }
 
     const stats = {
-      activeListings: active.total || homes.length,
+      activeListings: totalActive,
       medianPrice: Math.round(median(prices)),
       avgPrice: Math.round(avg(prices)),
       minPrice: prices[0] || 0,
       maxPrice: prices[prices.length - 1] || 0,
       avgPricePerSqft: Math.round(avg(sqftPrices)),
       medianSqft: Math.round(median(sqfts)),
-      avgBeds: parseFloat(avg(beds).toFixed(1)),
-      avgDaysOnMarket: Math.round(avg(doms)),
-      medianDaysOnMarket: Math.round(median(doms)),
-      sampleSize: homes.length,
+      avgDaysOnMarket: doms.length > 0 ? Math.round(avg(doms)) : null,
+      medianDaysOnMarket: doms.length > 0 ? Math.round(median(doms)) : null,
+      sampleSize: allListings.length,
     };
 
     // Price distribution
@@ -111,6 +131,10 @@ exports.handler = async (event) => {
     stats.priceDistribution = ranges.map((r) => ({
       label: r.label,
       count: prices.filter((p) => p >= r.min && p < r.max).length,
+      // Estimate count for the full dataset if we only have a sample
+      estimated: totalActive > allListings.length
+        ? Math.round((prices.filter((p) => p >= r.min && p < r.max).length / allListings.length) * totalActive)
+        : prices.filter((p) => p >= r.min && p < r.max).length,
     }));
 
     return {
