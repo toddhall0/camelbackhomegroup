@@ -128,6 +128,26 @@ color:var(--white);transition:background 0.3s}
 text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);color:var(--gold);transition:all 0.3s}
 .city-cta-btn:hover{background:var(--gold);color:var(--white)}
 
+/* MARKET SNAPSHOT */
+.market-snapshot{background:var(--charcoal);padding:48px 24px}
+.market-inner{max-width:1000px;margin:0 auto}
+.market-inner h2{font-family:var(--font-serif);font-size:1.8rem;color:var(--white);margin-bottom:24px;
+padding-bottom:12px;border-bottom:2px solid var(--gold)}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.market-tile{background:rgba(255,255,255,0.06);padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.08)}
+.market-tile-value{font-family:var(--font-serif);font-size:1.6rem;font-weight:600;color:var(--gold);margin-bottom:4px}
+.market-tile-label{font-size:0.78rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.5)}
+.market-dist{margin-top:20px}
+.market-dist h3{font-size:0.85rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+color:rgba(255,255,255,0.5);margin-bottom:12px}
+.market-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.market-bar-label{font-size:0.82rem;color:rgba(255,255,255,0.6);width:120px;flex-shrink:0;text-align:right}
+.market-bar-track{flex:1;height:24px;background:rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.market-bar-fill{height:100%;background:var(--gold);transition:width 0.6s ease}
+.market-bar-count{font-size:0.78rem;color:rgba(255,255,255,0.5);width:40px;text-align:right}
+.market-loading{color:rgba(255,255,255,0.4);text-align:center;padding:40px}
+.market-disclaimer{font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:16px;text-align:center}
+
 /* FOOTER */
 .footer{background:#0f2530;padding:40px 24px;text-align:center}
 .footer p{font-size:0.82rem;color:rgba(255,255,255,0.35)}
@@ -299,6 +319,14 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
     eventsHtml +
     '</div>' +
 
+    // MARKET SNAPSHOT
+    '<div class="market-snapshot">' +
+    '<div class="market-inner">' +
+    '<h2>' + esc(city.name) + ' Market Snapshot</h2>' +
+    '<div id="marketContent"><div class="market-loading">Loading market data...</div></div>' +
+    '<div class="market-disclaimer">Data based on active MLS listings. Updated in real-time.</div>' +
+    '</div></div>' +
+
     // LISTINGS PREVIEW
     '<div class="listings-preview">' +
     '<div class="listings-preview-inner">' +
@@ -359,6 +387,51 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
   })
   .catch(function(){
     document.getElementById('cityListings').innerHTML = '<p style="color:var(--text-light)">Unable to load listings.</p>';
+  });
+
+  // Fetch market snapshot
+  fetch('/.netlify/functions/market-stats?city=' + encodeURIComponent(city.name))
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var mc = document.getElementById('marketContent');
+    if(!data.stats){
+      mc.innerHTML = '<div class="market-loading">Market data unavailable.</div>';
+      return;
+    }
+    var s = data.stats;
+
+    function fmtPrice(n){
+      if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
+      if(n>=1000) return '$'+(n/1000).toFixed(0)+'K';
+      return '$'+n;
+    }
+
+    var tilesHtml =
+      '<div class="market-grid">' +
+      '<div class="market-tile"><div class="market-tile-value">' + s.activeListings + '</div><div class="market-tile-label">Active Listings</div></div>' +
+      '<div class="market-tile"><div class="market-tile-value">' + fmtPrice(s.medianPrice) + '</div><div class="market-tile-label">Median Price</div></div>' +
+      '<div class="market-tile"><div class="market-tile-value">$' + s.avgPricePerSqft + '</div><div class="market-tile-label">Avg Price / Sqft</div></div>' +
+      '<div class="market-tile"><div class="market-tile-value">' + s.avgDaysOnMarket + '</div><div class="market-tile-label">Avg Days on Market</div></div>' +
+      '<div class="market-tile"><div class="market-tile-value">' + fmtPrice(s.minPrice) + '</div><div class="market-tile-label">Lowest Price</div></div>' +
+      '<div class="market-tile"><div class="market-tile-value">' + fmtPrice(s.maxPrice) + '</div><div class="market-tile-label">Highest Price</div></div>' +
+      '</div>';
+
+    // Price distribution bars
+    var maxCount = Math.max.apply(null, s.priceDistribution.map(function(d){ return d.count; })) || 1;
+    var distHtml = '<div class="market-dist"><h3>Price Distribution</h3>';
+    s.priceDistribution.forEach(function(d){
+      var pct = Math.round((d.count / maxCount) * 100);
+      distHtml += '<div class="market-bar-row">' +
+        '<div class="market-bar-label">' + d.label + '</div>' +
+        '<div class="market-bar-track"><div class="market-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="market-bar-count">' + d.count + '</div></div>';
+    });
+    distHtml += '</div>';
+
+    mc.innerHTML = tilesHtml + distHtml;
+  })
+  .catch(function(){
+    document.getElementById('marketContent').innerHTML = '<div class="market-loading">Unable to load market data.</div>';
   });
 })();
 </script>
