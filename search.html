@@ -47,16 +47,39 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 .nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0;transition:all 0.3s}
 
 /* SEARCH PAGE */
-.search-hero{background:var(--charcoal);padding:120px 24px 40px;text-align:center}
-.search-hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--white);margin-bottom:12px}
-.search-hero p{font-size:1.05rem;font-weight:300;color:rgba(255,255,255,0.6);max-width:560px;margin:0 auto}
+.search-hero{background:var(--charcoal);padding:140px 24px 60px;text-align:center}
+.search-hero h1{font-size:clamp(2.2rem,5vw,3.2rem);font-weight:300;color:var(--white);margin-bottom:8px}
+.search-hero h1 span{color:var(--gold);font-style:italic}
+.search-hero p{font-size:1.1rem;font-weight:300;color:rgba(255,255,255,0.6);max-width:560px;margin:0 auto 32px}
+.search-bar{max-width:640px;margin:0 auto}
+.search-bar-form{display:flex;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);
+transition:border-color 0.3s}
+.search-bar-form:focus-within{border-color:var(--gold)}
+.search-bar-input{flex:1;font-family:var(--font-sans);font-size:1.05rem;padding:16px 20px;
+background:transparent;border:none;color:var(--white);outline:none}
+.search-bar-input::placeholder{color:rgba(255,255,255,0.4)}
+.search-bar-btn{font-family:var(--font-sans);font-size:0.9rem;font-weight:500;
+letter-spacing:0.06em;text-transform:uppercase;padding:16px 28px;background:var(--gold);
+color:var(--white);border:none;cursor:pointer;transition:background 0.3s;white-space:nowrap}
+.search-bar-btn:hover{background:var(--gold-light)}
+.search-hint{font-size:0.85rem;color:rgba(255,255,255,0.35);margin-top:12px}
 
-.search-container{min-height:70vh;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:40px 24px}
-.search-placeholder{max-width:600px;text-align:center}
-.search-placeholder-icon{width:80px;height:80px;background:var(--gold-pale);border-radius:50%;
-display:flex;align-items:center;justify-content:center;margin:0 auto 24px;color:var(--gold);font-size:2rem}
-.search-placeholder h2{font-size:1.6rem;color:var(--text-dark);margin-bottom:12px}
-.search-placeholder p{font-size:1rem;font-weight:300;color:var(--text-light);line-height:1.7;margin-bottom:24px}
+/* SEARCH OPTIONS */
+.search-options{background:var(--cream);padding:60px 24px}
+.search-options-inner{max-width:900px;margin:0 auto}
+.search-options h2{font-family:var(--font-serif);font-size:1.6rem;color:var(--text-dark);
+text-align:center;margin-bottom:32px}
+.search-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.search-card{background:var(--white);padding:32px 24px;text-align:center;
+transition:transform 0.3s,box-shadow 0.3s;cursor:pointer;text-decoration:none;color:inherit}
+.search-card:hover{transform:translateY(-3px);box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.search-card-icon{width:56px;height:56px;background:var(--gold-pale);border-radius:50%;
+display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--gold);font-size:1.4rem}
+.search-card h3{font-size:1.15rem;color:var(--text-dark);margin-bottom:8px}
+.search-card p{font-size:0.9rem;font-weight:300;color:var(--text-light);line-height:1.6}
+@media(max-width:640px){
+.search-cards{grid-template-columns:1fr}
+}
 .search-placeholder .btn{display:inline-block;font-family:var(--font-sans);font-size:0.95rem;
 font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;
 border:1px solid var(--gold);background:var(--gold);color:var(--white);cursor:pointer;transition:all 0.3s}
@@ -121,19 +144,43 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 </nav>
 
 <section class="search-hero">
-<h1>Find Your Next <span class="gold-italic">Home</span></h1>
+<h1>Find Your Next <span>Home</span></h1>
 <p>Search homes for sale across the Greater Phoenix metro area.</p>
+<div class="search-bar">
+<form class="search-bar-form" id="searchForm">
+<input type="text" class="search-bar-input" id="searchInput" placeholder="Enter a city, zip code, address, or neighborhood..." autofocus>
+<button type="submit" class="search-bar-btn">Search</button>
+</form>
+<p class="search-hint">Try: Scottsdale 85254, Gilbert, Chandler homes under $500K</p>
+</div>
 </section>
 
-<!-- ===== PLACEHOLDER — shown until IDX is connected ===== -->
-<section class="search-container">
-<div class="search-placeholder">
-<div class="search-placeholder-icon">
-<svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+<section class="search-options">
+<div class="search-options-inner">
+<h2>Or Browse By</h2>
+<div class="search-cards">
+<a href="neighborhoods.html" class="search-card">
+<div class="search-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
 </div>
-<h2>Property Search Coming Soon</h2>
-<p>We're connecting our MLS listing feed so you can search homes directly on our site. In the meantime, reach out and we'll send you listings that match your criteria.</p>
-<a href="index.html#contact" class="btn">Contact Us to Get Started</a>
+<h3>Neighborhood Map</h3>
+<p>Explore cities and neighborhoods with listings plotted on an interactive map.</p>
+</a>
+<a href="https://www.camelbackhomegroup.com/property-search/results/" target="_blank" class="search-card">
+<div class="search-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+</div>
+<h3>Full MLS Search</h3>
+<p>Advanced search with detailed filters — price, beds, baths, lot size, and more.</p>
+</a>
+<a href="neighborhoods.html" class="search-card" onclick="localStorage.setItem('mapView','schools');return true;">
+<div class="search-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+</div>
+<h3>Search by School</h3>
+<p>Find homes within your preferred school district or attendance zone.</p>
+</a>
+</div>
 </div>
 </section>
 
@@ -202,6 +249,20 @@ When your IDX provider (e.g., Showcase IDX, IDX Broker) gives you an embed scrip
   toggle.addEventListener('click', function(){links.classList.toggle('open')});
   links.querySelectorAll('a').forEach(function(a){
     a.addEventListener('click', function(){links.classList.remove('open')});
+  });
+
+  // Search form — forward to IDX site
+  var searchForm = document.getElementById('searchForm');
+  var searchInput = document.getElementById('searchInput');
+  searchForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var query = searchInput.value.trim();
+    var base = 'https://www.camelbackhomegroup.com/property-search/results/';
+    if(query){
+      window.open(base + '?city=' + encodeURIComponent(query) + '&sortby=datelisted%20desc#view_map/', '_blank');
+    } else {
+      window.open(base, '_blank');
+    }
   });
 })();
 </script>
