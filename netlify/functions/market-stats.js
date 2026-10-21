@@ -50,7 +50,7 @@ exports.handler = async (event) => {
       fetchPage("-listprice", 250),   // most expensive 250
     ]);
 
-    const totalActive = Math.max(lowEnd.total, highEnd.total);
+    const totalActive = Math.max(lowEnd.total, highEnd.total) || allListings.length;
 
     // Merge and deduplicate
     const seen = new Set();
