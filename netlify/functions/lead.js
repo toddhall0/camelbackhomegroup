@@ -78,14 +78,14 @@ exports.handler = async (event) => {
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify({ success: true, crm: "fallback", sierraStatus: response.status, sierraError: errText }),
+          body: JSON.stringify({ success: true, crm: "fallback" }),
         };
       }
     } catch (err) {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ success: true, crm: "fallback", error: err.message }),
+        body: JSON.stringify({ success: true, crm: "fallback" }),
       };
     }
   }
