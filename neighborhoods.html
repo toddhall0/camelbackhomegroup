@@ -1351,6 +1351,7 @@ function initMap(){
       polygon: simplified,
       limit: 200
     };
+    if(hood.searchQ) body.q = hood.searchQ;
     var filters = getFilterValues();
     if(filters.minPrice) body.minPrice = filters.minPrice;
     if(filters.maxPrice) body.maxPrice = filters.maxPrice;
@@ -1482,24 +1483,35 @@ function initMap(){
           map.setCenter(loc);
           map.setZoom(13);
         }
-        // Build a bounding box polygon around the result
-        var b = map.getBounds() || new google.maps.LatLngBounds(
-          new google.maps.LatLng(loc.lat()-0.05, loc.lng()-0.05),
-          new google.maps.LatLng(loc.lat()+0.05, loc.lng()+0.05)
-        );
-        // Wait for map to settle then fetch listings
+
+        // Check if the search matches a city we have polygon data for
+        var matchedHood = null;
+        var searchLower = urlQ.toLowerCase().trim();
+        MAPDATA.neighborhoods.forEach(function(hood){
+          if(hood.name.toLowerCase() === searchLower){
+            matchedHood = hood;
+          }
+        });
+
         google.maps.event.addListenerOnce(map, 'idle', function(){
-          var mb = map.getBounds();
-          var hood = {
-            name: urlQ,
-            desc: 'Search results for "' + urlQ + '"',
-            type: 'Polygon',
-            coords: [[[mb.getNorthEast().lat(), mb.getNorthEast().lng()],
-                      [mb.getNorthEast().lat(), mb.getSouthWest().lng()],
-                      [mb.getSouthWest().lat(), mb.getSouthWest().lng()],
-                      [mb.getSouthWest().lat(), mb.getNorthEast().lng()]]]
-          };
-          fetchListingsForPolygon(hood);
+          if(matchedHood){
+            // Use the exact city polygon — limits results to that city only
+            fetchListingsForPolygon(matchedHood);
+          } else {
+            // Use the geocoded bounds as a polygon, plus pass q for server-side filtering
+            var mb = map.getBounds();
+            var hood = {
+              name: urlQ,
+              desc: 'Search results for "' + urlQ + '"',
+              type: 'Polygon',
+              coords: [[[mb.getNorthEast().lat(), mb.getNorthEast().lng()],
+                        [mb.getNorthEast().lat(), mb.getSouthWest().lng()],
+                        [mb.getSouthWest().lat(), mb.getSouthWest().lng()],
+                        [mb.getSouthWest().lat(), mb.getNorthEast().lng()]]],
+              searchQ: urlQ
+            };
+            fetchListingsForPolygon(hood);
+          }
         });
       }
     });
