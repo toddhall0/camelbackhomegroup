@@ -1414,21 +1414,29 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      if(!data.listings || data.listings.length===0){
+      // Filter out listings from neighboring cities
+      if(hood.filterCity){
+        var cityLower = hood.filterCity.toLowerCase();
+        currentListings = currentListings.filter(function(l){
+          return l.city && l.city.toLowerCase() === cityLower;
+        });
+      }
+
+      if(currentListings.length===0){
         countEl.textContent = 'No listings in '+hood.name;
         countEl.classList.add('active');
         renderListingCards([], hood.name);
         return;
       }
 
-      data.listings.forEach(function(l){
+      currentListings.forEach(function(l){
         createListingMarker(l);
       });
 
-      countEl.textContent = data.listings.length+' listings in '+hood.name;
+      countEl.textContent = currentListings.length+' listings in '+hood.name;
       countEl.classList.add('active');
 
-      renderListingCards(data.listings, hood.name);
+      renderListingCards(currentListings, hood.name);
     })
     .catch(function(){
       loadingEl.classList.remove('active');
