@@ -304,6 +304,14 @@ background:var(--charcoal);color:var(--white);border:none;cursor:pointer;
 box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 .back-btn:hover{background:var(--gold)}
 .back-btn.active{display:block}
+.geo-restrict-btn{display:none;position:absolute;top:10px;right:12px;z-index:800;
+font-family:var(--font-sans);font-size:0.82rem;font-weight:500;padding:9px 16px;
+background:var(--white);color:var(--charcoal);border:1px solid var(--charcoal);cursor:pointer;
+box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:all 0.3s;border-radius:3px}
+.geo-restrict-btn:hover{background:var(--gold);color:var(--white);border-color:var(--gold)}
+.geo-restrict-btn.active{display:block}
+.geo-restrict-btn.unrestricted{background:var(--gold);color:var(--white);border-color:var(--gold)}
+.back-btn.active{display:block}
 .map-header-subtitle{font-size:0.85rem;color:var(--gold);display:none;margin-top:4px}
 .map-header-subtitle.active{display:block}
 
@@ -397,6 +405,7 @@ box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.3s}
 <div class="map-body">
 <div class="map-container">
 <button class="back-btn" id="backBtn">&larr; Back to Metro View</button>
+<button class="geo-restrict-btn" id="geoRestrictBtn">Remove Geographic Restriction</button>
 <div class="listings-loading" id="listingsLoading">Loading listings...</div>
 <div class="listings-count" id="listingsCount"></div>
 <div id="map"></div>
@@ -1391,6 +1400,7 @@ function initMap(){
     panelIdxLink.href = searchUrl(hood.coords);
     panelIdxLink.style.display = 'block';
     openPanel();
+    showGeoBtn();
 
     var body = {
       limit: 200
@@ -1458,6 +1468,7 @@ function initMap(){
     currentListings = [];
     markerMap = {};
     activeListingId = null;
+    hideGeoBtn();
   }
 
   /* ================================================================
@@ -1494,7 +1505,7 @@ function initMap(){
       if(filters.sort) body.sort = filters.sort;
 
       // Remember the city name for client-side filtering
-      var filterCity = currentHood.filterCity || null;
+      var filterCity = (geoRestricted && currentHood.filterCity) ? currentHood.filterCity : null;
 
       fetch('/.netlify/functions/listings',{
         method:'POST',
@@ -1584,6 +1595,86 @@ function initMap(){
   }
 
   backBtn.addEventListener('click', backToMetro);
+
+  /* ================================================================
+     GEOGRAPHIC RESTRICTION TOGGLE
+     ================================================================ */
+  var geoRestrictBtn = document.getElementById('geoRestrictBtn');
+  var geoRestricted = true;
+
+  function showGeoBtn(){
+    geoRestrictBtn.classList.add('active');
+    geoRestrictBtn.classList.remove('unrestricted');
+    geoRestrictBtn.textContent = 'Remove Geographic Restriction';
+    geoRestricted = true;
+  }
+
+  function hideGeoBtn(){
+    geoRestrictBtn.classList.remove('active');
+    geoRestrictBtn.classList.remove('unrestricted');
+    geoRestricted = true;
+  }
+
+  geoRestrictBtn.addEventListener('click', function(){
+    if(!currentHood) return;
+
+    if(geoRestricted){
+      // Switch to unrestricted — fetch by visible bounding box only
+      geoRestricted = false;
+      geoRestrictBtn.textContent = 'Restore Geographic Restriction';
+      geoRestrictBtn.classList.add('unrestricted');
+
+      var bounds = map.getBounds();
+      if(!bounds) return;
+      var sw = bounds.getSouthWest();
+      var ne = bounds.getNorthEast();
+
+      var body = { south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng(), limit: 200 };
+      var filters = getFilterValues();
+      if(filters.minPrice) body.minPrice = filters.minPrice;
+      if(filters.maxPrice) body.maxPrice = filters.maxPrice;
+      if(filters.minBeds) body.minBeds = filters.minBeds;
+      if(filters.minBaths) body.minBaths = filters.minBaths;
+      if(filters.minSqft) body.minSqft = filters.minSqft;
+      if(filters.maxSqft) body.maxSqft = filters.maxSqft;
+      if(filters.sort) body.sort = filters.sort;
+
+      loadingEl.classList.add('active');
+      isLoadingListings = true;
+      clearMapObjects(listingMarkerObjects);
+      markerMap = {};
+
+      fetch('/.netlify/functions/listings',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      })
+      .then(function(r){return r.json()})
+      .then(function(data){
+        loadingEl.classList.remove('active');
+        isLoadingListings = false;
+        currentListings = data.listings || [];
+
+        currentListings.forEach(function(l){ createListingMarker(l); });
+        countEl.textContent = currentListings.length + ' listings (all areas)';
+        countEl.classList.add('active');
+        renderListingCards(currentListings, 'All Areas');
+        panelAreaName.textContent = currentHood.name + ' Area (Unrestricted)';
+        panelListingCount.textContent = currentListings.length + ' homes';
+      })
+      .catch(function(){
+        loadingEl.classList.remove('active');
+        isLoadingListings = false;
+      });
+
+    } else {
+      // Restore restriction — re-fetch with original polygon
+      geoRestricted = true;
+      geoRestrictBtn.textContent = 'Remove Geographic Restriction';
+      geoRestrictBtn.classList.remove('unrestricted');
+      fetchListingsForPolygon(currentHood);
+    }
+  });
 
   /* ================================================================
      INITIAL BUILD
