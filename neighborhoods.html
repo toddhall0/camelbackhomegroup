@@ -1482,9 +1482,8 @@ function initMap(){
     if(!bounds) return;
     var zoom = map.getZoom();
 
-    // If zoomed in past level 12, re-fetch for the visible area
-    // but filter results to stay within the original search city
-    if(zoom >= 12){
+    // Re-fetch when zoomed in (level 12+) OR when geographic restriction is removed
+    if(zoom >= 12 || !geoRestricted){
       var sw = bounds.getSouthWest();
       var ne = bounds.getNorthEast();
       var body = {
