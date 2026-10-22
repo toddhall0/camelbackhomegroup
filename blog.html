@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Camelback Home Group</title>
+<meta name="description" content="Market insights, neighborhood guides, and real estate tips from the Camelback Home Group team — Phoenix's attorney-backed real estate brokerage.">
+<link rel="canonical" href="https://camelbackhomegroup.netlify.app/blog">
+<meta property="og:title" content="Blog — Camelback Home Group">
+<meta property="og:description" content="Market insights, neighborhood guides, and real estate tips from Phoenix's attorney-backed real estate brokerage.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://camelbackhomegroup.netlify.app/blog">
+<meta property="og:image" content="https://camelbackhomegroup.netlify.app/assets/logo/logo.png">
+<meta property="og:site_name" content="Camelback Home Group">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden;background:var(--cream)}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* ===== NAVIGATION ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);transition:background 0.3s ease;padding:0 32px}
+.nav.scrolled{background:rgba(22,58,73,0.98)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-logo-img{height:40px;width:auto}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);
+font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;
+text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;letter-spacing:0.04em;
+color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-link.active{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;
+text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);
+padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);
+margin:5px 0;transition:all 0.3s}
+
+/* ===== HERO ===== */
+.blog-hero{background:var(--charcoal);padding:120px 24px 72px;text-align:center}
+.blog-hero .eyebrow{font-family:var(--font-sans);font-size:0.85rem;font-weight:500;
+letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;
+display:flex;align-items:center;justify-content:center;gap:12px}
+.blog-hero .eyebrow::before{content:'';width:32px;height:1px;background:var(--gold)}
+.blog-hero .eyebrow::after{content:'';width:32px;height:1px;background:var(--gold)}
+.blog-hero h1{font-size:clamp(2rem,4.5vw,3.2rem);font-weight:300;color:var(--white);
+margin-bottom:16px;line-height:1.1}
+.blog-hero p{font-size:1.05rem;font-weight:300;color:rgba(255,255,255,0.6);
+max-width:580px;margin:0 auto;line-height:1.7}
+
+/* ===== CATEGORY FILTERS ===== */
+.filters{background:var(--cream);padding:32px 24px 0;text-align:center}
+.filter-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
+max-width:700px;margin:0 auto}
+.filter-btn{font-family:var(--font-sans);font-size:0.88rem;font-weight:500;
+letter-spacing:0.06em;text-transform:uppercase;padding:10px 24px;
+border:1px solid var(--sand);background:var(--white);color:var(--text-mid);
+cursor:pointer;transition:all 0.3s}
+.filter-btn:hover{border-color:var(--gold);color:var(--gold)}
+.filter-btn.active{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
+
+/* ===== BLOG GRID ===== */
+.blog-grid-section{padding:48px 24px 80px}
+.blog-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:repeat(3,1fr);gap:32px}
+.blog-card{background:var(--white);overflow:hidden;transition:transform 0.3s,box-shadow 0.3s;
+display:flex;flex-direction:column}
+.blog-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,0.08)}
+.blog-card-image{width:100%;height:200px;background:var(--charcoal);
+display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.blog-card-image img{width:100%;height:100%;object-fit:cover}
+.blog-card-image .placeholder-icon{color:var(--charcoal-mid);opacity:0.5}
+.blog-card-body{padding:28px 24px;display:flex;flex-direction:column;flex:1}
+.blog-card-meta{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.blog-card-category{font-size:0.75rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--gold);background:var(--gold-pale);
+padding:4px 10px;line-height:1.4}
+.blog-card-date{font-size:0.82rem;color:var(--text-light);font-weight:400}
+.blog-card-title{font-family:var(--font-serif);font-size:1.25rem;font-weight:500;
+color:var(--text-dark);margin-bottom:10px;line-height:1.3;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.blog-card-excerpt{font-size:0.92rem;font-weight:300;color:var(--text-light);
+line-height:1.6;margin-bottom:20px;flex:1;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.blog-card-link{font-family:var(--font-sans);font-size:0.85rem;font-weight:500;
+letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);
+display:inline-flex;align-items:center;gap:8px;transition:gap 0.3s}
+.blog-card-link:hover{gap:12px}
+.blog-card-link svg{transition:transform 0.3s}
+
+/* ===== NO RESULTS ===== */
+.no-results{text-align:center;padding:64px 24px;display:none}
+.no-results p{font-size:1.05rem;color:var(--text-light)}
+
+/* ===== FOOTER ===== */
+.footer{background:#0f2530;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:auto 1.2fr 1fr 1fr 1fr 1fr;gap:32px;padding-bottom:48px;
+border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-logo-col{display:flex;align-items:flex-start}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.8rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.9rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.95rem;color:rgba(255,255,255,0.5);
+margin-bottom:12px;transition:color 0.3s}
+.footer-col a:hover{color:var(--white)}
+.footer-col p{font-size:0.92rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;
+align-items:center;justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.85rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.85rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:960px){
+.blog-grid{grid-template-columns:repeat(2,1fr)}
+.footer-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.blog-grid{grid-template-columns:1fr}
+.filter-buttons{gap:8px}
+.filter-btn{padding:8px 16px;font-size:0.82rem}
+.footer-grid{grid-template-columns:1fr}
+.footer-bottom{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="/" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="search.html" class="nav-link">Search Homes</a>
+<a href="blog.html" class="nav-link active">Blog</a>
+<a href="agents.html" class="nav-link">Join Our Team</a>
+<a href="/#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="blog-hero">
+<div class="eyebrow">Insights &amp; Guides</div>
+<h1>Camelback Home Group <span style="color:var(--gold);font-style:italic">Blog</span></h1>
+<p>Market insights, neighborhood guides, and real estate tips from our team of agents, attorneys, and paralegals.</p>
+</section>
+
+<!-- ===== FILTERS ===== -->
+<section class="filters">
+<div class="filter-buttons" id="filterButtons">
+<button class="filter-btn active" data-filter="all">All</button>
+<button class="filter-btn" data-filter="market-update">Market Updates</button>
+<button class="filter-btn" data-filter="neighborhood-guide">Neighborhood Guides</button>
+<button class="filter-btn" data-filter="tips">Tips</button>
+</div>
+</section>
+
+<!-- ===== BLOG GRID ===== -->
+<section class="blog-grid-section">
+<div class="blog-grid" id="blogGrid"></div>
+<div class="no-results" id="noResults">
+<p>No posts found in this category.</p>
+</div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+<div class="footer-grid">
+<div class="footer-logo-col">
+<img src="assets/logo/logo.png" alt="Camelback Home Group" style="height:180px;width:auto">
+</div>
+<div>
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity" style="height:70px;width:auto;margin-top:16px">
+</div>
+<div class="footer-col">
+<h4>Cities</h4>
+<a href="gilbert-homes">Gilbert</a>
+<a href="chandler-homes">Chandler</a>
+<a href="scottsdale-homes">Scottsdale</a>
+<a href="mesa-homes">Mesa</a>
+<a href="phoenix-homes">Phoenix</a>
+<a href="tempe-homes">Tempe</a>
+<a href="paradise-valley-homes">Paradise Valley</a>
+</div>
+<div class="footer-col">
+<h4>More Cities</h4>
+<a href="peoria-homes">Peoria</a>
+<a href="glendale-homes">Glendale</a>
+<a href="surprise-homes">Surprise</a>
+<a href="goodyear-homes">Goodyear</a>
+<a href="buckeye-homes">Buckeye</a>
+<a href="queen-creek-homes">Queen Creek</a>
+<a href="fountain-hills-homes">Fountain Hills</a>
+</div>
+<div class="footer-col">
+<h4>Company</h4>
+<a href="/#advantage">About Us</a>
+<a href="/#process">Our Process</a>
+<a href="agents.html">Join Our Team</a>
+<a href="search.html">Search Homes</a>
+<a href="valuation.html">Home Valuation</a>
+<a href="blog.html">Blog</a>
+<a href="/#contact">Contact</a>
+</div>
+<div class="footer-col">
+<h4>Get In Touch</h4>
+<p>(480) 203-3039</p>
+<p>info@camelbackhomegroup.com</p>
+<p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
+</div>
+</div>
+<div class="footer-bottom">
+<span class="footer-copy">&copy; 2026 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Use</a>
+<a href="#">Fair Housing</a>
+</div>
+</div>
+</footer>
+
+<script src="blog-data.js"></script>
+<script>
+(function(){
+  // NAV SCROLL
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 60) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  // MOBILE NAV
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){ links.classList.toggle('open'); });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){ links.classList.remove('open'); });
+  });
+
+  // FORMAT DATE
+  function formatDate(dateStr){
+    var d = new Date(dateStr + 'T12:00:00');
+    var months = ['January','February','March','April','May','June',
+      'July','August','September','October','November','December'];
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  // RENDER CARDS
+  var grid = document.getElementById('blogGrid');
+  var noResults = document.getElementById('noResults');
+
+  function renderPosts(filter){
+    grid.innerHTML = '';
+    var posts = BLOG_POSTS.filter(function(p){
+      return filter === 'all' || p.category === filter;
+    });
+
+    if(posts.length === 0){
+      noResults.style.display = 'block';
+      return;
+    }
+    noResults.style.display = 'none';
+
+    posts.forEach(function(post){
+      var card = document.createElement('a');
+      card.href = 'blog-post.html?slug=' + post.slug;
+      card.className = 'blog-card';
+
+      var imageHTML;
+      if(post.image){
+        imageHTML = '<div class="blog-card-image"><img src="' + post.image + '" alt="' + post.title.replace(/"/g,'&quot;') + '"></div>';
+      } else {
+        imageHTML = '<div class="blog-card-image"><svg class="placeholder-icon" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+      }
+
+      card.innerHTML = imageHTML +
+        '<div class="blog-card-body">' +
+          '<div class="blog-card-meta">' +
+            '<span class="blog-card-category">' + post.categoryLabel + '</span>' +
+            '<span class="blog-card-date">' + formatDate(post.date) + '</span>' +
+          '</div>' +
+          '<h3 class="blog-card-title">' + post.title + '</h3>' +
+          '<p class="blog-card-excerpt">' + post.excerpt + '</p>' +
+          '<span class="blog-card-link">Read More <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>' +
+        '</div>';
+
+      grid.appendChild(card);
+    });
+  }
+
+  // FILTER BUTTONS
+  var buttons = document.querySelectorAll('.filter-btn');
+  buttons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      buttons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderPosts(btn.getAttribute('data-filter'));
+    });
+  });
+
+  // INITIAL RENDER
+  renderPosts('all');
+})();
+</script>
+</body>
+</html>

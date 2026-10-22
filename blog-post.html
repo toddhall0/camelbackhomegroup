@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Camelback Home Group</title>
+<meta name="description" content="Real estate insights from Camelback Home Group — Phoenix's attorney-backed brokerage.">
+<link rel="canonical" href="https://camelbackhomegroup.netlify.app/blog">
+<meta property="og:title" content="Blog — Camelback Home Group">
+<meta property="og:description" content="Real estate insights from Camelback Home Group.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://camelbackhomegroup.netlify.app/assets/logo/logo.png">
+<meta property="og:site_name" content="Camelback Home Group">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden;background:var(--cream)}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+
+/* ===== NAVIGATION ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);transition:background 0.3s ease;padding:0 32px}
+.nav.scrolled{background:rgba(22,58,73,0.98)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-logo-img{height:40px;width:auto}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);
+font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;
+text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;letter-spacing:0.04em;
+color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;
+text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);
+padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);
+margin:5px 0;transition:all 0.3s}
+
+/* ===== POST HERO ===== */
+.post-hero{background:var(--charcoal);padding:120px 24px 56px;text-align:center}
+.post-hero-inner{max-width:760px;margin:0 auto}
+.post-category-tag{display:inline-block;font-size:0.75rem;font-weight:500;
+letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);
+background:rgba(204,98,76,0.15);padding:5px 14px;margin-bottom:20px}
+.post-hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:400;color:var(--white);
+margin-bottom:20px;line-height:1.15}
+.post-hero-meta{display:flex;align-items:center;justify-content:center;gap:20px;
+font-size:0.9rem;color:rgba(255,255,255,0.5);flex-wrap:wrap}
+.post-hero-meta .dot{width:4px;height:4px;border-radius:50%;
+background:rgba(255,255,255,0.3);flex-shrink:0}
+
+/* ===== FEATURED IMAGE ===== */
+.post-featured-image{max-width:900px;margin:-20px auto 0;padding:0 24px;position:relative;z-index:2}
+.post-featured-image img{width:100%;max-height:480px;object-fit:cover}
+
+/* ===== POST BODY ===== */
+.post-body-wrap{max-width:760px;margin:0 auto;padding:48px 24px 64px}
+.post-body h2{font-size:1.6rem;color:var(--text-dark);margin:40px 0 16px;line-height:1.25}
+.post-body h2:first-child{margin-top:0}
+.post-body h3{font-size:1.25rem;color:var(--text-dark);margin:32px 0 12px}
+.post-body p{font-size:1rem;font-weight:300;color:var(--text-mid);line-height:1.8;margin-bottom:20px}
+.post-body ul,.post-body ol{margin:0 0 20px 24px;list-style:disc}
+.post-body ol{list-style:decimal}
+.post-body li{font-size:1rem;font-weight:300;color:var(--text-mid);line-height:1.8;margin-bottom:8px}
+.post-body li strong{font-weight:500;color:var(--text-dark)}
+.post-body strong{font-weight:500;color:var(--text-dark)}
+.post-body a{color:var(--gold);text-decoration:underline;text-underline-offset:2px}
+.post-body a:hover{color:var(--gold-light)}
+.post-body blockquote{border-left:3px solid var(--gold);padding:12px 24px;margin:24px 0;
+background:rgba(204,98,76,0.04)}
+.post-body blockquote p{font-style:italic;color:var(--text-dark);margin-bottom:0}
+
+/* ===== SHARE ===== */
+.post-share{max-width:760px;margin:0 auto;padding:0 24px 40px;
+display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.post-share-label{font-size:0.85rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--text-light)}
+.share-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);
+font-size:0.85rem;font-weight:400;color:var(--text-mid);
+border:1px solid var(--sand);background:var(--white);padding:8px 16px;
+cursor:pointer;transition:all 0.3s}
+.share-btn:hover{border-color:var(--gold);color:var(--gold)}
+.share-btn.copied{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
+
+/* ===== AUTHOR ===== */
+.post-author{max-width:760px;margin:0 auto;padding:0 24px 48px}
+.post-author-card{background:var(--white);padding:32px;display:flex;
+align-items:flex-start;gap:24px;border-left:3px solid var(--gold)}
+.post-author-avatar{width:64px;height:64px;background:var(--gold-pale);
+display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.post-author-avatar svg{color:var(--gold)}
+.post-author-info h4{font-family:var(--font-serif);font-size:1.15rem;
+color:var(--text-dark);margin-bottom:4px}
+.post-author-info .author-role{font-size:0.85rem;font-weight:500;
+letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.post-author-info p{font-size:0.92rem;font-weight:300;color:var(--text-light);line-height:1.7}
+
+/* ===== CTA ===== */
+.post-cta{background:var(--charcoal);padding:64px 24px;text-align:center}
+.post-cta h2{font-size:clamp(1.6rem,3vw,2.2rem);color:var(--white);margin-bottom:12px}
+.post-cta p{font-size:1rem;font-weight:300;color:rgba(255,255,255,0.6);
+margin-bottom:32px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7}
+.post-cta .cta-phone{font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);
+display:block;margin-bottom:24px}
+.post-cta .btn{display:inline-block;font-family:var(--font-sans);font-size:0.95rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;
+border:1px solid var(--gold);background:var(--gold);color:var(--white);
+cursor:pointer;transition:all 0.3s}
+.post-cta .btn:hover{background:var(--gold-light)}
+
+/* ===== RELATED POSTS ===== */
+.related-section{padding:64px 24px 80px;background:var(--cream-dark)}
+.related-header{text-align:center;margin-bottom:40px}
+.related-header h2{font-size:1.8rem;color:var(--text-dark)}
+.related-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:repeat(3,1fr);gap:32px}
+.related-card{background:var(--white);overflow:hidden;transition:transform 0.3s}
+.related-card:hover{transform:translateY(-3px)}
+.related-card-image{width:100%;height:160px;background:var(--charcoal);
+display:flex;align-items:center;justify-content:center;overflow:hidden}
+.related-card-image img{width:100%;height:100%;object-fit:cover}
+.related-card-body{padding:24px 20px}
+.related-card-category{font-size:0.72rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.related-card-title{font-family:var(--font-serif);font-size:1.1rem;font-weight:500;
+color:var(--text-dark);line-height:1.3;margin-bottom:8px;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.related-card-date{font-size:0.82rem;color:var(--text-light)}
+
+/* ===== BACK LINK ===== */
+.back-to-blog{max-width:760px;margin:0 auto;padding:24px 24px 0}
+.back-link{display:inline-flex;align-items:center;gap:8px;font-size:0.88rem;
+font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);transition:gap 0.3s}
+.back-link:hover{gap:12px}
+
+/* ===== FOOTER ===== */
+.footer{background:#0f2530;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:auto 1.2fr 1fr 1fr 1fr 1fr;gap:32px;padding-bottom:48px;
+border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-logo-col{display:flex;align-items:flex-start}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.8rem;font-weight:500;letter-spacing:0.1em;
+text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.9rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;
+text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.95rem;color:rgba(255,255,255,0.5);
+margin-bottom:12px;transition:color 0.3s}
+.footer-col a:hover{color:var(--white)}
+.footer-col p{font-size:0.92rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;
+align-items:center;justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.85rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.85rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
+
+/* ===== 404 STATE ===== */
+.post-not-found{text-align:center;padding:160px 24px 80px;min-height:60vh;
+display:flex;flex-direction:column;align-items:center;justify-content:center}
+.post-not-found h1{font-size:2rem;color:var(--text-dark);margin-bottom:12px}
+.post-not-found p{font-size:1rem;color:var(--text-light);margin-bottom:32px}
+.post-not-found .btn{display:inline-block;font-family:var(--font-sans);font-size:0.92rem;
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 28px;
+border:1px solid var(--gold);background:var(--gold);color:var(--white);transition:all 0.3s}
+.post-not-found .btn:hover{background:var(--gold-light)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:960px){
+.related-grid{grid-template-columns:repeat(2,1fr)}
+.footer-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;
+background:var(--charcoal);flex-direction:column;padding:80px 32px;
+gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.related-grid{grid-template-columns:1fr}
+.post-author-card{flex-direction:column;align-items:center;text-align:center}
+.footer-grid{grid-template-columns:1fr}
+.footer-bottom{flex-direction:column;text-align:center}
+.post-share{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="/" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="search.html" class="nav-link">Search Homes</a>
+<a href="blog.html" class="nav-link">Blog</a>
+<a href="agents.html" class="nav-link">Join Our Team</a>
+<a href="/#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<!-- ===== CONTENT (populated by JS) ===== -->
+<div id="postContent"></div>
+<div id="notFound" class="post-not-found" style="display:none">
+<h1>Post Not Found</h1>
+<p>Sorry, we could not find the post you are looking for.</p>
+<a href="blog.html" class="btn">Back to Blog</a>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+<div class="footer-grid">
+<div class="footer-logo-col">
+<img src="assets/logo/logo.png" alt="Camelback Home Group" style="height:180px;width:auto">
+</div>
+<div>
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity" style="height:70px;width:auto;margin-top:16px">
+</div>
+<div class="footer-col">
+<h4>Cities</h4>
+<a href="gilbert-homes">Gilbert</a>
+<a href="chandler-homes">Chandler</a>
+<a href="scottsdale-homes">Scottsdale</a>
+<a href="mesa-homes">Mesa</a>
+<a href="phoenix-homes">Phoenix</a>
+<a href="tempe-homes">Tempe</a>
+<a href="paradise-valley-homes">Paradise Valley</a>
+</div>
+<div class="footer-col">
+<h4>More Cities</h4>
+<a href="peoria-homes">Peoria</a>
+<a href="glendale-homes">Glendale</a>
+<a href="surprise-homes">Surprise</a>
+<a href="goodyear-homes">Goodyear</a>
+<a href="buckeye-homes">Buckeye</a>
+<a href="queen-creek-homes">Queen Creek</a>
+<a href="fountain-hills-homes">Fountain Hills</a>
+</div>
+<div class="footer-col">
+<h4>Company</h4>
+<a href="/#advantage">About Us</a>
+<a href="/#process">Our Process</a>
+<a href="agents.html">Join Our Team</a>
+<a href="search.html">Search Homes</a>
+<a href="valuation.html">Home Valuation</a>
+<a href="blog.html">Blog</a>
+<a href="/#contact">Contact</a>
+</div>
+<div class="footer-col">
+<h4>Get In Touch</h4>
+<p>(480) 203-3039</p>
+<p>info@camelbackhomegroup.com</p>
+<p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
+</div>
+</div>
+<div class="footer-bottom">
+<span class="footer-copy">&copy; 2026 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Use</a>
+<a href="#">Fair Housing</a>
+</div>
+</div>
+</footer>
+
+<script src="blog-data.js"></script>
+<script>
+(function(){
+  // NAV SCROLL
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 60) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  // MOBILE NAV
+  var toggle = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){ navLinks.classList.toggle('open'); });
+  navLinks.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){ navLinks.classList.remove('open'); });
+  });
+
+  // GET SLUG FROM URL
+  var params = new URLSearchParams(window.location.search);
+  var slug = params.get('slug');
+
+  var postContent = document.getElementById('postContent');
+  var notFound = document.getElementById('notFound');
+
+  if(!slug){
+    notFound.style.display = 'flex';
+    return;
+  }
+
+  // FIND POST
+  var post = null;
+  for(var i = 0; i < BLOG_POSTS.length; i++){
+    if(BLOG_POSTS[i].slug === slug){
+      post = BLOG_POSTS[i];
+      break;
+    }
+  }
+
+  if(!post){
+    notFound.style.display = 'flex';
+    return;
+  }
+
+  // SEO: Update title and meta
+  document.title = post.title + ' — Camelback Home Group';
+  var metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc) metaDesc.setAttribute('content', post.excerpt);
+  var ogTitle = document.querySelector('meta[property="og:title"]');
+  if(ogTitle) ogTitle.setAttribute('content', post.title + ' — Camelback Home Group');
+  var ogDesc = document.querySelector('meta[property="og:description"]');
+  if(ogDesc) ogDesc.setAttribute('content', post.excerpt);
+  var canonical = document.querySelector('link[rel="canonical"]');
+  if(canonical) canonical.setAttribute('href', 'https://camelbackhomegroup.netlify.app/blog/' + post.slug);
+  var ogUrl = document.querySelector('meta[property="og:url"]');
+  if(ogUrl) ogUrl.setAttribute('content', 'https://camelbackhomegroup.netlify.app/blog/' + post.slug);
+
+  // FORMAT DATE
+  function formatDate(dateStr){
+    var d = new Date(dateStr + 'T12:00:00');
+    var months = ['January','February','March','April','May','June',
+      'July','August','September','October','November','December'];
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  // BUILD POST HTML
+  var html = '';
+
+  // Back link
+  html += '<div class="back-to-blog"><a href="blog.html" class="back-link"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back to Blog</a></div>';
+
+  // Hero
+  html += '<section class="post-hero">';
+  html += '<div class="post-hero-inner">';
+  html += '<span class="post-category-tag">' + post.categoryLabel + '</span>';
+  html += '<h1>' + post.title + '</h1>';
+  html += '<div class="post-hero-meta">';
+  html += '<span>' + formatDate(post.date) + '</span>';
+  html += '<span class="dot"></span>';
+  html += '<span>' + post.readTime + '</span>';
+  html += '</div>';
+  html += '</div>';
+  html += '</section>';
+
+  // Featured image
+  if(post.image){
+    html += '<div class="post-featured-image"><img src="' + post.image + '" alt="' + post.title.replace(/"/g,'&quot;') + '"></div>';
+  }
+
+  // Post body
+  html += '<article class="post-body-wrap"><div class="post-body">' + post.content + '</div></article>';
+
+  // Share
+  html += '<div class="post-share">';
+  html += '<span class="post-share-label">Share</span>';
+  html += '<button class="share-btn" id="copyLinkBtn" title="Copy link"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Copy Link</button>';
+  html += '<a class="share-btn" href="https://twitter.com/intent/tweet?text=' + encodeURIComponent(post.title) + '&url=' + encodeURIComponent(window.location.href) + '" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>';
+  html += '<a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href) + '" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Share</a>';
+  html += '</div>';
+
+  // Author
+  html += '<div class="post-author">';
+  html += '<div class="post-author-card">';
+  html += '<div class="post-author-avatar"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></div>';
+  html += '<div class="post-author-info">';
+  html += '<h4>Camelback Home Group</h4>';
+  html += '<div class="author-role">Real Estate Brokerage</div>';
+  html += '<p>Camelback Home Group is Phoenix\'s only real estate brokerage with licensed attorneys and paralegals overseeing every transaction at no additional charge. We serve buyers, sellers, and investors across the entire Phoenix metro area.</p>';
+  html += '</div></div></div>';
+
+  // CTA
+  html += '<section class="post-cta">';
+  html += '<h2>Looking to <span style="color:var(--gold);font-style:italic">Buy or Sell?</span></h2>';
+  html += '<p>Our team of agents, attorneys, and paralegals is ready to help with your next real estate move. Every transaction includes legal oversight at no additional cost.</p>';
+  html += '<a href="tel:4802033039" class="cta-phone">(480) 203-3039</a>';
+  html += '<a href="/#contact" class="btn">Get In Touch</a>';
+  html += '</section>';
+
+  // Related Posts
+  var related = BLOG_POSTS.filter(function(p){
+    return p.category === post.category && p.slug !== post.slug;
+  });
+  // If not enough from same category, fill from others
+  if(related.length < 3){
+    var others = BLOG_POSTS.filter(function(p){
+      return p.slug !== post.slug && p.category !== post.category;
+    });
+    related = related.concat(others);
+  }
+  related = related.slice(0, 3);
+
+  if(related.length > 0){
+    html += '<section class="related-section">';
+    html += '<div class="related-header"><h2>More from the <span style="color:var(--gold);font-style:italic">Blog</span></h2></div>';
+    html += '<div class="related-grid">';
+    related.forEach(function(r){
+      var imgHTML;
+      if(r.image){
+        imgHTML = '<div class="related-card-image"><img src="' + r.image + '" alt="' + r.title.replace(/"/g,'&quot;') + '"></div>';
+      } else {
+        imgHTML = '<div class="related-card-image"><svg width="36" height="36" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+      }
+      html += '<a href="blog-post.html?slug=' + r.slug + '" class="related-card">';
+      html += imgHTML;
+      html += '<div class="related-card-body">';
+      html += '<div class="related-card-category">' + r.categoryLabel + '</div>';
+      html += '<h3 class="related-card-title">' + r.title + '</h3>';
+      html += '<div class="related-card-date">' + formatDate(r.date) + '</div>';
+      html += '</div></a>';
+    });
+    html += '</div></section>';
+  }
+
+  postContent.innerHTML = html;
+
+  // Copy link button
+  var copyBtn = document.getElementById('copyLinkBtn');
+  if(copyBtn){
+    copyBtn.addEventListener('click', function(){
+      var url = window.location.href;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(function(){
+          copyBtn.classList.add('copied');
+          copyBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+          setTimeout(function(){
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Copy Link';
+          }, 2000);
+        });
+      } else {
+        // Fallback
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copyBtn.classList.add('copied');
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function(){
+          copyBtn.classList.remove('copied');
+          copyBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Copy Link';
+        }, 2000);
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

@@ -19,3 +19,5 @@
 /fountain-hills-homes /city.html?c=fountainhills 302
 /cave-creek-homes /city.html?c=cavecreek 302
 /paradise-valley-homes /city.html?c=paradisevalley 302
+/blog /blog.html 200
+/blog/* /blog-post.html 200
