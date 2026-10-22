@@ -1,8 +1,9 @@
 // Calculates market snapshot stats for a city from SimplyRETS
-// Results cached in-memory for 4 hours and via CDN for 24 hours
+// Paginates to get ALL listings for accurate stats
+// Results cached in-memory for 4 hours + CDN for 24 hours
 
 const cache = {};
-const CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
+const CACHE_TTL = 4 * 60 * 60 * 1000;
 
 exports.handler = async (event) => {
   const baseHeaders = {
@@ -28,30 +29,47 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: baseHeaders, body: JSON.stringify({ error: "City required" }) };
   }
 
-  // Check in-memory cache
   const cacheKey = city.toLowerCase();
   if (cache[cacheKey] && (Date.now() - cache[cacheKey].ts) < CACHE_TTL) {
-    return {
-      statusCode: 200,
-      headers: baseHeaders,
-      body: JSON.stringify(cache[cacheKey].data),
-    };
+    return { statusCode: 200, headers: baseHeaders, body: JSON.stringify(cache[cacheKey].data) };
   }
 
   const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+  const PAGE_SIZE = 500;
 
-  async function fetchBracket(minPrice, maxPrice) {
-    const params = new URLSearchParams({
-      q: city, status: "active", type: "residential",
-      limit: "500", minprice: String(minPrice), maxprice: String(maxPrice),
-    });
-    const res = await fetch(`https://api.simplyrets.com/properties?${params.toString()}`, {
-      headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
-    });
-    if (!res.ok) return { listings: [], count: 0 };
-    const total = parseInt(res.headers.get("X-Total-Count") || "0");
-    const data = await res.json();
-    return { listings: data, count: total || data.length };
+  // Fetch all pages for a given price bracket
+  async function fetchAllInBracket(minPrice, maxPrice) {
+    const allListings = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const params = new URLSearchParams({
+        q: city, status: "active", type: "residential",
+        limit: String(PAGE_SIZE), offset: String(offset),
+        minprice: String(minPrice), maxprice: String(maxPrice),
+        sort: "listprice",
+      });
+
+      const res = await fetch(`https://api.simplyrets.com/properties?${params.toString()}`, {
+        headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
+      });
+
+      if (!res.ok) break;
+
+      const data = await res.json();
+      allListings.push(...data);
+
+      if (data.length < PAGE_SIZE) {
+        hasMore = false;
+      } else {
+        offset += PAGE_SIZE;
+        // Safety cap: max 5 pages (2500 listings) per bracket
+        if (offset >= 2500) break;
+      }
+    }
+
+    return allListings;
   }
 
   try {
@@ -64,47 +82,38 @@ exports.handler = async (event) => {
       { label: "$2M+", min: 2000000, max: 99999999 },
     ];
 
-    const fetchBrackets = [
-      { min: 0, max: 299999 },
-      { min: 300000, max: 499999 },
-      { min: 500000, max: 749999 },
-      { min: 750000, max: 999999 },
-      { min: 1000000, max: 1499999 },
-      { min: 1500000, max: 1999999 },
-      { min: 2000000, max: 3499999 },
-      { min: 3500000, max: 5999999 },
-      { min: 6000000, max: 99999999 },
-    ];
-
-    const results = await Promise.all(
-      fetchBrackets.map((b) => fetchBracket(b.min, b.max))
+    // Fetch all brackets in parallel — each one paginates internally
+    const bracketResults = await Promise.all(
+      displayBrackets.map((b) => fetchAllInBracket(b.min, b.max))
     );
-
-    const bracketCounts = {};
-    displayBrackets.forEach((d) => { bracketCounts[d.label] = 0; });
 
     const seen = new Set();
     const allListings = [];
+    const distribution = [];
 
-    results.forEach((r, i) => {
-      const fb = fetchBrackets[i];
-      const db = displayBrackets.find((d) => fb.min >= d.min && fb.max <= d.max);
-      if (db) bracketCounts[db.label] += r.count;
+    bracketResults.forEach((listings, i) => {
+      // Filter to residential with bedrooms for stats
+      const residential = listings.filter(
+        (p) => p.property && p.property.bedrooms && p.property.bedrooms > 0
+      );
 
-      r.listings.forEach((p) => {
+      distribution.push({
+        label: displayBrackets[i].label,
+        count: residential.length,
+        min: displayBrackets[i].min,
+        max: displayBrackets[i].max,
+      });
+
+      residential.forEach((p) => {
         const id = p.mlsId || p.listingId;
-        if (!seen.has(id) && p.property && p.property.bedrooms && p.property.bedrooms > 0) {
+        if (!seen.has(id)) {
           seen.add(id);
           allListings.push(p);
         }
       });
     });
 
-    const distribution = displayBrackets.map((d) => ({
-      label: d.label, count: bracketCounts[d.label], min: d.min, max: d.max,
-    }));
-
-    let totalActive = distribution.reduce((sum, d) => sum + d.count, 0);
+    const totalActive = distribution.reduce((sum, d) => sum + d.count, 0);
 
     if (allListings.length === 0) {
       return {
@@ -155,9 +164,7 @@ exports.handler = async (event) => {
       cachedAt: new Date().toISOString(),
     };
 
-    // Store in memory cache
     cache[cacheKey] = { data: result, ts: Date.now() };
-
     return { statusCode: 200, headers: baseHeaders, body: JSON.stringify(result) };
   } catch (err) {
     return {
