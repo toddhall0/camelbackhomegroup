@@ -1427,13 +1427,8 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      // Filter out listings from neighboring cities
-      if(hood.filterCity){
-        var cityLower = hood.filterCity.toLowerCase();
-        currentListings = currentListings.filter(function(l){
-          return l.city && l.city.toLowerCase() === cityLower;
-        });
-      }
+      // The polygon already constrains results geographically
+      // No need to filter by city name (MLS city names don't always match)
 
       if(currentListings.length===0){
         countEl.textContent = 'No listings in '+hood.name;
@@ -1516,13 +1511,7 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Client-side filter: if the original search was a city, only keep listings in that city
-        if(filterCity){
-          var cityLower = filterCity.toLowerCase();
-          newListings = newListings.filter(function(l){
-            return l.city && l.city.toLowerCase() === cityLower;
-          });
-        }
+        // Polygon already constrains geography — no city name filter needed
 
         // Merge with existing
         var existingIds = {};
