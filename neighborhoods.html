@@ -1427,29 +1427,7 @@ function initMap(){
   function fetchListingsForPolygon(hood){
     currentHood = hood;
 
-    // Use bounding box of the polygon for the API call (always works, no point limit)
-    // Then filter client-side with the precise polygon
-    var apiBody = {};
-
-    // Use higher limit for large cities whose bounding box covers many neighbors
-    var fetchLimit = 200;
-    if(!hood.qOnly && hood.coords && hood.coords.length > 0){
-      var allLats = [], allLngs = [];
-      hood.coords.forEach(function(ring){
-        ring.forEach(function(c){ allLats.push(c[0]); allLngs.push(c[1]); });
-      });
-      var latRange = Math.max.apply(null, allLats) - Math.min.apply(null, allLats);
-      var lngRange = Math.max.apply(null, allLngs) - Math.min.apply(null, allLngs);
-      var boxArea = latRange * lngRange;
-      if(boxArea > 0.1) fetchLimit = 500; // Large cities like Phoenix
-      else if(boxArea > 0.03) fetchLimit = 350; // Medium cities
-      apiBody.south = Math.min.apply(null, allLats);
-      apiBody.north = Math.max.apply(null, allLats);
-      apiBody.west = Math.min.apply(null, allLngs);
-      apiBody.east = Math.max.apply(null, allLngs);
-    }
-    apiBody.limit = fetchLimit;
-    if(hood.searchQ) apiBody.q = hood.searchQ;
+    var apiBody = { limit: 500, q: hood.name };
 
     loadingEl.classList.add('active');
     countEl.classList.remove('active');
@@ -1484,12 +1462,7 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      // Client-side point-in-polygon filter using full boundary
-      if(hood.coords && hood.coords.length > 0 && !hood.qOnly){
-        currentListings = currentListings.filter(function(l){
-          return pointInHood(l.lat, l.lng, hood);
-        });
-      }
+      // SimplyRETS filters by city name via q parameter — no client-side filtering needed
 
       if(currentListings.length===0){
         countEl.textContent = 'No listings in '+hood.name;
@@ -1540,29 +1513,14 @@ function initMap(){
 
     // Re-fetch when zoomed in (level 12+) OR when geographic restriction is removed
     if(zoom >= 12 || !geoRestricted){
-      var body = { limit: 200 };
-
-      if(geoRestricted && !currentHood.qOnly && currentHood.coords && currentHood.coords.length > 0){
-        // Use bounding box of the original polygon (API can't handle full polygon)
-        // Point-in-polygon filter applied client-side after fetch
-        var allLats = [], allLngs = [];
-        currentHood.coords.forEach(function(ring){
-          ring.forEach(function(c){ allLats.push(c[0]); allLngs.push(c[1]); });
-        });
-        body.south = Math.min.apply(null, allLats);
-        body.north = Math.max.apply(null, allLats);
-        body.west = Math.min.apply(null, allLngs);
-        body.east = Math.max.apply(null, allLngs);
-      } else {
-        // Unrestricted or q-only: use visible bounding box
-        var sw = bounds.getSouthWest();
-        var ne = bounds.getNorthEast();
-        body.south = sw.lat();
-        body.north = ne.lat();
-        body.west = sw.lng();
-        body.east = ne.lng();
-      }
-
+      var sw = bounds.getSouthWest();
+      var ne = bounds.getNorthEast();
+      var body = {
+        limit: 500,
+        south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng()
+      };
+      // When restricted, also pass city name so API filters by city
+      if(geoRestricted) body.q = currentHood.name;
       if(currentHood.searchQ) body.q = currentHood.searchQ;
 
       // Apply current filters
@@ -1588,12 +1546,7 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Client-side point-in-polygon filter using full boundary
-        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly){
-          newListings = newListings.filter(function(l){
-            return pointInHood(l.lat, l.lng, currentHood);
-          });
-        }
+        // SimplyRETS filters by city via q parameter
 
         // Merge with existing
         var existingIds = {};
