@@ -1507,13 +1507,32 @@ function initMap(){
 
     // Re-fetch when zoomed in (level 12+) OR when geographic restriction is removed
     if(zoom >= 12 || !geoRestricted){
-      var sw = bounds.getSouthWest();
-      var ne = bounds.getNorthEast();
-      var body = {
-        south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng(),
-        limit: 200
-      };
-      // For q-only searches (addresses/zips), pass the q parameter
+      var body = { limit: 200 };
+
+      if(geoRestricted && !currentHood.qOnly && currentHood.coords && currentHood.coords.length > 0){
+        // Use the original polygon to stay within the geographic boundary
+        var pts;
+        if(currentHood.type === 'MultiPolygon'){
+          pts = currentHood.coords.reduce(function(a,b){return a.length>b.length?a:b});
+        } else {
+          pts = currentHood.coords[0];
+        }
+        if(pts && pts.length > 0){
+          var step = Math.max(1, Math.floor(pts.length / 30));
+          var simplified = [];
+          for(var pi=0;pi<pts.length;pi+=step){ simplified.push(pts[pi]); }
+          body.polygon = simplified;
+        }
+      } else {
+        // Unrestricted or q-only: use visible bounding box
+        var sw = bounds.getSouthWest();
+        var ne = bounds.getNorthEast();
+        body.south = sw.lat();
+        body.north = ne.lat();
+        body.west = sw.lng();
+        body.east = ne.lng();
+      }
+
       if(currentHood.searchQ) body.q = currentHood.searchQ;
 
       // Apply current filters
