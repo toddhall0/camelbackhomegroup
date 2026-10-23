@@ -350,6 +350,7 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 <a href="#services" class="nav-link">Services</a>
 <a href="#advantage" class="nav-link">Legal Advantage</a>
 <a href="#process" class="nav-link">Process</a>
+<a href="blog.html" class="nav-link">Blog</a>
 <a href="agents.html" class="nav-link">Join Our Team</a>
 <a href="#contact" class="nav-cta">Get In Touch</a>
 </div>
@@ -606,6 +607,19 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 </div>
 </section>
 
+<!-- ===== BLOG PREVIEW ===== -->
+<section class="blog-preview" style="background:var(--cream-dark);padding:80px 24px">
+<div style="max-width:1200px;margin:0 auto">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px">
+<h2 style="font-family:var(--font-serif);font-size:clamp(1.6rem,3vw,2.2rem);color:var(--text-dark)">From Our Blog</h2>
+<a href="blog.html" style="font-size:0.9rem;font-weight:500;color:var(--gold);letter-spacing:0.04em">View All Posts &rarr;</a>
+</div>
+<div id="blogPreviewCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+<p style="color:var(--text-light)">Loading posts...</p>
+</div>
+</div>
+</section>
+
 <!-- ===== CONTACT ===== -->
 <section class="contact" id="contact">
 <div class="contact-grid">
@@ -795,6 +809,33 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
       }
     });
   });
+})();
+</script>
+<script src="blog-data.js"></script>
+<script>
+(function(){
+  if(typeof BLOG_POSTS === 'undefined' || !BLOG_POSTS.length) return;
+  var container = document.getElementById('blogPreviewCards');
+  if(!container) return;
+  var posts = BLOG_POSTS.slice(0, 3);
+  var html = '';
+  posts.forEach(function(p){
+    var catColor = p.category === 'market-update' ? '#1f4e60' : p.category === 'neighborhood-guide' ? '#2d6b80' : '#cc624c';
+    html += '<a href="blog-post.html?slug=' + p.slug + '" style="background:var(--white);text-decoration:none;color:inherit;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;display:block"' +
+      ' onmouseover="this.style.transform=\'translateY(-3px)\';this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.1)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'none\'">' +
+      '<div style="height:8px;background:' + catColor + '"></div>' +
+      '<div style="padding:24px 20px">' +
+      '<div style="font-size:0.72rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:' + catColor + ';margin-bottom:8px">' + p.categoryLabel + '</div>' +
+      '<h3 style="font-family:var(--font-serif);font-size:1.15rem;color:var(--text-dark);margin-bottom:8px;line-height:1.3">' + p.title + '</h3>' +
+      '<p style="font-size:0.88rem;color:var(--text-light);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + p.excerpt + '</p>' +
+      '<div style="font-size:0.78rem;color:var(--text-light)">' + p.date + ' &middot; ' + p.readTime + '</div>' +
+      '</div></a>';
+  });
+  container.innerHTML = html;
+  // Fix mobile grid
+  if(window.innerWidth <= 640){
+    container.style.gridTemplateColumns = '1fr';
+  }
 })();
 </script>
 </body>
