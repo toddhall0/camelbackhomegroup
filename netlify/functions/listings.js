@@ -50,7 +50,7 @@ exports.handler = async (event) => {
       "status": "active",
       "type": "residential",
       "limit": String(maxResults),
-      "sort": sort || "-listprice",
+      "sort": sort || "-listdate",
     });
 
     if (minPrice) params.set("minprice", String(minPrice));

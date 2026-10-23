@@ -1539,9 +1539,6 @@ function initMap(){
       if(filters.maxSqft) body.maxSqft = filters.maxSqft;
       if(filters.sort) body.sort = filters.sort;
 
-      // Remember the city name for client-side filtering
-      var filterCity = (geoRestricted && currentHood.filterCity) ? currentHood.filterCity : null;
-
       fetch('/.netlify/functions/listings',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -1552,32 +1549,21 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Filter out listings whose coordinates are outside the city boundary
+        // Filter to city boundary
         if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly){
           newListings = newListings.filter(function(l){
             return pointInHood(l.lat, l.lng, currentHood);
           });
         }
 
-        // Merge with existing
-        var existingIds = {};
-        currentListings.forEach(function(l){ existingIds[l.id] = true; });
-        newListings.forEach(function(l){
-          if(!existingIds[l.id]){
-            currentListings.push(l);
-          }
-        });
-
-        // Filter to visible
-        var visible = currentListings.filter(function(l){
-          return bounds.contains(new google.maps.LatLng(l.lat, l.lng));
-        });
+        // Replace current listings with fresh results for this view
+        currentListings = newListings;
 
         clearMapObjects(listingMarkerObjects);
         markerMap = {};
-        visible.forEach(function(l){ createListingMarker(l); });
-        renderListingCards(visible, currentHood ? currentHood.name : '');
-        countEl.textContent = visible.length + ' listings in view';
+        currentListings.forEach(function(l){ createListingMarker(l); });
+        renderListingCards(currentListings, currentHood ? currentHood.name : '');
+        countEl.textContent = currentListings.length + ' listings in view';
         countEl.classList.add('active');
       })
       .catch(function(){});
