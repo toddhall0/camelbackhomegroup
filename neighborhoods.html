@@ -1429,19 +1429,26 @@ function initMap(){
 
     // Use bounding box of the polygon for the API call (always works, no point limit)
     // Then filter client-side with the precise polygon
-    var apiBody = { limit: 200 };
+    var apiBody = {};
 
+    // Use higher limit for large cities whose bounding box covers many neighbors
+    var fetchLimit = 200;
     if(!hood.qOnly && hood.coords && hood.coords.length > 0){
-      // Calculate bounding box from all polygon rings
       var allLats = [], allLngs = [];
       hood.coords.forEach(function(ring){
         ring.forEach(function(c){ allLats.push(c[0]); allLngs.push(c[1]); });
       });
+      var latRange = Math.max.apply(null, allLats) - Math.min.apply(null, allLats);
+      var lngRange = Math.max.apply(null, allLngs) - Math.min.apply(null, allLngs);
+      var boxArea = latRange * lngRange;
+      if(boxArea > 0.1) fetchLimit = 500; // Large cities like Phoenix
+      else if(boxArea > 0.03) fetchLimit = 350; // Medium cities
       apiBody.south = Math.min.apply(null, allLats);
       apiBody.north = Math.max.apply(null, allLats);
       apiBody.west = Math.min.apply(null, allLngs);
       apiBody.east = Math.max.apply(null, allLngs);
     }
+    apiBody.limit = fetchLimit;
     if(hood.searchQ) apiBody.q = hood.searchQ;
 
     loadingEl.classList.add('active');
