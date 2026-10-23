@@ -1426,19 +1426,23 @@ function initMap(){
 
   function fetchListingsForPolygon(hood){
     currentHood = hood;
-    var simplified = [];
+
+    // Use bounding box of the polygon for the API call (always works, no point limit)
+    // Then filter client-side with the precise polygon
+    var apiBody = { limit: 200 };
+
     if(!hood.qOnly && hood.coords && hood.coords.length > 0){
-      var pts;
-      if(hood.type === 'MultiPolygon'){
-        pts = hood.coords.reduce(function(a,b){return a.length>b.length?a:b});
-      } else {
-        pts = hood.coords[0];
-      }
-      if(pts && pts.length > 0){
-        var step = Math.max(1, Math.floor(pts.length / 30));
-        for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
-      }
+      // Calculate bounding box from all polygon rings
+      var allLats = [], allLngs = [];
+      hood.coords.forEach(function(ring){
+        ring.forEach(function(c){ allLats.push(c[0]); allLngs.push(c[1]); });
+      });
+      apiBody.south = Math.min.apply(null, allLats);
+      apiBody.north = Math.max.apply(null, allLats);
+      apiBody.west = Math.min.apply(null, allLngs);
+      apiBody.east = Math.max.apply(null, allLngs);
     }
+    if(hood.searchQ) apiBody.q = hood.searchQ;
 
     loadingEl.classList.add('active');
     countEl.classList.remove('active');
@@ -1453,24 +1457,19 @@ function initMap(){
     openPanel();
     showGeoBtn();
 
-    var body = {
-      limit: 200
-    };
-    if(simplified.length > 0) body.polygon = simplified;
-    if(hood.searchQ) body.q = hood.searchQ;
     var filters = getFilterValues();
-    if(filters.minPrice) body.minPrice = filters.minPrice;
-    if(filters.maxPrice) body.maxPrice = filters.maxPrice;
-    if(filters.minBeds) body.minBeds = filters.minBeds;
-    if(filters.minBaths) body.minBaths = filters.minBaths;
-    if(filters.minSqft) body.minSqft = filters.minSqft;
-    if(filters.maxSqft) body.maxSqft = filters.maxSqft;
-    if(filters.sort) body.sort = filters.sort;
+    if(filters.minPrice) apiBody.minPrice = filters.minPrice;
+    if(filters.maxPrice) apiBody.maxPrice = filters.maxPrice;
+    if(filters.minBeds) apiBody.minBeds = filters.minBeds;
+    if(filters.minBaths) apiBody.minBaths = filters.minBaths;
+    if(filters.minSqft) apiBody.minSqft = filters.minSqft;
+    if(filters.maxSqft) apiBody.maxSqft = filters.maxSqft;
+    if(filters.sort) apiBody.sort = filters.sort;
 
     fetch('/.netlify/functions/listings',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)
+      body:JSON.stringify(apiBody)
     })
     .then(function(r){return r.json()})
     .then(function(data){
@@ -1478,11 +1477,8 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      // Client-side point-in-polygon filter for concave cities only
-      // Most cities work fine with the API polygon; only apply strict
-      // filtering for cities with complex shapes that wrap around others
-      var concaveCities = ['Glendale','Peoria','Phoenix','Buckeye','Goodyear'];
-      if(hood.coords && hood.coords.length > 0 && !hood.qOnly && concaveCities.indexOf(hood.name) >= 0){
+      // Client-side point-in-polygon filter using full boundary
+      if(hood.coords && hood.coords.length > 0 && !hood.qOnly){
         currentListings = currentListings.filter(function(l){
           return pointInHood(l.lat, l.lng, hood);
         });
@@ -1540,19 +1536,16 @@ function initMap(){
       var body = { limit: 200 };
 
       if(geoRestricted && !currentHood.qOnly && currentHood.coords && currentHood.coords.length > 0){
-        // Use the original polygon to stay within the geographic boundary
-        var pts;
-        if(currentHood.type === 'MultiPolygon'){
-          pts = currentHood.coords.reduce(function(a,b){return a.length>b.length?a:b});
-        } else {
-          pts = currentHood.coords[0];
-        }
-        if(pts && pts.length > 0){
-          var step = Math.max(1, Math.floor(pts.length / 30));
-          var simplified = [];
-          for(var pi=0;pi<pts.length;pi+=step){ simplified.push(pts[pi]); }
-          body.polygon = simplified;
-        }
+        // Use bounding box of the original polygon (API can't handle full polygon)
+        // Point-in-polygon filter applied client-side after fetch
+        var allLats = [], allLngs = [];
+        currentHood.coords.forEach(function(ring){
+          ring.forEach(function(c){ allLats.push(c[0]); allLngs.push(c[1]); });
+        });
+        body.south = Math.min.apply(null, allLats);
+        body.north = Math.max.apply(null, allLats);
+        body.west = Math.min.apply(null, allLngs);
+        body.east = Math.max.apply(null, allLngs);
       } else {
         // Unrestricted or q-only: use visible bounding box
         var sw = bounds.getSouthWest();
@@ -1588,9 +1581,8 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Client-side point-in-polygon filter for concave cities only
-        var concaveCities = ['Glendale','Peoria','Phoenix','Buckeye','Goodyear'];
-        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly && concaveCities.indexOf(currentHood.name) >= 0){
+        // Client-side point-in-polygon filter using full boundary
+        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly){
           newListings = newListings.filter(function(l){
             return pointInHood(l.lat, l.lng, currentHood);
           });
