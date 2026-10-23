@@ -62,7 +62,9 @@ exports.handler = async (event) => {
 
     if (q) {
       params.set("q", q);
-    } else if (polygon && Array.isArray(polygon)) {
+    }
+
+    if (polygon && Array.isArray(polygon)) {
       polygon.forEach(function(pt) {
         params.append("points", `${pt[0]},${pt[1]}`);
       });
