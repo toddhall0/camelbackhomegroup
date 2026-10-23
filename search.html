@@ -202,80 +202,34 @@ gap:24px;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.3)}
 </div>
 </section>
 
-<section class="search-options" style="padding:0">
-<div id="searchMap" style="width:100%;height:500px"></div>
+<section class="search-options">
+<div class="search-options-inner">
+<h2>Or Browse By</h2>
+<div class="search-cards">
+<a href="neighborhoods.html" class="search-card">
+<div class="search-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+</div>
+<h3>Neighborhood Map</h3>
+<p>Explore cities and neighborhoods with listings plotted on an interactive map.</p>
+</a>
+<a href="https://www.camelbackhomegroup.com/property-search/results/" target="_blank" class="search-card">
+<div class="search-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+</div>
+<h3>Full MLS Search</h3>
+<p>Advanced search with detailed filters — price, beds, baths, lot size, and more.</p>
+</a>
+<a href="neighborhoods.html" class="search-card" onclick="localStorage.setItem('mapView','schools');return true;">
+<div class="search-card-icon">
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+</div>
+<h3>Search by School</h3>
+<p>Find homes within your preferred school district or attendance zone.</p>
+</a>
+</div>
+</div>
 </section>
-
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Fj9WOSHEUnly6N0r9A8NkczCHPHmmjI&callback=initSearchMap" async defer></script>
-<script src="neighborhoods-data.js"></script>
-<script>
-function initSearchMap(){
-  var map = new google.maps.Map(document.getElementById('searchMap'), {
-    center: {lat: 33.50, lng: -111.95},
-    zoom: 10,
-    zoomControl: true,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    styles: [
-      {elementType:'geometry',stylers:[{color:'#f5f5f5'}]},
-      {elementType:'labels.icon',stylers:[{visibility:'off'}]},
-      {elementType:'labels.text.fill',stylers:[{color:'#616161'}]},
-      {elementType:'labels.text.stroke',stylers:[{color:'#f5f5f5'}]},
-      {featureType:'poi.park',elementType:'geometry',stylers:[{color:'#c8e6c0'}]},
-      {featureType:'road',elementType:'geometry',stylers:[{color:'#ffffff'}]},
-      {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#dadada'}]},
-      {featureType:'water',elementType:'geometry',stylers:[{color:'#aad4e5'}]},
-      {featureType:'landscape.natural',elementType:'geometry',stylers:[{color:'#efeee6'}]}
-    ]
-  });
-
-  if(typeof MAPDATA === 'undefined') return;
-
-  var style = {fillColor:'#cc624c', fillOpacity:0.12, strokeColor:'#1f4e60', strokeWeight:1.5, strokeOpacity:1};
-  var hover = {fillOpacity:0.35, strokeWeight:2.5};
-
-  function toPath(coords){
-    return coords.map(function(c){return {lat:c[0],lng:c[1]}});
-  }
-
-  MAPDATA.neighborhoods.forEach(function(hood){
-    var paths;
-    if(hood.type === 'MultiPolygon'){
-      paths = hood.coords.map(toPath);
-    } else {
-      paths = [toPath(hood.coords[0])];
-    }
-    var polygon = new google.maps.Polygon({
-      paths: paths,
-      fillColor: style.fillColor,
-      fillOpacity: style.fillOpacity,
-      strokeColor: style.strokeColor,
-      strokeWeight: style.strokeWeight,
-      strokeOpacity: 1,
-      map: map
-    });
-
-    // Label
-    var bounds = new google.maps.LatLngBounds();
-    paths[0].forEach(function(p){bounds.extend(p)});
-    var center = bounds.getCenter();
-    var label = document.createElement('div');
-    label.style.cssText = 'font-family:Jost,sans-serif;font-size:11px;font-weight:500;color:#1f4e60;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),-1px -1px 2px rgba(255,255,255,0.9),0 0 6px rgba(255,255,255,0.8);pointer-events:none';
-    label.textContent = hood.name;
-
-    google.maps.event.addListener(polygon,'mouseover',function(){
-      this.setOptions({fillOpacity:hover.fillOpacity,strokeWeight:hover.strokeWeight});
-    });
-    google.maps.event.addListener(polygon,'mouseout',function(){
-      this.setOptions({fillOpacity:style.fillOpacity,strokeWeight:style.strokeWeight});
-    });
-    google.maps.event.addListener(polygon,'click',function(){
-      window.location.href = 'neighborhoods.html?q=' + encodeURIComponent(hood.name);
-    });
-  });
-}
-</script>
 
 <!--
 IDX EMBED: When your IDX provider gives you an embed script,
