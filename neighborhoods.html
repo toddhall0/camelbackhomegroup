@@ -1674,6 +1674,16 @@ function initMap(){
   var urlQ = urlParams.get('q');
   var urlMinPrice = urlParams.get('minPrice');
   var urlMaxPrice = urlParams.get('maxPrice');
+  var urlView = urlParams.get('view');
+
+  // Auto-switch view if specified in URL
+  if(urlView && (urlView === 'schools' || urlView === 'zipcodes' || urlView === 'cities')){
+    switchView(urlView);
+    // Update toggle buttons
+    document.querySelectorAll('.view-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-view') === urlView);
+    });
+  }
 
   // Pre-fill filters from URL params
   if(urlMinPrice){
