@@ -78,11 +78,12 @@
   }
 
   // ===== CREATE POPUP =====
-  var inputStyle = 'width:100%;font-family:Jost,sans-serif;font-size:1rem;padding:13px 14px;border:1px solid #c4b8a8;background:#f2f0ec;color:#162d38;outline:none;transition:border-color 0.2s';
-  var labelStyle = 'display:block;font-size:0.78rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#6a8290;margin-bottom:5px';
-  var btnStyle = 'width:100%;padding:15px;font-family:Jost,sans-serif;font-size:0.95rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#fff;border:none;cursor:pointer;margin-top:8px;transition:background 0.2s';
-  var dotActive = 'width:10px;height:10px;border-radius:50%;background:#cc624c';
-  var dotInactive = 'width:10px;height:10px;border-radius:50%;background:#d4c4a8';
+  var inputStyle = 'width:100%;font-family:Jost,sans-serif;font-size:1rem;padding:14px 16px;border:1px solid #e0d8cc;background:#faf8f5;color:#162d38;outline:none;border-radius:8px;transition:border-color 0.2s';
+  var labelStyle = 'display:block;font-size:0.78rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#6a8290;margin-bottom:6px';
+  var btnStyle = 'width:100%;padding:15px;font-family:Jost,sans-serif;font-size:0.95rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#fff;border:none;cursor:pointer;margin-top:8px;transition:all 0.2s;border-radius:8px';
+  var btnBackStyle = 'width:100%;padding:13px;font-family:Jost,sans-serif;font-size:0.88rem;font-weight:400;color:#6a8290;background:transparent;border:none;cursor:pointer;margin-top:4px;transition:color 0.2s';
+  var dotActive = 'width:10px;height:10px;border-radius:50%;background:#cc624c;transition:background 0.3s';
+  var dotInactive = 'width:10px;height:10px;border-radius:50%;background:#e0d8cc;transition:background 0.3s';
 
   function createPopupHTML(){
     var overlay = document.createElement('div');
@@ -90,11 +91,11 @@
     overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Jost,Helvetica,sans-serif';
 
     overlay.innerHTML = '' +
-    '<div style="background:#fff;width:100%;max-width:400px;padding:36px 32px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.3);margin:16px">' +
-      '<button id="chgLeadClose" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.4rem;color:#6a8290;cursor:pointer;padding:4px 8px">&times;</button>' +
+    '<div style="background:#fff;width:100%;max-width:400px;padding:40px 36px;position:relative;box-shadow:0 12px 48px rgba(0,0,0,0.2);margin:16px;border-radius:16px">' +
+      '<button id="chgLeadClose" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.5rem;color:#c4b8a8;cursor:pointer;padding:4px 8px;transition:color 0.2s">&times;</button>' +
 
       // STEP DOTS
-      '<div id="chgDots" style="display:flex;justify-content:center;gap:8px;margin-bottom:20px">' +
+      '<div id="chgDots" style="display:flex;justify-content:center;gap:8px;margin-bottom:24px">' +
         '<div id="chgDot1" style="' + dotActive + '"></div>' +
         '<div id="chgDot2" style="' + dotInactive + '"></div>' +
         '<div id="chgDot3" style="' + dotInactive + '"></div>' +
@@ -102,50 +103,50 @@
 
       // STEP 1: NAME
       '<div id="chgStep1">' +
-        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.5rem;color:#162d38;margin-bottom:4px;text-align:center">What\'s your name?</h3>' +
-        '<p style="font-size:0.88rem;color:#6a8290;margin-bottom:20px;line-height:1.5;text-align:center">Create a free account to save listings and get updates.</p>' +
-        '<div style="margin-bottom:14px"><label style="' + labelStyle + '">Full Name</label>' +
+        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;color:#162d38;margin-bottom:6px;text-align:center">What\'s your name?</h3>' +
+        '<p style="font-size:0.9rem;color:#6a8290;margin-bottom:24px;line-height:1.6;text-align:center">Create a free account to save listings and get personalized updates.</p>' +
+        '<div style="margin-bottom:16px"><label style="' + labelStyle + '">Full Name</label>' +
         '<input id="chgRegName" type="text" placeholder="First Last" style="' + inputStyle + '"></div>' +
         '<button id="chgStep1Next" style="' + btnStyle + ';background:#cc624c">Next</button>' +
-        '<p style="font-size:0.75rem;color:#6a8290;margin-top:12px;text-align:center;line-height:1.4">Already have an account? <a id="chgShowLogin" href="#" style="color:#cc624c;font-weight:500">Log In</a></p>' +
+        '<p style="font-size:0.82rem;color:#6a8290;margin-top:16px;text-align:center;line-height:1.4">Already have an account? <a id="chgShowLogin" href="#" style="color:#cc624c;font-weight:500">Log In</a></p>' +
       '</div>' +
 
       // STEP 2: EMAIL
       '<div id="chgStep2" style="display:none">' +
-        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.5rem;color:#162d38;margin-bottom:4px;text-align:center">What\'s your email?</h3>' +
-        '<p style="font-size:0.88rem;color:#6a8290;margin-bottom:20px;line-height:1.5;text-align:center">We\'ll send you listing alerts and market updates.</p>' +
-        '<div style="margin-bottom:14px"><label style="' + labelStyle + '">Email Address</label>' +
+        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;color:#162d38;margin-bottom:6px;text-align:center">What\'s your email?</h3>' +
+        '<p style="font-size:0.9rem;color:#6a8290;margin-bottom:24px;line-height:1.6;text-align:center">We\'ll send you listing alerts and market updates.</p>' +
+        '<div style="margin-bottom:16px"><label style="' + labelStyle + '">Email Address</label>' +
         '<input id="chgRegEmail" type="email" placeholder="you@example.com" style="' + inputStyle + '"></div>' +
         '<button id="chgStep2Next" style="' + btnStyle + ';background:#cc624c">Next</button>' +
-        '<button id="chgStep2Back" style="' + btnStyle + ';background:transparent;color:#6a8290;border:1px solid #c4b8a8;margin-top:6px">Back</button>' +
+        '<button id="chgStep2Back" style="' + btnBackStyle + '">&larr; Back</button>' +
       '</div>' +
 
       // STEP 3: PHONE
       '<div id="chgStep3" style="display:none">' +
-        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.5rem;color:#162d38;margin-bottom:4px;text-align:center">What\'s your phone number?</h3>' +
-        '<p style="font-size:0.88rem;color:#6a8290;margin-bottom:20px;line-height:1.5;text-align:center">Optional — so an agent can reach you about properties you like.</p>' +
-        '<div style="margin-bottom:14px"><label style="' + labelStyle + '">Phone (Optional)</label>' +
+        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;color:#162d38;margin-bottom:6px;text-align:center">Almost done!</h3>' +
+        '<p style="font-size:0.9rem;color:#6a8290;margin-bottom:24px;line-height:1.6;text-align:center">Add your phone so an agent can reach you about properties you love.</p>' +
+        '<div style="margin-bottom:16px"><label style="' + labelStyle + '">Phone <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>' +
         '<input id="chgRegPhone" type="tel" placeholder="(480) 555-1234" style="' + inputStyle + '"></div>' +
-        '<button id="chgStep3Submit" style="' + btnStyle + ';background:#cc624c">Create Account</button>' +
-        '<button id="chgStep3Back" style="' + btnStyle + ';background:transparent;color:#6a8290;border:1px solid #c4b8a8;margin-top:6px">Back</button>' +
-        '<p style="font-size:0.7rem;color:#6a8290;margin-top:10px;text-align:center;line-height:1.3">By signing up, you agree to be contacted by Camelback Home Group.</p>' +
+        '<button id="chgStep3Submit" style="' + btnStyle + ';background:#cc624c">Create My Account</button>' +
+        '<button id="chgStep3Back" style="' + btnBackStyle + '">&larr; Back</button>' +
+        '<p style="font-size:0.72rem;color:#b0a898;margin-top:14px;text-align:center;line-height:1.4">By signing up, you agree to be contacted by Camelback Home Group.</p>' +
       '</div>' +
 
       // LOGIN TAB
       '<div id="chgLoginTab" style="display:none">' +
-        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.5rem;color:#162d38;margin-bottom:4px;text-align:center">Welcome Back</h3>' +
-        '<p style="font-size:0.88rem;color:#6a8290;margin-bottom:20px;line-height:1.5;text-align:center">Log in to see your saved listings and continue where you left off.</p>' +
-        '<div style="margin-bottom:14px"><label style="' + labelStyle + '">Email Address</label>' +
+        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;color:#162d38;margin-bottom:6px;text-align:center">Welcome Back</h3>' +
+        '<p style="font-size:0.9rem;color:#6a8290;margin-bottom:24px;line-height:1.6;text-align:center">Log in to see your saved listings and continue where you left off.</p>' +
+        '<div style="margin-bottom:16px"><label style="' + labelStyle + '">Email Address</label>' +
         '<input id="chgLoginEmail" type="email" placeholder="you@example.com" style="' + inputStyle + '"></div>' +
         '<button id="chgLoginSubmit" style="' + btnStyle + ';background:#1f4e60">Log In</button>' +
-        '<p style="font-size:0.75rem;color:#6a8290;margin-top:12px;text-align:center;line-height:1.4">Don\'t have an account? <a id="chgShowRegister" href="#" style="color:#cc624c;font-weight:500">Sign Up</a></p>' +
+        '<p style="font-size:0.82rem;color:#6a8290;margin-top:16px;text-align:center;line-height:1.4">Don\'t have an account? <a id="chgShowRegister" href="#" style="color:#cc624c;font-weight:500">Sign Up</a></p>' +
       '</div>' +
 
       // SUCCESS STATE
-      '<div id="chgSuccessTab" style="display:none;text-align:center;padding:20px 0">' +
-        '<div style="font-size:2.5rem;color:#cc624c;margin-bottom:12px">&#10003;</div>' +
-        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.4rem;color:#162d38;margin-bottom:8px" id="chgSuccessTitle">You\'re All Set!</h3>' +
-        '<p style="font-size:0.9rem;color:#6a8290" id="chgSuccessMsg">Your account has been created. Happy house hunting!</p>' +
+      '<div id="chgSuccessTab" style="display:none;text-align:center;padding:24px 0">' +
+        '<div style="font-size:3rem;margin-bottom:14px">&#127968;</div>' +
+        '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.5rem;color:#162d38;margin-bottom:8px" id="chgSuccessTitle">You\'re All Set!</h3>' +
+        '<p style="font-size:0.92rem;color:#6a8290" id="chgSuccessMsg">Your account has been created. Happy house hunting!</p>' +
       '</div>' +
     '</div>';
 
@@ -225,9 +226,13 @@
     document.getElementById('chgStep2Back').addEventListener('click', function(){ showStep(1); });
 
     // STEP 3 SUBMIT
-    document.getElementById('chgStep3Submit').addEventListener('click', function(){
-      partialData.phone = document.getElementById('chgRegPhone').value.trim();
-      partialData.source = 'Website Registration Popup';
+    var step3btn = document.getElementById('chgStep3Submit');
+    if(step3btn){
+      step3btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        partialData.phone = document.getElementById('chgRegPhone').value.trim();
+        partialData.source = 'Website Registration Popup';
       // Final push with all data
       pushPartialToCRM(partialData);
       // Save user locally
@@ -240,7 +245,8 @@
       };
       setStore('user', user);
       showSuccess('You\'re All Set!', 'Your account has been created. Happy house hunting!');
-    });
+      });
+    }
 
     // STEP 3 BACK
     document.getElementById('chgStep3Back').addEventListener('click', function(){ showStep(2); });
