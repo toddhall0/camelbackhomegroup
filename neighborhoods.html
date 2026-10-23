@@ -921,6 +921,34 @@ function initMap(){
   /* ================================================================
      LISTING MARKER ICONS — Price label markers
      ================================================================ */
+  var DOT_ZOOM_THRESHOLD = 13;
+
+  var dotIcon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 6,
+    fillColor: '#cc624c',
+    fillOpacity: 1,
+    strokeColor: '#ffffff',
+    strokeWeight: 2
+  };
+
+  var dotIconHighlight = {
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 9,
+    fillColor: '#1f4e60',
+    fillOpacity: 1,
+    strokeColor: '#ffffff',
+    strokeWeight: 2
+  };
+
+  function getListingIcon(price, highlighted){
+    var zoom = map.getZoom();
+    if(zoom < DOT_ZOOM_THRESHOLD){
+      return highlighted ? dotIconHighlight : dotIcon;
+    }
+    return createPriceIcon(price, highlighted);
+  }
+
   function createPriceIcon(price, highlighted){
     var bg = highlighted ? '#1f4e60' : '#cc624c';
     var text = formatPrice(price);
@@ -945,7 +973,7 @@ function initMap(){
   function highlightMarker(listingId, bounce){
     var entry = markerMap[listingId];
     if(!entry || !entry.marker) return;
-    entry.marker.setIcon(createPriceIcon(entry.price, true));
+    entry.marker.setIcon(getListingIcon(entry.price, true));
     entry.marker.setZIndex(1000);
     if(bounce){
       entry.marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -958,7 +986,7 @@ function initMap(){
   function unhighlightMarker(listingId){
     var entry = markerMap[listingId];
     if(!entry || !entry.marker) return;
-    entry.marker.setIcon(createPriceIcon(entry.price, false));
+    entry.marker.setIcon(getListingIcon(entry.price, false));
     entry.marker.setZIndex(undefined);
     entry.marker.setAnimation(null);
   }
@@ -1335,7 +1363,7 @@ function initMap(){
     var marker = new google.maps.Marker({
       position: {lat: l.lat, lng: l.lng},
       map: map,
-      icon: createPriceIcon(l.price, false)
+      icon: getListingIcon(l.price, false)
     });
 
     var popupHtml = buildListingPopupHtml(l);
@@ -1558,6 +1586,22 @@ function initMap(){
     if(isLoadingListings) return;
     clearTimeout(viewFilterTimer);
     viewFilterTimer = setTimeout(filterListingsToView, 300);
+  });
+
+  // Swap marker icons between dots and price labels on zoom change
+  var lastIconZoomState = null;
+  google.maps.event.addListener(map, 'zoom_changed', function(){
+    var zoom = map.getZoom();
+    var showDots = zoom < DOT_ZOOM_THRESHOLD;
+    if(showDots === lastIconZoomState) return;
+    lastIconZoomState = showDots;
+    Object.keys(markerMap).forEach(function(id){
+      var entry = markerMap[id];
+      if(entry && entry.marker){
+        var isActive = (activeListingId === id);
+        entry.marker.setIcon(getListingIcon(entry.price, isActive));
+      }
+    });
   });
 
   /* ================================================================
