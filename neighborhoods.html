@@ -1517,8 +1517,8 @@ function initMap(){
     if(!bounds) return;
     var zoom = map.getZoom();
 
-    // Re-fetch when zoomed in (level 12+) OR when geographic restriction is removed
-    if(zoom >= 12 || !geoRestricted){
+    // Always re-fetch on pan/zoom to get listings for the current view
+    if(currentListings.length > 0 || !geoRestricted){
       var sw = bounds.getSouthWest();
       var ne = bounds.getNorthEast();
       var body = {
@@ -1581,20 +1581,6 @@ function initMap(){
         countEl.classList.add('active');
       })
       .catch(function(){});
-    } else {
-      // Zoomed out — just filter the cached set
-      if(!currentListings || currentListings.length === 0) return;
-      var visible = currentListings.filter(function(l){
-        return bounds.contains(new google.maps.LatLng(l.lat, l.lng));
-      });
-
-      clearMapObjects(listingMarkerObjects);
-      markerMap = {};
-      activeListingId = null;
-      visible.forEach(function(l){ createListingMarker(l); });
-      renderListingCards(visible, currentHood ? currentHood.name : '');
-      countEl.textContent = visible.length + ' of ' + currentListings.length + ' listings in view';
-      countEl.classList.add('active');
     }
   }
 
