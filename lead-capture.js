@@ -7,17 +7,66 @@
   function ss(k,v){ try{localStorage.setItem('chg_'+k,JSON.stringify(v))}catch(e){} }
 
   var user = gs('user',null);
-  var stats = gs('stats',{pageViews:0,listingClicks:0,viewedListings:[],lastVisit:null});
+  var stats = gs('stats',{pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0});
   var popupDismissed = gs('popupDismissed',false);
-  stats.pageViews++; stats.lastVisit=new Date().toISOString(); ss('stats',stats);
+  stats.pageViews++; stats.sessions=(stats.sessions||0)+(gs('lastPage','')!==location.pathname?1:0); stats.lastVisit=new Date().toISOString(); ss('stats',stats); ss('lastPage',location.pathname);
 
-  window.chgTrackListingClick=function(id){
+  // Track a listing view with price and city data
+  window.chgTrackListingClick=function(id,price,city){
     stats.listingClicks++;
-    if(id&&stats.viewedListings.indexOf(id)===-1){stats.viewedListings.push(id);if(stats.viewedListings.length>50)stats.viewedListings=stats.viewedListings.slice(-50)}
-    ss('stats',stats); checkThreshold();
+    if(id&&stats.viewedListings.indexOf(id)===-1){
+      stats.viewedListings.push(id);
+      if(stats.viewedListings.length>100)stats.viewedListings=stats.viewedListings.slice(-100);
+    }
+    if(price&&price>0){
+      stats.viewedPrices.push(price);
+      if(stats.viewedPrices.length>100)stats.viewedPrices=stats.viewedPrices.slice(-100);
+    }
+    if(city){
+      stats.viewedCities=stats.viewedCities||{};
+      stats.viewedCities[city]=(stats.viewedCities[city]||0)+1;
+    }
+    ss('stats',stats);
+
+    // If user is registered, push activity update to CRM periodically
+    if(user&&user.email&&stats.listingClicks%5===0){
+      var analytics = chgGetAnalytics();
+      pushToCRM({
+        email:user.email,firstName:user.firstName||'',lastName:user.lastName||'',
+        source:'Activity Update',
+        note:'Activity: '+stats.listingClicks+' listings viewed | Avg price: '+formatP(analytics.avgPrice)+' | Top city: '+analytics.topCity+' | Price range: '+formatP(analytics.minPrice)+'-'+formatP(analytics.maxPrice)+' | Sessions: '+stats.sessions
+      });
+    }
+
+    checkThreshold();
   };
+
+  function formatP(n){if(!n||n===0)return'N/A';if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+(n/1000).toFixed(0)+'K';return'$'+n}
+
+  // Get user analytics
+  function chgGetAnalytics(){
+    var prices=stats.viewedPrices||[];
+    var cities=stats.viewedCities||{};
+    var topCity='';var topCount=0;
+    for(var c in cities){if(cities[c]>topCount){topCount=cities[c];topCity=c}}
+    var sorted=prices.slice().sort(function(a,b){return a-b});
+    return{
+      totalViews:stats.listingClicks,
+      uniqueListings:stats.viewedListings.length,
+      avgPrice:prices.length?Math.round(prices.reduce(function(a,b){return a+b},0)/prices.length):0,
+      medianPrice:sorted.length?sorted[Math.floor(sorted.length/2)]:0,
+      minPrice:sorted.length?sorted[0]:0,
+      maxPrice:sorted.length?sorted[sorted.length-1]:0,
+      topCity:topCity||'N/A',
+      citiesViewed:cities,
+      totalSessions:stats.sessions||1,
+      totalPageViews:stats.pageViews
+    };
+  }
+  window.chgGetAnalytics=chgGetAnalytics;
+
   window.chgGetUser=function(){return user};
-  window.chgLogout=function(){user=null;ss('user',null);ss('popupDismissed',false);stats.listingClicks=0;stats.pageViews=0;ss('stats',stats)};
+  window.chgLogout=function(){user=null;ss('user',null);ss('popupDismissed',false);stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats)};
   window.chgShowSignup=function(){showPopup()};
 
   function pushToCRM(d){fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(function(){})}
@@ -185,10 +234,28 @@
     };
   }
 
-  // Auto-track listing clicks
+  // Auto-track listing clicks with price and city data
   document.addEventListener('click',function(e){
     var link=e.target.closest('a[href*="property.html"],.listing-card,.listing-prev-card,.result-card');
-    if(link){var m=(link.getAttribute('href')||'').match(/id=(\d+)/);window.chgTrackListingClick(m?m[1]:'unknown')}
+    if(link){
+      var m=(link.getAttribute('href')||'').match(/id=(\d+)/);
+      var id=m?m[1]:'unknown';
+      // Try to extract price and city from the card's DOM
+      var price=0, city='';
+      var priceEl=link.querySelector('.listing-card-price,.listing-prev-price,.result-card-price,.listing-popup-price');
+      if(priceEl){
+        var pt=priceEl.textContent.replace(/[^0-9.KMkm]/g,'');
+        if(pt.match(/[Mm]/))price=parseFloat(pt)*1000000;
+        else if(pt.match(/[Kk]/))price=parseFloat(pt)*1000;
+        else price=parseFloat(pt)||0;
+      }
+      var addrEl=link.querySelector('.listing-card-address,.listing-prev-addr,.result-card-address,.listing-popup-address');
+      if(addrEl){
+        var parts=addrEl.textContent.split(',');
+        if(parts.length>=2) city=parts[parts.length-1].trim();
+      }
+      window.chgTrackListingClick(id,price,city);
+    }
   });
 
   checkThreshold();
