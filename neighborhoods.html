@@ -1337,6 +1337,29 @@ function initMap(){
   var loadingEl = document.getElementById('listingsLoading');
   var countEl = document.getElementById('listingsCount');
 
+  // Point-in-polygon test (ray casting algorithm)
+  // coords is [[lat,lon],...], point is {lat, lng}
+  function pointInPolygon(lat, lng, coords){
+    var inside = false;
+    for(var i=0, j=coords.length-1; i<coords.length; j=i++){
+      var yi = coords[i][0], xi = coords[i][1];
+      var yj = coords[j][0], xj = coords[j][1];
+      if(((yi > lat) !== (yj > lat)) && (lng < (xj-xi)*(lat-yi)/(yj-yi)+xi)){
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  // Check if a point is inside any ring of a hood's coords
+  function pointInHood(lat, lng, hood){
+    if(!hood || !hood.coords || hood.coords.length === 0) return true;
+    for(var r=0; r<hood.coords.length; r++){
+      if(pointInPolygon(lat, lng, hood.coords[r])) return true;
+    }
+    return false;
+  }
+
   function formatPrice(n){
     if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
     if(n>=1000) return '$'+(n/1000).toFixed(0)+'K';
@@ -1455,8 +1478,12 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      // The polygon already constrains results geographically
-      // No need to filter by city name (MLS city names don't always match)
+      // Client-side point-in-polygon filter using full boundary
+      if(hood.coords && hood.coords.length > 0 && !hood.qOnly){
+        currentListings = currentListings.filter(function(l){
+          return pointInHood(l.lat, l.lng, hood);
+        });
+      }
 
       if(currentListings.length===0){
         countEl.textContent = 'No listings in '+hood.name;
@@ -1558,7 +1585,12 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Polygon already constrains geography — no city name filter needed
+        // Client-side point-in-polygon filter using full boundary
+        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly){
+          newListings = newListings.filter(function(l){
+            return pointInHood(l.lat, l.lng, currentHood);
+          });
+        }
 
         // Merge with existing
         var existingIds = {};
