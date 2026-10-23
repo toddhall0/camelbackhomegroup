@@ -1462,7 +1462,13 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      // SimplyRETS filters by city name via q parameter — no client-side filtering needed
+      // Filter out listings whose coordinates are outside the city boundary
+      // (MLS may tag listings as "Gilbert" even if they're geographically in Mesa)
+      if(hood.coords && hood.coords.length > 0 && !hood.qOnly){
+        currentListings = currentListings.filter(function(l){
+          return pointInHood(l.lat, l.lng, hood);
+        });
+      }
 
       if(currentListings.length===0){
         countEl.textContent = 'No listings in '+hood.name;
@@ -1546,7 +1552,12 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // SimplyRETS filters by city via q parameter
+        // Filter out listings whose coordinates are outside the city boundary
+        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly){
+          newListings = newListings.filter(function(l){
+            return pointInHood(l.lat, l.lng, currentHood);
+          });
+        }
 
         // Merge with existing
         var existingIds = {};
