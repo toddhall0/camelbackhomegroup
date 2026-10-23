@@ -13,7 +13,7 @@
     pageViewThreshold: 2,       // Show popup after this many page views
     listingClickThreshold: 2,   // OR after this many listing clicks
     cookieDays: 30,             // Remember logged-in user for this many days
-    enabled: false              // Set to true to enable (false for testing)
+    enabled: true               // Lead capture is active
   };
 
   // Allow runtime override
