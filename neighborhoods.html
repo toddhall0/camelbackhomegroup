@@ -1412,7 +1412,7 @@ function initMap(){
         pts = hood.coords[0];
       }
       if(pts && pts.length > 0){
-        var step = Math.max(1, Math.floor(pts.length / 30));
+        var step = Math.max(1, Math.floor(pts.length / 80));
         for(var i=0;i<pts.length;i+=step){ simplified.push(pts[i]); }
       }
     }
@@ -1518,7 +1518,7 @@ function initMap(){
           pts = currentHood.coords[0];
         }
         if(pts && pts.length > 0){
-          var step = Math.max(1, Math.floor(pts.length / 30));
+          var step = Math.max(1, Math.floor(pts.length / 80));
           var simplified = [];
           for(var pi=0;pi<pts.length;pi+=step){ simplified.push(pts[pi]); }
           body.polygon = simplified;
