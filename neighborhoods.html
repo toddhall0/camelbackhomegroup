@@ -1478,8 +1478,11 @@ function initMap(){
       isLoadingListings = false;
       currentListings = data.listings || [];
 
-      // Client-side point-in-polygon filter using full boundary
-      if(hood.coords && hood.coords.length > 0 && !hood.qOnly){
+      // Client-side point-in-polygon filter for concave cities only
+      // Most cities work fine with the API polygon; only apply strict
+      // filtering for cities with complex shapes that wrap around others
+      var concaveCities = ['Glendale','Peoria','Phoenix','Buckeye','Goodyear'];
+      if(hood.coords && hood.coords.length > 0 && !hood.qOnly && concaveCities.indexOf(hood.name) >= 0){
         currentListings = currentListings.filter(function(l){
           return pointInHood(l.lat, l.lng, hood);
         });
@@ -1585,8 +1588,9 @@ function initMap(){
         if(activeListingId) return;
         var newListings = data.listings || [];
 
-        // Client-side point-in-polygon filter using full boundary
-        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly){
+        // Client-side point-in-polygon filter for concave cities only
+        var concaveCities = ['Glendale','Peoria','Phoenix','Buckeye','Goodyear'];
+        if(geoRestricted && currentHood.coords && currentHood.coords.length > 0 && !currentHood.qOnly && concaveCities.indexOf(currentHood.name) >= 0){
           newListings = newListings.filter(function(l){
             return pointInHood(l.lat, l.lng, currentHood);
           });
