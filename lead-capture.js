@@ -28,13 +28,18 @@
     }
     ss('stats',stats);
 
-    // If user is registered, push activity update to CRM periodically
-    if(user&&user.email&&stats.listingClicks%5===0){
+    // If user is registered, push activity to CRM on every listing view
+    if(user&&user.email){
       var analytics = chgGetAnalytics();
+      var viewedIds = (stats.viewedListings||[]).slice(-20).join(', ');
       pushToCRM({
         email:user.email,firstName:user.firstName||'',lastName:user.lastName||'',
-        source:'Activity Update',
-        note:'Activity: '+stats.listingClicks+' listings viewed | Avg price: '+formatP(analytics.avgPrice)+' | Top city: '+analytics.topCity+' | Price range: '+formatP(analytics.minPrice)+'-'+formatP(analytics.maxPrice)+' | Sessions: '+stats.sessions
+        source:'Listing View',
+        note:'Viewed MLS# '+id+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')+
+          '\n\nUser Summary: '+stats.listingClicks+' total views | '+analytics.uniqueListings+' unique listings'+
+          ' | Avg price: '+formatP(analytics.avgPrice)+' | Price range: '+formatP(analytics.minPrice)+' - '+formatP(analytics.maxPrice)+
+          ' | Top city: '+analytics.topCity+' | Sessions: '+(stats.sessions||1)+
+          '\n\nRecent MLS IDs: '+viewedIds
       });
     }
 
@@ -200,6 +205,15 @@
     document.getElementById('chgSubmit').onclick=function(){
       partialData.phone=document.getElementById('chgPhone').value.trim();
       partialData.source='Website Registration Popup';
+      // Include browsing activity in the registration note
+      var a=chgGetAnalytics();
+      var viewedIds=(stats.viewedListings||[]).slice(-20).join(', ');
+      if(stats.listingClicks>0){
+        partialData.note='Browsing activity before signup: '+stats.listingClicks+' listings viewed | '+a.uniqueListings+' unique'+
+          ' | Avg price: '+formatP(a.avgPrice)+' | Range: '+formatP(a.minPrice)+' - '+formatP(a.maxPrice)+
+          ' | Top city: '+a.topCity+' | Pages: '+stats.pageViews+
+          '\nRecent MLS IDs: '+viewedIds;
+      }
       pushToCRM(partialData);
       user={firstName:partialData.firstName,lastName:partialData.lastName,email:partialData.email,phone:partialData.phone,registeredAt:new Date().toISOString()};
       ss('user',user);
