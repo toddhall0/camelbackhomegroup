@@ -1378,7 +1378,7 @@ function initMap(){
       (l.baths?'<span>'+l.baths+' bath</span>':'')+
       (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
       '</div>'+
-      '<a href="property.html?id='+l.id+'">View Property</a>'+
+      '<a href="property.html?id='+l.id+'" target="_blank">View Property</a>'+
       '</div></div>';
   }
 
@@ -1702,6 +1702,49 @@ function initMap(){
      INITIAL BUILD
      ================================================================ */
   buildMetro();
+
+  // Save map state on any interaction so back button restores it
+  function saveMapState(){
+    try{
+      sessionStorage.setItem('chg_map_state', JSON.stringify({
+        center:{lat:map.getCenter().lat(),lng:map.getCenter().lng()},
+        zoom:map.getZoom(),
+        query:currentHood?currentHood.name:'',
+        view:currentView||'cities',
+        time:Date.now()
+      }));
+    }catch(e){}
+  }
+  google.maps.event.addListener(map,'idle',function(){
+    if(currentHood) saveMapState();
+  });
+
+  // Restore map state if coming back (within 30 min)
+  try{
+    var saved=JSON.parse(sessionStorage.getItem('chg_map_state')||'null');
+    if(saved && (Date.now()-saved.time)<1800000 && !new URLSearchParams(window.location.search).get('q') && !new URLSearchParams(window.location.search).get('view')){
+      if(saved.view && saved.view!=='cities'){
+        switchView(saved.view);
+        document.querySelectorAll('.view-btn').forEach(function(b){
+          b.classList.toggle('active',b.getAttribute('data-view')===saved.view);
+        });
+      }
+      if(saved.query){
+        var matchedHood=null;
+        MAPDATA.neighborhoods.forEach(function(hood){
+          if(hood.name===saved.query) matchedHood=hood;
+        });
+        if(matchedHood){
+          map.setCenter(saved.center);
+          map.setZoom(saved.zoom);
+          setTimeout(function(){
+            matchedHood.filterCity=matchedHood.name;
+            fetchListingsForPolygon(matchedHood);
+          },500);
+        }
+      }
+    }
+  }catch(e){}
 
   // Handle ?q= search parameter from the search page
   var urlParams = new URLSearchParams(window.location.search);
