@@ -82,8 +82,12 @@
   function pushToCRM(d){fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(function(){})}
 
   function checkThreshold(){
+    console.log('[CHG] checkThreshold:', {enabled:CONFIG.enabled, user:!!user, dismissed:popupDismissed, pageViews:stats.pageViews, clicks:stats.listingClicks});
     if(!CONFIG.enabled||user||popupDismissed)return;
-    if(stats.pageViews>=CONFIG.pageViewThreshold||stats.listingClicks>=CONFIG.listingClickThreshold)setTimeout(showPopup,500);
+    if(stats.pageViews>=CONFIG.pageViewThreshold||stats.listingClicks>=CONFIG.listingClickThreshold){
+      console.log('[CHG] Showing popup!');
+      setTimeout(showPopup,500);
+    }
   }
 
   // Confetti
