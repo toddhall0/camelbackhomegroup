@@ -8,7 +8,9 @@
 
   var user = gs('user',null);
   var stats = gs('stats',{pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0});
-  var popupDismissed = gs('popupDismissed',false);
+  // Use sessionStorage so popup comes back each new session (not localStorage)
+  var popupDismissed = false;
+  try { popupDismissed = JSON.parse(sessionStorage.getItem('chg_popupDismissed')) || false; } catch(e){}
   stats.pageViews++; stats.sessions=(stats.sessions||0)+(gs('lastPage','')!==location.pathname?1:0); stats.lastVisit=new Date().toISOString(); ss('stats',stats); ss('lastPage',location.pathname);
 
   // Track a listing view with price and city data
@@ -71,7 +73,7 @@
   window.chgGetAnalytics=chgGetAnalytics;
 
   window.chgGetUser=function(){return user};
-  window.chgLogout=function(){user=null;ss('user',null);ss('popupDismissed',false);stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats)};
+  window.chgLogout=function(){user=null;ss('user',null);try{sessionStorage.removeItem('chg_popupDismissed')}catch(e){};stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats)};
   window.chgShowSignup=function(){showPopup()};
 
   function pushToCRM(d){fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(function(){})}
@@ -156,7 +158,7 @@
 
     document.body.appendChild(ov);
     popup=ov;
-    popupDismissed=true; ss('popupDismissed',true);
+    popupDismissed=true; try{sessionStorage.setItem('chg_popupDismissed','true')}catch(e){}
     partialData={};
 
     var confZone=document.getElementById('chgConfettiZone');
