@@ -13,6 +13,9 @@
   try { popupDismissed = JSON.parse(sessionStorage.getItem('chg_popupDismissed')) || false; } catch(e){}
   stats.pageViews++; stats.sessions=(stats.sessions||0)+(gs('lastPage','')!==location.pathname?1:0); stats.lastVisit=new Date().toISOString(); ss('stats',stats); ss('lastPage',location.pathname);
 
+  // checkThreshold is called at the end of the script AND on window load
+  window.addEventListener('load',function(){setTimeout(function(){checkThreshold()},800)});
+
   // Track a listing view with price and city data
   window.chgTrackListingClick=function(id,price,city){
     stats.listingClicks++;
