@@ -1035,18 +1035,22 @@ function initMap(){
   function createPriceIcon(price, highlighted){
     var bg = highlighted ? '#1f4e60' : '#cc624c';
     var text = formatPrice(price);
-    var size = highlighted ? 'font-size:12px;padding:4px 8px;' : 'font-size:11px;padding:3px 6px;';
-    var zIdx = highlighted ? 'z-index:1000;' : '';
+    var w = text.length * 8 + 20;
+    var h = 28;
+    var r = 14; // fully rounded pill
+    var total = h + 8; // height including pointer
+    var cx = w / 2;
     return {
       url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="' + (text.length * 8 + 16) + '" height="30">' +
-        '<rect x="0" y="0" width="' + (text.length * 8 + 16) + '" height="24" rx="3" fill="' + bg + '"/>' +
-        '<polygon points="' + ((text.length * 8 + 16) / 2 - 5) + ',24 ' + ((text.length * 8 + 16) / 2 + 5) + ',24 ' + ((text.length * 8 + 16) / 2) + ',30" fill="' + bg + '"/>' +
-        '<text x="' + ((text.length * 8 + 16) / 2) + '" y="16" text-anchor="middle" fill="white" font-family="Jost,sans-serif" font-size="11" font-weight="500">' + text + '</text>' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + total + '">' +
+        '<defs><filter id="s" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.2"/></filter></defs>' +
+        '<rect x="0" y="0" width="' + w + '" height="' + h + '" rx="' + r + '" fill="' + bg + '" filter="url(#s)"/>' +
+        '<path d="M' + (cx - 6) + ',' + h + ' Q' + cx + ',' + (h + 10) + ' ' + (cx + 6) + ',' + h + '" fill="' + bg + '"/>' +
+        '<text x="' + cx + '" y="' + (h / 2 + 4.5) + '" text-anchor="middle" fill="white" font-family="Jost,sans-serif" font-size="11" font-weight="500">' + text + '</text>' +
         '</svg>'
       ),
-      scaledSize: new google.maps.Size(text.length * 8 + 16, 30),
-      anchor: new google.maps.Point((text.length * 8 + 16) / 2, 30)
+      scaledSize: new google.maps.Size(w, total),
+      anchor: new google.maps.Point(cx, total)
     };
   }
 
