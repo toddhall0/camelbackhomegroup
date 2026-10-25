@@ -1497,10 +1497,10 @@ function initMap(){
       zIndex: 1
     });
 
-    // Bring to front on hover
+    // Bring to front on hover — always show price label
     google.maps.event.addListener(marker, 'mouseover', function(){
       marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
-      marker.setIcon(getListingIcon(l.price, true));
+      marker.setIcon(createPriceIcon(l.price, true));
     });
     google.maps.event.addListener(marker, 'mouseout', function(){
       if(activeListingId !== l.id){
