@@ -729,8 +729,10 @@ function initMap(){
   /* ================================================================
      POLYGON STYLE DEFINITIONS
      ================================================================ */
-  var hoodStyle = {strokeColor:'#1f4e60',strokeWeight:1.5,fillColor:'#cc624c',fillOpacity:0.12};
-  var hoverStyle = {fillOpacity:0.35,strokeWeight:2.5};
+  var hoodStyle = {strokeColor:'#1f4e60',strokeWeight:1.5,fillColor:'#cc624c',fillOpacity:0.05};
+  var hoverStyle = {fillOpacity:0.12,strokeWeight:2.5};
+  var selectedStyle = {fillOpacity:0.18,strokeWeight:2.5};
+  var selectedPolygon = null;
   var drillStyle = {strokeColor:'#1f4e60',strokeWeight:1.5,fillColor:'#1f4e60',fillOpacity:0.10};
   var drillHover = {fillOpacity:0.30,strokeWeight:2.5};
 
@@ -1142,18 +1144,29 @@ function initMap(){
     var label = new LabelOverlay(center, hood.name, 'gm-neighborhood-label', map);
     objectsArr.push(label);
 
-    // Hover — just change stroke, no fill change
+    // Hover — thicken stroke + slight fill on unselected cities
     google.maps.event.addListener(polygon, 'mouseover', function(){
-      this.setOptions({strokeWeight: hover.strokeWeight});
+      if(selectedPolygon !== polygon){
+        this.setOptions({fillOpacity: hoverStyle.fillOpacity, strokeWeight: hoverStyle.strokeWeight});
+      }
     });
     google.maps.event.addListener(polygon, 'mouseout', function(){
-      this.setOptions({strokeWeight: style.strokeWeight});
+      if(selectedPolygon !== polygon){
+        this.setOptions({fillOpacity: style.fillOpacity, strokeWeight: style.strokeWeight});
+      }
     });
 
     if(onClick){
       google.maps.event.addListener(polygon, 'click', onClick);
     } else {
       google.maps.event.addListener(polygon, 'click', function(e){
+        // Unhighlight previous selection
+        if(selectedPolygon && selectedPolygon !== polygon){
+          selectedPolygon.setOptions({fillOpacity: hoodStyle.fillOpacity, strokeWeight: hoodStyle.strokeWeight});
+        }
+        // Highlight this city
+        polygon.setOptions({fillOpacity: selectedStyle.fillOpacity, strokeWeight: selectedStyle.strokeWeight});
+        selectedPolygon = polygon;
         hood.filterCity = hood.name;
         fetchListingsForPolygon(hood);
       });
@@ -1190,12 +1203,16 @@ function initMap(){
     var label = new LabelOverlay(center, zone.name, 'gm-school-label', map);
     objectsArr.push(label);
 
-    // Hover — just change stroke, no fill change
+    // Hover — thicken stroke + slight fill on unselected cities
     google.maps.event.addListener(polygon, 'mouseover', function(){
-      this.setOptions({strokeWeight: hover.strokeWeight});
+      if(selectedPolygon !== polygon){
+        this.setOptions({fillOpacity: hoverStyle.fillOpacity, strokeWeight: hoverStyle.strokeWeight});
+      }
     });
     google.maps.event.addListener(polygon, 'mouseout', function(){
-      this.setOptions({strokeWeight: style.strokeWeight});
+      if(selectedPolygon !== polygon){
+        this.setOptions({fillOpacity: style.fillOpacity, strokeWeight: style.strokeWeight});
+      }
     });
 
     // School location marker
@@ -1607,6 +1624,10 @@ function initMap(){
     markerMap = {};
     activeListingId = null;
     hideGeoBtn();
+    if(selectedPolygon){
+      selectedPolygon.setOptions({fillOpacity: hoodStyle.fillOpacity, strokeWeight: hoodStyle.strokeWeight});
+      selectedPolygon = null;
+    }
   }
 
   /* ================================================================
