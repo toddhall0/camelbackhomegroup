@@ -1144,14 +1144,14 @@ function initMap(){
     var label = new LabelOverlay(center, hood.name, 'gm-neighborhood-label', map);
     objectsArr.push(label);
 
-    // Hover — thicken stroke + slight fill on unselected cities
+    // Hover — only when no city is selected
     google.maps.event.addListener(polygon, 'mouseover', function(){
-      if(selectedPolygon !== polygon){
+      if(!selectedPolygon){
         this.setOptions({fillOpacity: hoverStyle.fillOpacity, strokeWeight: hoverStyle.strokeWeight});
       }
     });
     google.maps.event.addListener(polygon, 'mouseout', function(){
-      if(selectedPolygon !== polygon){
+      if(!selectedPolygon || selectedPolygon !== polygon){
         this.setOptions({fillOpacity: style.fillOpacity, strokeWeight: style.strokeWeight});
       }
     });
@@ -1203,14 +1203,14 @@ function initMap(){
     var label = new LabelOverlay(center, zone.name, 'gm-school-label', map);
     objectsArr.push(label);
 
-    // Hover — thicken stroke + slight fill on unselected cities
+    // Hover — only when no city is selected
     google.maps.event.addListener(polygon, 'mouseover', function(){
-      if(selectedPolygon !== polygon){
+      if(!selectedPolygon){
         this.setOptions({fillOpacity: hoverStyle.fillOpacity, strokeWeight: hoverStyle.strokeWeight});
       }
     });
     google.maps.event.addListener(polygon, 'mouseout', function(){
-      if(selectedPolygon !== polygon){
+      if(!selectedPolygon || selectedPolygon !== polygon){
         this.setOptions({fillOpacity: style.fillOpacity, strokeWeight: style.strokeWeight});
       }
     });
