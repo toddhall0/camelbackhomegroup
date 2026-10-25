@@ -1490,7 +1490,7 @@ function initMap(){
   }
 
   var hoveredMarkerInfo = null;
-  var hoverResetTimer = null;
+  var hoverTooltip = new google.maps.InfoWindow({disableAutoPan:true});
 
   function createListingMarker(l){
     var marker = new google.maps.Marker({
@@ -1501,34 +1501,26 @@ function initMap(){
     });
 
     google.maps.event.addListener(marker, 'mouseover', function(){
-      // Cancel any pending reset
-      if(hoverResetTimer){ clearTimeout(hoverResetTimer); hoverResetTimer = null; }
-
-      // If already hovering this one, skip
-      if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker) return;
-
-      // Reset previous hovered marker
-      if(hoveredMarkerInfo && hoveredMarkerInfo.id !== activeListingId){
-        hoveredMarkerInfo.marker.setZIndex(1);
-        hoveredMarkerInfo.marker.setIcon(getListingIcon(hoveredMarkerInfo.price, false));
-      }
       marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
-      marker.setIcon(createPriceIcon(l.price, true));
+      if(map.getZoom() < DOT_ZOOM_THRESHOLD){
+        // Zoomed out: show price as tooltip above the dot (don't resize the marker)
+        hoverTooltip.setContent('<div style="font-family:Jost,sans-serif;font-size:13px;font-weight:600;color:#162d38;padding:2px 6px;white-space:nowrap">' + formatPrice(l.price) + '</div>');
+        hoverTooltip.open(map, marker);
+      } else {
+        // Zoomed in: swap to highlighted price icon
+        marker.setIcon(createPriceIcon(l.price, true));
+      }
       hoveredMarkerInfo = {marker: marker, id: l.id, price: l.price};
     });
 
     google.maps.event.addListener(marker, 'mouseout', function(){
       if(activeListingId === l.id) return;
-      // Delay the reset so overlapping pin mouseover can cancel it
-      var info = {marker: marker, id: l.id, price: l.price};
-      hoverResetTimer = setTimeout(function(){
-        marker.setZIndex(1);
-        marker.setIcon(getListingIcon(l.price, false));
-        if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker){
-          hoveredMarkerInfo = null;
-        }
-        hoverResetTimer = null;
-      }, 100);
+      marker.setZIndex(1);
+      hoverTooltip.close();
+      marker.setIcon(getListingIcon(l.price, false));
+      if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker){
+        hoveredMarkerInfo = null;
+      }
     });
 
     var popupHtml = buildListingPopupHtml(l);
