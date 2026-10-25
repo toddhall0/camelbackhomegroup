@@ -1489,7 +1489,8 @@ function initMap(){
       '</div></div>';
   }
 
-  var hoveredMarkerInfo = null; // track which marker is currently hovered
+  var hoveredMarkerInfo = null;
+  var hoverResetTimer = null;
 
   function createListingMarker(l){
     var marker = new google.maps.Marker({
@@ -1499,10 +1500,15 @@ function initMap(){
       zIndex: 1
     });
 
-    // Bring to front on hover — always show price label
     google.maps.event.addListener(marker, 'mouseover', function(){
-      // Reset previous hovered marker first
-      if(hoveredMarkerInfo && hoveredMarkerInfo.marker !== marker && hoveredMarkerInfo.id !== activeListingId){
+      // Cancel any pending reset
+      if(hoverResetTimer){ clearTimeout(hoverResetTimer); hoverResetTimer = null; }
+
+      // If already hovering this one, skip
+      if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker) return;
+
+      // Reset previous hovered marker
+      if(hoveredMarkerInfo && hoveredMarkerInfo.id !== activeListingId){
         hoveredMarkerInfo.marker.setZIndex(1);
         hoveredMarkerInfo.marker.setIcon(getListingIcon(hoveredMarkerInfo.price, false));
       }
@@ -1510,14 +1516,19 @@ function initMap(){
       marker.setIcon(createPriceIcon(l.price, true));
       hoveredMarkerInfo = {marker: marker, id: l.id, price: l.price};
     });
+
     google.maps.event.addListener(marker, 'mouseout', function(){
-      if(activeListingId !== l.id){
+      if(activeListingId === l.id) return;
+      // Delay the reset so overlapping pin mouseover can cancel it
+      var info = {marker: marker, id: l.id, price: l.price};
+      hoverResetTimer = setTimeout(function(){
         marker.setZIndex(1);
         marker.setIcon(getListingIcon(l.price, false));
-      }
-      if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker){
-        hoveredMarkerInfo = null;
-      }
+        if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker){
+          hoveredMarkerInfo = null;
+        }
+        hoverResetTimer = null;
+      }, 100);
     });
 
     var popupHtml = buildListingPopupHtml(l);
