@@ -1490,39 +1490,39 @@ function initMap(){
   }
 
   var hoveredMarkerInfo = null;
-  var hoverLabel = null;
 
-  // Lightweight price tooltip (custom overlay, no InfoWindow chrome)
-  function PriceTooltip(){
-    this.div = null;
-    this.pos = null;
+  // Lightweight price tooltip div (sits in the map container)
+  var tooltipDiv = document.createElement('div');
+  tooltipDiv.style.cssText = 'display:none;position:absolute;z-index:9000;font-family:Jost,sans-serif;font-size:13px;font-weight:600;color:#fff;background:#1f4e60;padding:5px 12px;border-radius:14px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.3);transform:translate(-50%,-100%);margin-top:-18px';
+  document.getElementById('map').style.position = 'relative';
+  document.getElementById('map').appendChild(tooltipDiv);
+
+  function showPriceTooltip(marker, price){
+    var proj = map.getProjection();
+    if(!proj) return;
+    var bounds = map.getBounds();
+    if(!bounds) return;
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    var topRight = map.getDiv().offsetWidth;
+    var pos = marker.getPosition();
+
+    // Convert lat/lng to pixel position in the map div
+    var scale = Math.pow(2, map.getZoom());
+    var worldPoint = proj.fromLatLngToPoint(pos);
+    var nwPoint = proj.fromLatLngToPoint(new google.maps.LatLng(ne.lat(), sw.lng()));
+    var x = (worldPoint.x - nwPoint.x) * scale;
+    var y = (worldPoint.y - nwPoint.y) * scale;
+
+    tooltipDiv.textContent = formatPrice(price);
+    tooltipDiv.style.left = x + 'px';
+    tooltipDiv.style.top = y + 'px';
+    tooltipDiv.style.display = 'block';
   }
-  PriceTooltip.prototype = new google.maps.OverlayView();
-  PriceTooltip.prototype.onAdd = function(){
-    this.div = document.createElement('div');
-    this.div.style.cssText = 'position:absolute;font-family:Jost,sans-serif;font-size:12px;font-weight:600;color:#fff;background:#1f4e60;padding:4px 10px;border-radius:12px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,0.25);transform:translate(-50%,-100%);margin-top:-14px';
-    this.getPanes().floatPane.appendChild(this.div);
-  };
-  PriceTooltip.prototype.draw = function(){
-    if(!this.div||!this.pos) return;
-    var p = this.getProjection().fromLatLngToDivPixel(this.pos);
-    this.div.style.left = p.x + 'px';
-    this.div.style.top = p.y + 'px';
-  };
-  PriceTooltip.prototype.onRemove = function(){
-    if(this.div){ this.div.remove(); this.div = null; }
-  };
-  PriceTooltip.prototype.show = function(map, pos, text){
-    this.pos = pos;
-    this.setMap(map);
-    if(this.div) this.div.textContent = text;
-    this.draw();
-  };
-  PriceTooltip.prototype.hide = function(){
-    this.setMap(null);
-  };
 
-  var priceTooltip = new PriceTooltip();
+  function hidePriceTooltip(){
+    tooltipDiv.style.display = 'none';
+  }
 
   function createListingMarker(l){
     var marker = new google.maps.Marker({
@@ -1535,7 +1535,7 @@ function initMap(){
     google.maps.event.addListener(marker, 'mouseover', function(){
       marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
       if(map.getZoom() < DOT_ZOOM_THRESHOLD){
-        priceTooltip.show(map, marker.getPosition(), formatPrice(l.price));
+        showPriceTooltip(marker, l.price);
       } else {
         marker.setIcon(createPriceIcon(l.price, true));
       }
@@ -1545,7 +1545,7 @@ function initMap(){
     google.maps.event.addListener(marker, 'mouseout', function(){
       if(activeListingId === l.id) return;
       marker.setZIndex(1);
-      priceTooltip.hide();
+      hidePriceTooltip();
       marker.setIcon(getListingIcon(l.price, false));
       if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker){
         hoveredMarkerInfo = null;
