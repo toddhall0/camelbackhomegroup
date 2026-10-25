@@ -1490,7 +1490,39 @@ function initMap(){
   }
 
   var hoveredMarkerInfo = null;
-  var hoverTooltip = new google.maps.InfoWindow({disableAutoPan:true});
+  var hoverLabel = null;
+
+  // Lightweight price tooltip (custom overlay, no InfoWindow chrome)
+  function PriceTooltip(){
+    this.div = null;
+    this.pos = null;
+  }
+  PriceTooltip.prototype = new google.maps.OverlayView();
+  PriceTooltip.prototype.onAdd = function(){
+    this.div = document.createElement('div');
+    this.div.style.cssText = 'position:absolute;font-family:Jost,sans-serif;font-size:12px;font-weight:600;color:#fff;background:#1f4e60;padding:4px 10px;border-radius:12px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,0.25);transform:translate(-50%,-100%);margin-top:-14px';
+    this.getPanes().floatPane.appendChild(this.div);
+  };
+  PriceTooltip.prototype.draw = function(){
+    if(!this.div||!this.pos) return;
+    var p = this.getProjection().fromLatLngToDivPixel(this.pos);
+    this.div.style.left = p.x + 'px';
+    this.div.style.top = p.y + 'px';
+  };
+  PriceTooltip.prototype.onRemove = function(){
+    if(this.div){ this.div.remove(); this.div = null; }
+  };
+  PriceTooltip.prototype.show = function(map, pos, text){
+    this.pos = pos;
+    this.setMap(map);
+    if(this.div) this.div.textContent = text;
+    this.draw();
+  };
+  PriceTooltip.prototype.hide = function(){
+    this.setMap(null);
+  };
+
+  var priceTooltip = new PriceTooltip();
 
   function createListingMarker(l){
     var marker = new google.maps.Marker({
@@ -1503,11 +1535,8 @@ function initMap(){
     google.maps.event.addListener(marker, 'mouseover', function(){
       marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
       if(map.getZoom() < DOT_ZOOM_THRESHOLD){
-        // Zoomed out: show price as tooltip above the dot (don't resize the marker)
-        hoverTooltip.setContent('<div style="font-family:Jost,sans-serif;font-size:13px;font-weight:600;color:#162d38;padding:2px 6px;white-space:nowrap">' + formatPrice(l.price) + '</div>');
-        hoverTooltip.open(map, marker);
+        priceTooltip.show(map, marker.getPosition(), formatPrice(l.price));
       } else {
-        // Zoomed in: swap to highlighted price icon
         marker.setIcon(createPriceIcon(l.price, true));
       }
       hoveredMarkerInfo = {marker: marker, id: l.id, price: l.price};
@@ -1516,7 +1545,7 @@ function initMap(){
     google.maps.event.addListener(marker, 'mouseout', function(){
       if(activeListingId === l.id) return;
       marker.setZIndex(1);
-      hoverTooltip.close();
+      priceTooltip.hide();
       marker.setIcon(getListingIcon(l.price, false));
       if(hoveredMarkerInfo && hoveredMarkerInfo.marker === marker){
         hoveredMarkerInfo = null;
