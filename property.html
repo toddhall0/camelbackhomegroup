@@ -220,32 +220,23 @@ color:var(--white);border:none;cursor:pointer;transition:background 0.3s;margin-
 }
 
 /* FOOTER */
-.footer{background:var(--charcoal);color:rgba(255,255,255,0.65);padding:40px 32px 24px}
-.footer-inner{max-width:1000px;margin:0 auto}
-.footer-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:32px;
-padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.1)}
-.footer-brand{flex:1;min-width:200px}
-.footer-brand-name{font-family:var(--font-serif);font-size:1.15rem;color:var(--white);font-weight:500}
-.footer-brand-tag{font-size:0.75rem;font-weight:500;letter-spacing:0.12em;
-text-transform:uppercase;color:var(--gold);margin-top:2px}
-.footer-brand-desc{font-size:0.85rem;margin-top:10px;line-height:1.6;max-width:340px}
-.footer-links{display:flex;gap:40px}
-.footer-col h4{font-family:var(--font-sans);font-size:0.78rem;font-weight:500;
-letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:12px}
-.footer-col a,.footer-col p{display:block;font-size:0.85rem;color:rgba(255,255,255,0.55);
-margin-bottom:6px;transition:color 0.2s}
+.footer{background:#0f2530;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;
+grid-template-columns:auto 1.2fr 1fr 1fr 1fr 1fr;gap:32px;padding-bottom:48px;
+border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.8rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.9rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.95rem;color:rgba(255,255,255,0.5);margin-bottom:12px;transition:color 0.3s}
 .footer-col a:hover{color:var(--white)}
-.footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;
-padding-top:20px;gap:12px}
-.footer-copy{font-size:0.78rem;color:rgba(255,255,255,0.4)}
-.footer-mls{display:flex;align-items:center;gap:8px}
-.footer-mls img{height:40px;width:auto;opacity:0.7}
-.footer-legal{display:flex;gap:16px}
-.footer-legal a{font-size:0.75rem;color:rgba(255,255,255,0.4);transition:color 0.2s}
-.footer-legal a:hover{color:rgba(255,255,255,0.7)}
-
-/* MLS DISCLAIMER */
-.mls-disclaimer{font-size:0.72rem;color:rgba(255,255,255,0.35);max-width:600px;line-height:1.5;margin-top:12px}
+.footer-col p{font-size:0.92rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;align-items:center;
+justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.85rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.85rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
 
 /* MOBILE */
 @media(max-width:768px){
@@ -264,11 +255,14 @@ padding-top:20px;gap:12px}
   .stats-bar{flex-wrap:wrap}
   .stat-item{min-width:33.33%;border-bottom:1px solid var(--cream-dark)}
   .details-grid{grid-template-columns:1fr}
-  .footer-links{flex-direction:column;gap:24px}
-  .footer-top{flex-direction:column}
+  .footer-grid{grid-template-columns:repeat(2,1fr)}
   .cta-section{padding:36px 16px}
   .cta-section h2{font-size:1.4rem}
   .cta-phone{font-size:1.2rem}
+}
+@media(max-width:640px){
+  .footer-grid{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;text-align:center}
 }
 @media(max-width:480px){
   .stat-item{min-width:50%}
@@ -418,19 +412,43 @@ padding-top:20px;gap:12px}
 
 <!-- FOOTER -->
 <footer class="footer">
-<div class="footer-inner">
-<div class="footer-top">
-<div class="footer-brand">
+<div class="footer-grid">
+<div class="footer-logo-col" style="display:flex;align-items:flex-start">
+<img src="assets/logo/logo.png" alt="Camelback Home Group" style="height:180px;width:auto">
+</div>
+<div class="footer-brand-col">
 <div class="footer-brand-name">Camelback Home Group</div>
 <div class="footer-brand-tag">Real Estate Brokerage</div>
-<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction.</p>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity" style="height:70px;width:auto;margin-top:16px">
 </div>
-<div class="footer-links">
+<div class="footer-col">
+<h4>Cities</h4>
+<a href="gilbert-homes">Gilbert</a>
+<a href="chandler-homes">Chandler</a>
+<a href="scottsdale-homes">Scottsdale</a>
+<a href="mesa-homes">Mesa</a>
+<a href="phoenix-homes">Phoenix</a>
+<a href="tempe-homes">Tempe</a>
+<a href="paradise-valley-homes">Paradise Valley</a>
+</div>
+<div class="footer-col">
+<h4>More Cities</h4>
+<a href="peoria-homes">Peoria</a>
+<a href="glendale-homes">Glendale</a>
+<a href="surprise-homes">Surprise</a>
+<a href="goodyear-homes">Goodyear</a>
+<a href="buckeye-homes">Buckeye</a>
+<a href="queen-creek-homes">Queen Creek</a>
+<a href="fountain-hills-homes">Fountain Hills</a>
+</div>
 <div class="footer-col">
 <h4>Company</h4>
-<a href="index.html#services">Services</a>
-<a href="neighborhoods.html">Neighborhoods</a>
+<a href="index.html#advantage">About Us</a>
+<a href="index.html#process">Our Process</a>
 <a href="agents.html">Join Our Team</a>
+<a href="search.html">Search Homes</a>
+<a href="valuation.html">Home Valuation</a>
 <a href="index.html#contact">Contact</a>
 </div>
 <div class="footer-col">
@@ -440,19 +458,13 @@ padding-top:20px;gap:12px}
 <p style="margin-top:8px">Greater Phoenix Metro<br>Maricopa County, AZ</p>
 </div>
 </div>
-</div>
 <div class="footer-bottom">
 <span class="footer-copy">&copy; 2025 Camelback Home Group. All rights reserved. Licensed in Arizona.</span>
-<div class="footer-mls">
-<img src="assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity">
-</div>
 <div class="footer-legal">
 <a href="#">Privacy Policy</a>
 <a href="#">Terms of Use</a>
 <a href="#">Fair Housing</a>
 </div>
-</div>
-<p class="mls-disclaimer">Listing data provided by Arizona Regional MLS. Information deemed reliable but not guaranteed. All properties subject to prior sale, change or withdrawal.</p>
 </div>
 </footer>
 
