@@ -1476,7 +1476,20 @@ function initMap(){
     var marker = new google.maps.Marker({
       position: {lat: l.lat, lng: l.lng},
       map: map,
-      icon: getListingIcon(l.price, false)
+      icon: getListingIcon(l.price, false),
+      zIndex: 1
+    });
+
+    // Bring to front on hover
+    google.maps.event.addListener(marker, 'mouseover', function(){
+      marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
+      marker.setIcon(getListingIcon(l.price, true));
+    });
+    google.maps.event.addListener(marker, 'mouseout', function(){
+      if(activeListingId !== l.id){
+        marker.setZIndex(1);
+        marker.setIcon(getListingIcon(l.price, false));
+      }
     });
 
     var popupHtml = buildListingPopupHtml(l);
