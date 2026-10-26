@@ -958,6 +958,9 @@ function initMap(){
     listings.forEach(function(l){
       var card = document.createElement('div');
       card.className = 'listing-card';
+      card.dataset.price = l.price || 0;
+      card.dataset.city = l.city || '';
+      card.dataset.mlsid = l.id || '';
       card.setAttribute('data-id', l.id);
 
       var photoHtml;
@@ -1485,7 +1488,7 @@ function initMap(){
       (l.baths?'<span>'+l.baths+' bath</span>':'')+
       (l.sqft?'<span>'+l.sqft.toLocaleString()+' sqft</span>':'')+
       '</div>'+
-      '<a href="property.html?id='+l.id+'" target="_blank">View Property</a>'+
+      '<a href="property.html?id='+l.id+'" target="_blank" data-price="'+l.price+'" data-city="'+escHtml(l.city||'')+'">View Property</a>'+
       '</div></div>';
   }
 

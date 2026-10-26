@@ -315,34 +315,46 @@
 
   // Auto-track listing clicks with price and city data
   document.addEventListener('click',function(e){
-    // Match any element that links to a property page
-    var link=e.target.closest('a[href*="property.html"],.listing-card,.listing-prev-card,.result-card,[onclick*="property.html"]');
+    var link=e.target.closest('a[href*="property.html"],.listing-card,.listing-prev-card,.result-card,.listing-popup,[onclick*="property.html"]');
     if(!link) return;
 
     var id='unknown', price=0, city='';
 
-    // Extract MLS ID from href or onclick
-    var href=link.getAttribute('href')||link.getAttribute('onclick')||'';
-    var m=href.match(/id=(\d+)/);
-    if(m) id=m[1];
+    // Try data attributes first (most reliable)
+    if(link.dataset.price) price=parseFloat(link.dataset.price)||0;
+    if(link.dataset.city) city=link.dataset.city;
+    if(link.dataset.mlsid) id=link.dataset.mlsid;
 
-    // Extract price - search within the card and nearby elements
-    var card=link.closest('.listing-card,.listing-prev-card,.result-card')||link;
-    var priceEl=card.querySelector('[class*="price"]');
-    if(priceEl){
-      var pt=priceEl.textContent.replace(/[^0-9.KMkm]/g,'');
-      if(pt.match(/[Mm]/))price=parseFloat(pt)*1000000;
-      else if(pt.match(/[Kk]/))price=parseFloat(pt)*1000;
-      else price=parseFloat(pt)||0;
+    // Extract MLS ID from href or onclick if not from data attr
+    if(id==='unknown'){
+      var href=link.getAttribute('href')||link.getAttribute('onclick')||'';
+      var m=href.match(/id=(\d+)/);
+      if(m) id=m[1];
     }
 
-    // Extract city from address
-    var addrEl=card.querySelector('[class*="address"],[class*="addr"]');
-    if(addrEl){
-      var parts=addrEl.textContent.split(',');
-      if(parts.length>=2) city=parts[parts.length-1].trim();
+    // Extract price from card DOM if not from data attr
+    if(!price){
+      var card=link.closest('.listing-card,.listing-prev-card,.result-card,.listing-popup')||link;
+      var priceEl=card.querySelector('[class*="price"]');
+      if(priceEl){
+        var pt=priceEl.textContent.replace(/[^0-9.KMkm]/g,'');
+        if(pt.match(/[Mm]/))price=parseFloat(pt)*1000000;
+        else if(pt.match(/[Kk]/))price=parseFloat(pt)*1000;
+        else price=parseFloat(pt)||0;
+      }
     }
 
+    // Extract city from card DOM if not from data attr
+    if(!city){
+      var card2=link.closest('.listing-card,.listing-prev-card,.result-card,.listing-popup')||link;
+      var addrEl=card2.querySelector('[class*="address"],[class*="addr"]');
+      if(addrEl){
+        var parts=addrEl.textContent.split(',');
+        if(parts.length>=2) city=parts[parts.length-1].trim();
+      }
+    }
+
+    console.log('[CHG] Track click: id='+id+' price='+price+' city='+city);
     window.chgTrackListingClick(id,price,city);
   });
 
