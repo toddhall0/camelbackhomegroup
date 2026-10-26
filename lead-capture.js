@@ -33,8 +33,18 @@
     }
     ss('stats',stats);
 
-    // If user is registered, add a note to their Sierra lead on each view
+    // If user is registered, record the property view in Sierra's Data section + add a note
     if(user&&user.email){
+      // Record the structured property view (populates Data tab in Sierra)
+      if(id&&id!=='unknown'){
+        pushToCRM({
+          action:'propertyView',
+          email:user.email,
+          mlsNumber:String(id),
+          partnerLink:location.origin+'/property.html?id='+id
+        });
+      }
+      // Also add a human-readable note to the timeline
       var analytics = chgGetAnalytics();
       pushToCRM({
         action:'addNote',

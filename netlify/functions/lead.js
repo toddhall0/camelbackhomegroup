@@ -46,6 +46,27 @@ exports.handler = async (event) => {
   };
 
   try {
+    // --- RECORD PROPERTY VIEW in lead's Data section ---
+    if (action === "propertyView") {
+      const { email, mlsNumber, partnerLink } = body;
+      if (!email || !mlsNumber) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and mlsNumber required for propertyView" }) };
+      }
+      const viewData = { email, mlsNumber };
+      if (partnerLink) viewData.partnerLink = partnerLink;
+      const resp = await fetch(`${SIERRA_BASE}/listings/propertyView/`, {
+        method: "POST",
+        headers: sierraHeaders,
+        body: JSON.stringify(viewData),
+      });
+      const txt = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "propertyView", detail: txt }),
+      };
+    }
+
     // --- ADD NOTE to existing lead's timeline ---
     if (action === "addNote") {
       const { email, message } = body;
