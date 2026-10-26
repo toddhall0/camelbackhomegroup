@@ -14,7 +14,13 @@
   stats.pageViews++; stats.sessions=(stats.sessions||0)+(gs('lastPage','')!==location.pathname?1:0); stats.lastVisit=new Date().toISOString(); ss('stats',stats); ss('lastPage',location.pathname);
 
   // checkThreshold is called at the end of the script AND on window load
-  window.addEventListener('load',function(){setTimeout(function(){checkThreshold()},800)});
+  window.addEventListener('load',function(){
+    setTimeout(function(){checkThreshold()},800);
+    // Record site visit for registered users
+    if(user&&user.email){
+      pushToCRM({action:'siteVisit',email:user.email,url:location.href});
+    }
+  });
 
   // Track a listing view with price and city data
   window.chgTrackListingClick=function(id,price,city){
@@ -86,7 +92,12 @@
   window.chgLogout=function(){user=null;ss('user',null);try{sessionStorage.removeItem('chg_popupDismissed')}catch(e){};stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats)};
   window.chgShowSignup=function(){showPopup()};
 
-  function pushToCRM(d){fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(function(){})}
+  function pushToCRM(d){
+    fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+    .then(function(r){return r.json()})
+    .then(function(j){console.log('[CHG CRM] '+d.action+':',j)})
+    .catch(function(e){console.warn('[CHG CRM] error:',e)})
+  }
 
   function checkThreshold(){
     console.log('[CHG] checkThreshold:', {enabled:CONFIG.enabled, user:!!user, dismissed:popupDismissed, pageViews:stats.pageViews, clicks:stats.listingClicks});

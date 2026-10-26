@@ -63,7 +63,29 @@ exports.handler = async (event) => {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "propertyView", detail: txt }),
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "propertyView", status: resp.status, detail: txt }),
+      };
+    }
+
+    // --- RECORD SITE VISIT in lead's Data section ---
+    if (action === "siteVisit") {
+      const { email, url: visitUrl } = body;
+      if (!email || !visitUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and url required for siteVisit" }) };
+      }
+      const resp = await fetch(`${SIERRA_BASE}/leads/${encodeURIComponent(email)}/siteVisit`, {
+        method: "POST",
+        headers: sierraHeaders,
+        body: JSON.stringify({
+          url: visitUrl,
+          visitDateTime: new Date().toISOString(),
+        }),
+      });
+      const txt = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "siteVisit", status: resp.status, detail: txt }),
       };
     }
 
