@@ -160,8 +160,83 @@
     .then(function(j){console.log('[CHG] Sierra lead data:',JSON.stringify(j,null,2))})
     .catch(function(e){console.warn('[CHG] error:',e)})
   };
-  window.chgLogout=function(){user=null;ss('user',null);try{sessionStorage.removeItem('chg_popupDismissed')}catch(e){};stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats)};
+  window.chgLogout=function(){
+    user=null;ss('user',null);
+    favorites={};ss('favorites',{});
+    try{sessionStorage.removeItem('chg_popupDismissed')}catch(e){}
+    stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats);
+    renderAccountNav();
+    location.reload();
+  };
   window.chgShowSignup=function(){showPopup()};
+  window.chgShowLogin=function(){
+    showPopup();
+    setTimeout(function(){
+      var toLogin=document.getElementById('chgToLogin');
+      if(toLogin) toLogin.click();
+    },100);
+  };
+
+  // ---- NAV ACCOUNT UI ----
+  function renderAccountNav(){
+    var navLinks=document.getElementById('navLinks');
+    if(!navLinks) return;
+    var existing=document.getElementById('chgNavAccount');
+    if(existing) existing.remove();
+
+    var wrap=document.createElement('div');
+    wrap.id='chgNavAccount';
+    wrap.style.cssText='position:relative;margin-left:8px';
+
+    if(user&&user.email){
+      var name=user.firstName||(user.email.split('@')[0]);
+      var favCount=Object.keys(favorites).length;
+      wrap.innerHTML='<button id="chgNavBtn" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:6px 14px 6px 10px;cursor:pointer;color:#fff;font-family:var(--font-sans);font-size:0.88rem;font-weight:400;letter-spacing:0.02em;transition:all 0.25s">'+
+        '<span style="width:26px;height:26px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;color:#fff">'+name.charAt(0).toUpperCase()+'</span>'+
+        name+
+        '</button>'+
+        '<div id="chgNavDrop" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);min-width:200px;overflow:hidden;z-index:2000">'+
+          '<div style="padding:16px 18px 12px;border-bottom:1px solid #f0ece6">'+
+            '<div style="font-weight:500;color:#162d38;font-size:0.95rem">'+(user.firstName?(user.firstName+' '+(user.lastName||'')):user.email)+'</div>'+
+            '<div style="font-size:0.8rem;color:#6a8290;margin-top:2px">'+user.email+'</div>'+
+          '</div>'+
+          '<a href="neighborhoods.html?favorites=1" style="display:flex;align-items:center;gap:10px;padding:12px 18px;color:#162d38;font-size:0.9rem;transition:background 0.15s">'+
+            '<span style="color:#cc624c">&#9829;</span> My Favorites'+(favCount?' <span style="margin-left:auto;background:#f2ddd7;color:#cc624c;font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:10px">'+favCount+'</span>':'')+
+          '</a>'+
+          '<button id="chgNavLogout" style="display:flex;align-items:center;gap:10px;padding:12px 18px;width:100%;background:none;border:none;border-top:1px solid #f0ece6;color:#6a8290;font-family:var(--font-sans);font-size:0.9rem;cursor:pointer;transition:background 0.15s">'+
+            '&#x2192; Log Out'+
+          '</button>'+
+        '</div>';
+      navLinks.appendChild(wrap);
+
+      var btn=document.getElementById('chgNavBtn');
+      var drop=document.getElementById('chgNavDrop');
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        drop.style.display=drop.style.display==='none'?'block':'none';
+      });
+      document.addEventListener('click',function(){drop.style.display='none'});
+      drop.querySelectorAll('a').forEach(function(a){a.addEventListener('mouseenter',function(){a.style.background='#faf8f5'});a.addEventListener('mouseleave',function(){a.style.background=''})});
+      document.getElementById('chgNavLogout').addEventListener('click',function(){window.chgLogout()});
+      document.getElementById('chgNavLogout').addEventListener('mouseenter',function(){this.style.background='#faf8f5'});
+      document.getElementById('chgNavLogout').addEventListener('mouseleave',function(){this.style.background=''});
+    } else {
+      wrap.innerHTML='<button id="chgNavSignIn" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:8px 16px;cursor:pointer;color:#fff;font-family:var(--font-sans);font-size:0.88rem;font-weight:400;letter-spacing:0.02em;transition:all 0.25s">'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'+
+        'Sign In</button>';
+      navLinks.appendChild(wrap);
+      document.getElementById('chgNavSignIn').addEventListener('click',function(){window.chgShowLogin()});
+    }
+  }
+
+  // Inject nav account styles
+  favStyle.textContent+=
+    '#chgNavBtn:hover{border-color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08)}'+
+    '#chgNavSignIn:hover{border-color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08)}';
+
+  // Render account nav on DOM ready
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',renderAccountNav)}
+  else{renderAccountNav()}
 
   function pushToCRM(d){
     fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
@@ -335,6 +410,7 @@
       }
       user={firstName:partialData.firstName,lastName:partialData.lastName,email:partialData.email,phone:partialData.phone,registeredAt:new Date().toISOString()};
       ss('user',user);
+      renderAccountNav();
       spawnConfetti(confZone,40,true);
       document.getElementById('chgDots').style.display='none';
       ['chgS1','chgS2','chgS3','chgLogin'].forEach(function(id){document.getElementById(id).style.display='none'});
@@ -355,13 +431,31 @@
     document.getElementById('chgLoginBtn').onclick=function(){
       var email=document.getElementById('chgLoginEmail').value.trim();
       if(!email){return}
+      // Fetch lead data from Sierra to get name
+      fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getLead',email:email})})
+      .then(function(r){return r.json()})
+      .then(function(j){
+        if(j&&j.data){
+          user={email:email,firstName:j.data.firstName||'',lastName:j.data.lastName||'',phone:j.data.phone||'',registeredAt:new Date().toISOString()};
+        } else {
+          user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
+        }
+        ss('user',user);
+        renderAccountNav();
+      }).catch(function(){
+        user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
+        ss('user',user);
+        renderAccountNav();
+      });
+      // Don't wait for fetch to show success
       user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
       ss('user',user);
       spawnConfetti(confZone,30,true);
       document.getElementById('chgLogin').style.display='none';
       document.getElementById('chgDoneTitle').textContent='Welcome Back!';
-      document.getElementById('chgDoneMsg').textContent='You\'re logged in. We\'ll track your favorites.';
+      document.getElementById('chgDoneMsg').textContent='You\'re logged in.';
       document.getElementById('chgDone').style.display='';
+      renderAccountNav();
       setTimeout(function(){if(popup){popup.remove();popup=null}},2500);
     };
   }
