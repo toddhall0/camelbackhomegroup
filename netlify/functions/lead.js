@@ -107,6 +107,43 @@ exports.handler = async (event) => {
       };
     }
 
+    // --- SAVE LISTING as favorite ---
+    if (action === "saveListing") {
+      const { email, mlsNumber } = body;
+      if (!email || !mlsNumber) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and mlsNumber required" }) };
+      }
+      const resp = await fetch(`${SIERRA_BASE}/savedListings`, {
+        method: "POST",
+        headers: sierraHeaders,
+        body: JSON.stringify({ leadIdOrEmail: email, mlsNumber }),
+      });
+      const txt = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "saveListing", status: resp.status, detail: txt }),
+      };
+    }
+
+    // --- REMOVE SAVED LISTING ---
+    if (action === "removeListing") {
+      const { email, mlsNumber } = body;
+      if (!email || !mlsNumber) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and mlsNumber required" }) };
+      }
+      const resp = await fetch(`${SIERRA_BASE}/savedListings/${encodeURIComponent(email)}/ARMLS/${encodeURIComponent(mlsNumber)}`, {
+        method: "DELETE",
+        headers: sierraHeaders,
+      });
+      const txt = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "removeListing", status: resp.status, detail: txt }),
+      };
+    }
+
     // --- ADD NOTE to existing lead's timeline ---
     if (action === "addNote") {
       const { email, message } = body;

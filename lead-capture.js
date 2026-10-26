@@ -99,6 +99,59 @@
   }
   window.chgGetAnalytics=chgGetAnalytics;
 
+  // ---- FAVORITES ----
+  var favorites = gs('favorites',{});
+
+  window.chgIsFavorite=function(id){return !!favorites[id]};
+
+  window.chgToggleFavorite=function(id,price,city,address){
+    if(!user||!user.email){showPopup();return false}
+    if(favorites[id]){
+      delete favorites[id];
+      ss('favorites',favorites);
+      pushToCRM({action:'removeListing',email:user.email,mlsNumber:String(id)});
+      pushToCRM({action:'addNote',email:user.email,message:'Removed MLS# '+id+' from favorites'});
+      updateFavSummary();
+      document.querySelectorAll('[data-fav-id="'+id+'"]').forEach(function(el){el.classList.remove('chg-fav-active')});
+      return false;
+    } else {
+      favorites[id]={price:price||0,city:city||'',address:address||'',savedAt:new Date().toISOString()};
+      ss('favorites',favorites);
+      pushToCRM({action:'saveListing',email:user.email,mlsNumber:String(id)});
+      pushToCRM({action:'addNote',email:user.email,message:'Saved MLS# '+id+(price?' ($'+formatP(price)+')':'')+(city?' in '+city:'')+' as favorite'});
+      updateFavSummary();
+      document.querySelectorAll('[data-fav-id="'+id+'"]').forEach(function(el){el.classList.add('chg-fav-active')});
+      return true;
+    }
+  };
+
+  window.chgGetFavorites=function(){return favorites};
+  window.chgGetFavoriteCount=function(){return Object.keys(favorites).length};
+
+  function updateFavSummary(){
+    var a=chgGetAnalytics();
+    var favCount=Object.keys(favorites).length;
+    var favPrices=[];
+    for(var fid in favorites){if(favorites[fid].price>0)favPrices.push(favorites[fid].price)}
+    var favAvg=favPrices.length?Math.round(favPrices.reduce(function(a,b){return a+b},0)/favPrices.length):0;
+    pushToCRM({
+      action:'update',email:user.email,
+      shortSummary:a.totalViews+' viewed | '+favCount+' saved | Avg '+formatP(a.avgPrice)+
+        ' | Fav avg '+formatP(favAvg)+' | Range '+formatP(a.minPrice)+'-'+formatP(a.maxPrice)+' | Top: '+a.topCity
+    });
+  }
+
+  // Inject favorite button styles
+  var favStyle=document.createElement('style');
+  favStyle.textContent='.chg-fav-btn{position:absolute;top:8px;right:8px;z-index:5;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.85);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#c4b8a8;transition:all 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.12);backdrop-filter:blur(4px)}'+
+    '.chg-fav-btn:hover{color:#cc624c;transform:scale(1.15)}'+
+    '.chg-fav-btn.chg-fav-active{color:#cc624c}'+
+    '.chg-fav-btn.chg-fav-active::after{content:"";position:absolute;inset:0;border-radius:50%;animation:chgFavPop 0.35s ease-out}'+
+    '@keyframes chgFavPop{0%{box-shadow:0 0 0 0 rgba(204,98,76,0.4)}100%{box-shadow:0 0 0 12px rgba(204,98,76,0)}}'+
+    '.chg-fav-inline{background:none;border:none;cursor:pointer;font-size:1rem;color:#c4b8a8;padding:4px 8px;transition:color 0.25s}'+
+    '.chg-fav-inline:hover,.chg-fav-inline.chg-fav-active{color:#cc624c}';
+  document.head.appendChild(favStyle);
+
   window.chgGetUser=function(){return user};
   window.chgCheckLead=function(){
     if(!user||!user.email){console.log('[CHG] No registered user');return}

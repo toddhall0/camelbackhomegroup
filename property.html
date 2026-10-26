@@ -327,9 +327,10 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
 <!-- PROPERTY INFO -->
 <div class="property-content">
 
-<div class="property-header">
+<div class="property-header" style="display:flex;align-items:center;gap:12px">
 <div class="property-price" id="propPrice"></div>
 <div class="property-status" id="propStatus"></div>
+<button id="propFavBtn" class="chg-fav-inline" style="font-size:1.4rem;margin-left:auto;padding:6px 12px;border-radius:8px;background:rgba(204,98,76,0.08)" onclick="handlePropFav()">&#9829; Save</button>
 </div>
 
 <div class="property-address" id="propAddress"></div>
@@ -619,6 +620,14 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
     if(listing.zip) addressParts[addressParts.length-1] += ' ' + listing.zip;
     document.getElementById('propAddress').textContent = addressParts.join(', ');
 
+    /* FAVORITE BUTTON */
+    window._propListing = { id: listing.mlsId || mlsId, price: listing.price, city: listing.city || '', address: listing.address || '' };
+    var favBtn = document.getElementById('propFavBtn');
+    if(typeof window.chgIsFavorite === 'function' && window.chgIsFavorite(window._propListing.id)){
+      favBtn.classList.add('chg-fav-active');
+      favBtn.innerHTML = '&#9829; Saved';
+    }
+
     /* STATS BAR */
     var statsBar = document.getElementById('statsBar');
     var stats = [];
@@ -799,6 +808,21 @@ function initPropertyMap(){
     },
     title: window._propertyAddr || 'Property Location'
   });
+}
+
+function handlePropFav(){
+  var l = window._propListing;
+  if(!l) return;
+  var btn = document.getElementById('propFavBtn');
+  if(typeof window.chgToggleFavorite !== 'function') return;
+  var saved = window.chgToggleFavorite(l.id, l.price, l.city, l.address);
+  if(saved){
+    btn.classList.add('chg-fav-active');
+    btn.innerHTML = '&#9829; Saved';
+  } else {
+    btn.classList.remove('chg-fav-active');
+    btn.innerHTML = '&#9829; Save';
+  }
 }
 </script>
 

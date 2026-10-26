@@ -178,7 +178,7 @@ color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0
 
 /* Listing card */
 .listing-card{
-  display:flex;flex-direction:column;
+  position:relative;display:flex;flex-direction:column;
   border-bottom:1px solid var(--cream);
   cursor:pointer;transition:background 0.15s, box-shadow 0.25s, transform 0.25s;
   background:var(--white);
@@ -977,7 +977,9 @@ function initMap(){
 
       var yearHtml = l.yearBuilt ? '<div class="listing-card-year">Built ' + l.yearBuilt + '</div>' : '';
 
+      var favActive = (typeof window.chgIsFavorite==='function' && window.chgIsFavorite(l.id)) ? ' chg-fav-active' : '';
       card.innerHTML = photoHtml +
+        '<button class="chg-fav-btn'+favActive+'" data-fav-id="'+l.id+'" data-fav-price="'+(l.price||0)+'" data-fav-city="'+escHtml(l.city||'')+'" data-fav-addr="'+escHtml(l.address||'')+'" onclick="event.stopPropagation();window.chgToggleFavorite(\''+l.id+'\','+( l.price||0)+',\''+escHtml(l.city||'').replace(/'/g,"\\'")+'\',\''+escHtml(l.address||'').replace(/'/g,"\\'")+'\')">&#9829;</button>' +
         '<div class="listing-card-info">' +
         '<div class="listing-card-price">' + formatPrice(l.price) + '</div>' +
         '<div class="listing-card-address">' + escHtml(l.address) + (l.city ? ', ' + escHtml(l.city) : '') + '</div>' +
@@ -1478,7 +1480,11 @@ function initMap(){
 
   function buildListingPopupHtml(l){
     var photoHtml = l.photo ? '<img src="'+l.photo+'" alt="'+escHtml(l.address)+'">' : '';
-    return '<div class="listing-popup">'+
+    var favActive = (typeof window.chgIsFavorite==='function' && window.chgIsFavorite(l.id)) ? ' chg-fav-active' : '';
+    var safeCity = escHtml(l.city||'').replace(/'/g,"\\'");
+    var safeAddr = escHtml(l.address||'').replace(/'/g,"\\'");
+    return '<div class="listing-popup" style="position:relative">'+
+      '<button class="chg-fav-btn'+favActive+'" data-fav-id="'+l.id+'" style="top:6px;right:6px;width:28px;height:28px;font-size:0.95rem" onclick="event.stopPropagation();event.preventDefault();window.chgToggleFavorite(\''+l.id+'\','+(l.price||0)+',\''+safeCity+'\',\''+safeAddr+'\')">&#9829;</button>'+
       photoHtml+
       '<div class="listing-popup-body">'+
       '<div class="listing-popup-price">'+formatPrice(l.price)+'</div>'+
