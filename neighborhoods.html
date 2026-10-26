@@ -1950,7 +1950,62 @@ function initMap(){
     if(fp2) fp2.value = urlMaxPrice;
   }
 
-  if(urlQ){
+  // Handle ?favorites=1 — show user's saved listings
+  var urlFavorites = urlParams.get('favorites');
+  if(urlFavorites === '1' && typeof window.chgGetFavorites === 'function'){
+    var favs = window.chgGetFavorites();
+    var favIds = Object.keys(favs);
+    if(favIds.length === 0){
+      panelAreaName.textContent = 'My Favorites';
+      panelListingCount.textContent = '0 saved';
+      panelListings.innerHTML = '<div class="panel-empty">' +
+        '<div class="panel-empty-icon">&#9829;</div>' +
+        '<div class="panel-empty-text">You haven\'t saved any favorites yet.<br>Click the heart on any listing to save it.</div></div>';
+      openPanel();
+    } else {
+      panelAreaName.textContent = 'My Favorites';
+      panelListingCount.textContent = '';
+      panelListings.innerHTML = '<div class="panel-loading"><div class="panel-loading-spinner"></div>Loading your favorites...</div>';
+      openPanel();
+
+      var fetched = [];
+      var done = 0;
+      favIds.forEach(function(fid){
+        fetch('/.netlify/functions/property?id=' + fid)
+        .then(function(r){ return r.json() })
+        .then(function(data){
+          if(data.listing) fetched.push(data.listing);
+        })
+        .catch(function(){})
+        .finally(function(){
+          done++;
+          if(done === favIds.length){
+            if(fetched.length > 0){
+              currentListings = fetched;
+              renderListingCards(fetched, 'My Favorites');
+              panelListingCount.textContent = fetched.length + ' saved';
+              // Add markers and fit map to favorites
+              var bounds = new google.maps.LatLngBounds();
+              fetched.forEach(function(l){
+                if(l.lat && l.lng){
+                  createListingMarker(l);
+                  bounds.extend(new google.maps.LatLng(l.lat, l.lng));
+                }
+              });
+              if(!bounds.isEmpty()) map.fitBounds(bounds, {top:50,bottom:50,left:50,right:400});
+              countEl.textContent = fetched.length + ' saved listing' + (fetched.length !== 1 ? 's' : '');
+              countEl.classList.add('active');
+            } else {
+              panelListings.innerHTML = '<div class="panel-empty">' +
+                '<div class="panel-empty-icon">&#9829;</div>' +
+                '<div class="panel-empty-text">Your saved listings are no longer available.</div></div>';
+              panelListingCount.textContent = '0 available';
+            }
+          }
+        });
+      });
+    }
+  } else if(urlQ){
     // Use Google Geocoding to find the location, then search that area
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({address: urlQ, componentRestrictions: {country: 'US', administrativeArea: 'AZ'}}, function(results, status){
