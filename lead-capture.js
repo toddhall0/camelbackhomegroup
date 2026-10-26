@@ -33,18 +33,15 @@
     }
     ss('stats',stats);
 
-    // If user is registered, push activity to CRM on every listing view
+    // If user is registered, add a note to their Sierra lead on each view
     if(user&&user.email){
       var analytics = chgGetAnalytics();
-      var viewedIds = (stats.viewedListings||[]).slice(-20).join(', ');
       pushToCRM({
-        email:user.email,firstName:user.firstName||'',lastName:user.lastName||'',
-        source:'Listing View',
-        note:'Viewed MLS# '+id+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')+
-          '\n\nUser Summary: '+stats.listingClicks+' total views | '+analytics.uniqueListings+' unique listings'+
-          ' | Avg price: '+formatP(analytics.avgPrice)+' | Price range: '+formatP(analytics.minPrice)+' - '+formatP(analytics.maxPrice)+
-          ' | Top city: '+analytics.topCity+' | Sessions: '+(stats.sessions||1)+
-          '\n\nRecent MLS IDs: '+viewedIds
+        action:'addNote',
+        email:user.email,
+        message:'Viewed MLS# '+id+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')+
+          ' | Total: '+stats.listingClicks+' views, '+analytics.uniqueListings+' unique'+
+          ' | Avg: '+formatP(analytics.avgPrice)+' | Top city: '+analytics.topCity
       });
     }
 
@@ -224,17 +221,26 @@
     // Step 3 submit
     document.getElementById('chgSubmit').onclick=function(){
       partialData.phone=document.getElementById('chgPhone').value.trim();
-      partialData.source='Website Registration Popup';
-      // Include browsing activity in the registration note
+      // Update the existing lead (created at step 2) with phone number
+      pushToCRM({
+        action:'update',
+        email:partialData.email,
+        phone:partialData.phone,
+        source:'Website Registration Popup'
+      });
+      // Add browsing activity as a note on the lead's timeline
       var a=chgGetAnalytics();
       var viewedIds=(stats.viewedListings||[]).slice(-20).join(', ');
       if(stats.listingClicks>0){
-        partialData.note='Browsing activity before signup: '+stats.listingClicks+' listings viewed | '+a.uniqueListings+' unique'+
-          ' | Avg price: '+formatP(a.avgPrice)+' | Range: '+formatP(a.minPrice)+' - '+formatP(a.maxPrice)+
-          ' | Top city: '+a.topCity+' | Pages: '+stats.pageViews+
-          '\nRecent MLS IDs: '+viewedIds;
+        pushToCRM({
+          action:'addNote',
+          email:partialData.email,
+          message:'Registration browsing activity: '+stats.listingClicks+' listings viewed | '+a.uniqueListings+' unique'+
+            ' | Avg price: '+formatP(a.avgPrice)+' | Range: '+formatP(a.minPrice)+' - '+formatP(a.maxPrice)+
+            ' | Top city: '+a.topCity+' | Pages: '+stats.pageViews+
+            '\nRecent MLS IDs: '+viewedIds
+        });
       }
-      pushToCRM(partialData);
       user={firstName:partialData.firstName,lastName:partialData.lastName,email:partialData.email,phone:partialData.phone,registeredAt:new Date().toISOString()};
       ss('user',user);
       spawnConfetti(confZone,40,true);

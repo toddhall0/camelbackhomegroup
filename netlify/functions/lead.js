@@ -1,7 +1,14 @@
-// Sends a lead to Sierra Interactive CRM
+// Sierra Interactive CRM integration
 //
 // Env vars required:
 //   SIERRA_API_KEY
+//
+// Actions:
+//   create  — POST /leads (default, for new lead registration)
+//   update  — PUT  /leads/{email} (update existing lead fields)
+//   addNote — POST /leads/{email}/note (add to lead's notes timeline)
+
+const SIERRA_BASE = "https://api.sierrainteractivedev.com";
 
 exports.handler = async (event) => {
   const headers = {
@@ -27,75 +34,116 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
   }
 
-  const { firstName, lastName, email, phone, propertyAddress, propertyMlsId, source, note } = body;
+  const { action = "create" } = body;
 
-  if (!email && !phone) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Email or phone required" }) };
+  if (!sierraKey) {
+    return { statusCode: 200, headers, body: JSON.stringify({ success: true, crm: "none" }) };
   }
 
-  // Always save to Netlify Forms as backup
-  const netlifyResult = { saved: true };
+  const sierraHeaders = {
+    "Content-Type": "application/json",
+    "Sierra-ApiKey": sierraKey,
+  };
 
-  // If Sierra API key is configured, push to CRM
-  if (sierraKey) {
-    try {
-      // Generate a random password for the lead's Sierra account
-      const randomPwd = Math.random().toString(36).slice(-10) + "A1!";
-
-      const leadData = {
-        firstName: firstName || "",
-        lastName: lastName || "",
-        email: email || "",
-        password: randomPwd,
-        phone: phone || "",
-        source: source || "Camelback Home Group Website",
-        sourceType: "AgentSite",
-        leadType: 1,
-        sendRegistrationEmail: false,
-        note: note
-          ? note
-          : propertyAddress
-            ? `Interested in: ${propertyAddress}${propertyMlsId ? " (MLS# " + propertyMlsId + ")" : ""}`
-            : "Website lead registration",
-      };
-
-      const response = await fetch("https://api.sierrainteractivedev.com/leads", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Sierra-ApiKey": sierraKey,
-        },
-        body: JSON.stringify(leadData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ success: true, crm: "sierra", leadId: data.id || null }),
-        };
-      } else {
-        const errText = await response.text();
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ success: true, crm: "fallback" }),
-        };
+  try {
+    // --- ADD NOTE to existing lead's timeline ---
+    if (action === "addNote") {
+      const { email, message } = body;
+      if (!email || !message) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and message required for addNote" }) };
       }
-    } catch (err) {
+      const resp = await fetch(`${SIERRA_BASE}/leads/${encodeURIComponent(email)}/note`, {
+        method: "POST",
+        headers: sierraHeaders,
+        body: JSON.stringify({ message, shouldNotify: false }),
+      });
+      const txt = await resp.text();
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ success: true, crm: "fallback" }),
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "addNote", detail: txt }),
       };
     }
-  }
 
-  // No Sierra key — just confirm the lead was captured
-  return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({ success: true, crm: "none", note: "Lead captured" }),
-  };
+    // --- UPDATE existing lead ---
+    if (action === "update") {
+      const { email, firstName, lastName, phone, note, source, tags } = body;
+      if (!email) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email required for update" }) };
+      }
+      const updateData = {};
+      if (firstName) updateData.firstName = firstName;
+      if (lastName) updateData.lastName = lastName;
+      if (phone) updateData.phone = phone;
+      if (note) updateData.note = note;
+      if (source) updateData.source = source;
+      if (tags) updateData.tags = tags;
+
+      const resp = await fetch(`${SIERRA_BASE}/leads/${encodeURIComponent(email)}`, {
+        method: "PUT",
+        headers: sierraHeaders,
+        body: JSON.stringify(updateData),
+      });
+      const txt = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: resp.ok, crm: "sierra", action: "update", detail: txt }),
+      };
+    }
+
+    // --- CREATE new lead (default) ---
+    const { firstName, lastName, email, phone, propertyAddress, propertyMlsId, source, note } = body;
+
+    if (!email && !phone) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Email or phone required" }) };
+    }
+
+    const randomPwd = Math.random().toString(36).slice(-10) + "A1!";
+
+    const leadData = {
+      firstName: firstName || "",
+      lastName: lastName || "",
+      email: email || "",
+      password: randomPwd,
+      phone: phone || "",
+      source: source || "Camelback Home Group Website",
+      sourceType: "AgentSite",
+      leadType: 1,
+      sendRegistrationEmail: false,
+      note: note
+        ? note
+        : propertyAddress
+          ? `Interested in: ${propertyAddress}${propertyMlsId ? " (MLS# " + propertyMlsId + ")" : ""}`
+          : "Website lead registration",
+    };
+
+    const resp = await fetch(`${SIERRA_BASE}/leads`, {
+      method: "POST",
+      headers: sierraHeaders,
+      body: JSON.stringify(leadData),
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: true, crm: "sierra", action: "create", leadId: data.data?.leadId || data.id || null }),
+      };
+    } else {
+      const errText = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: true, crm: "fallback", detail: errText }),
+      };
+    }
+  } catch (err) {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ success: true, crm: "fallback", error: err.message }),
+    };
+  }
 };
