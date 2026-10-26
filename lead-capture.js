@@ -100,6 +100,13 @@
   window.chgGetAnalytics=chgGetAnalytics;
 
   window.chgGetUser=function(){return user};
+  window.chgCheckLead=function(){
+    if(!user||!user.email){console.log('[CHG] No registered user');return}
+    fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getLead',email:user.email})})
+    .then(function(r){return r.json()})
+    .then(function(j){console.log('[CHG] Sierra lead data:',JSON.stringify(j,null,2))})
+    .catch(function(e){console.warn('[CHG] error:',e)})
+  };
   window.chgLogout=function(){user=null;ss('user',null);try{sessionStorage.removeItem('chg_popupDismissed')}catch(e){};stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats)};
   window.chgShowSignup=function(){showPopup()};
 

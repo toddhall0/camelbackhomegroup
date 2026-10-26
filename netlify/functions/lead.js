@@ -46,6 +46,24 @@ exports.handler = async (event) => {
   };
 
   try {
+    // --- GET lead data (for debugging) ---
+    if (action === "getLead") {
+      const { email } = body;
+      if (!email) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email required" }) };
+      }
+      const resp = await fetch(`${SIERRA_BASE}/leads/get/${encodeURIComponent(email)}`, {
+        method: "GET",
+        headers: sierraHeaders,
+      });
+      const txt = await resp.text();
+      return {
+        statusCode: 200,
+        headers,
+        body: txt,
+      };
+    }
+
     // --- RECORD PROPERTY VIEW in lead's Data section ---
     if (action === "propertyView") {
       const { email, mlsNumber, partnerLink } = body;
