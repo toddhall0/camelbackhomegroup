@@ -39,9 +39,11 @@
     }
     ss('stats',stats);
 
-    // If user is registered, record the property view in Sierra's Data section + add a note
+    // If user is registered, push activity to Sierra
     if(user&&user.email){
-      // Record the structured property view (populates Data tab in Sierra)
+      var analytics = chgGetAnalytics();
+
+      // Record the structured property view
       if(id&&id!=='unknown'){
         pushToCRM({
           action:'propertyView',
@@ -50,14 +52,23 @@
           partnerLink:location.origin+'/property.html?id='+id
         });
       }
-      // Also add a human-readable note to the timeline
-      var analytics = chgGetAnalytics();
+
+      // Update lead profile with current browsing stats
+      var updateData={
+        action:'update',
+        email:user.email,
+        shortSummary:analytics.totalViews+' properties viewed | Avg '+formatP(analytics.avgPrice)+
+          ' | Range '+formatP(analytics.minPrice)+'-'+formatP(analytics.maxPrice)+' | Top: '+analytics.topCity
+      };
+      if(analytics.minPrice>0) updateData.minPrice=analytics.minPrice;
+      if(analytics.maxPrice>0) updateData.maxPrice=analytics.maxPrice;
+      pushToCRM(updateData);
+
+      // Add a note to the timeline
       pushToCRM({
         action:'addNote',
         email:user.email,
-        message:'Viewed MLS# '+id+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')+
-          ' | Total: '+stats.listingClicks+' views, '+analytics.uniqueListings+' unique'+
-          ' | Avg: '+formatP(analytics.avgPrice)+' | Top city: '+analytics.topCity
+        message:'Viewed MLS# '+id+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')
       });
     }
 

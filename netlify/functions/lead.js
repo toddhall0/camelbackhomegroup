@@ -110,7 +110,7 @@ exports.handler = async (event) => {
 
     // --- UPDATE existing lead ---
     if (action === "update") {
-      const { email, firstName, lastName, phone, note, source, tags } = body;
+      const { email, firstName, lastName, phone, note, source, tags, shortSummary, minPrice, maxPrice } = body;
       if (!email) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: "Email required for update" }) };
       }
@@ -121,6 +121,12 @@ exports.handler = async (event) => {
       if (note) updateData.note = note;
       if (source) updateData.source = source;
       if (tags) updateData.tags = tags;
+      if (shortSummary) updateData.shortSummary = shortSummary;
+      if (minPrice || maxPrice) {
+        updateData.searchPreference = {};
+        if (minPrice) updateData.searchPreference.minPrice = minPrice;
+        if (maxPrice) updateData.searchPreference.maxPrice = maxPrice;
+      }
 
       const resp = await fetch(`${SIERRA_BASE}/leads/${encodeURIComponent(email)}`, {
         method: "PUT",
