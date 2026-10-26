@@ -27,7 +27,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
   }
 
-  const { firstName, lastName, email, phone, propertyAddress, propertyMlsId, source } = body;
+  const { firstName, lastName, email, phone, propertyAddress, propertyMlsId, source, note } = body;
 
   if (!email && !phone) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Email or phone required" }) };
@@ -52,9 +52,11 @@ exports.handler = async (event) => {
         sourceType: "AgentSite",
         leadType: 1,
         sendRegistrationEmail: false,
-        note: propertyAddress
-          ? `Interested in: ${propertyAddress}${propertyMlsId ? " (MLS# " + propertyMlsId + ")" : ""}`
-          : "Website lead registration",
+        note: note
+          ? note
+          : propertyAddress
+            ? `Interested in: ${propertyAddress}${propertyMlsId ? " (MLS# " + propertyMlsId + ")" : ""}`
+            : "Website lead registration",
       };
 
       const response = await fetch("https://api.sierrainteractivedev.com/leads", {
