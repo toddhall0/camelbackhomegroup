@@ -16,9 +16,17 @@
   // checkThreshold is called at the end of the script AND on window load
   window.addEventListener('load',function(){
     setTimeout(function(){checkThreshold()},800);
-    // Record site visit for registered users
+    // For registered users: record site visit + sync favorites from CRM (once per session)
     if(user&&user.email){
       pushToCRM({action:'siteVisit',email:user.email,url:location.href});
+      // Sync favorites from server once per session
+      var synced=false;try{synced=sessionStorage.getItem('chg_favSynced')==='1'}catch(e){}
+      if(!synced){
+        restoreFavoritesFromCRM(function(){
+          try{sessionStorage.setItem('chg_favSynced','1')}catch(e){}
+          renderAccountNav();
+        });
+      }
     }
   });
 
@@ -109,17 +117,15 @@
     if(favorites[id]){
       delete favorites[id];
       ss('favorites',favorites);
-      pushToCRM({action:'removeListing',email:user.email,mlsNumber:String(id)});
       pushToCRM({action:'addNote',email:user.email,message:'Removed MLS# '+id+' from favorites'});
-      updateFavSummary();
+      syncFavoritesToCRM();
       document.querySelectorAll('[data-fav-id="'+id+'"]').forEach(function(el){el.classList.remove('chg-fav-active')});
       return false;
     } else {
       favorites[id]={price:price||0,city:city||'',address:address||'',savedAt:new Date().toISOString()};
       ss('favorites',favorites);
-      pushToCRM({action:'saveListing',email:user.email,mlsNumber:String(id)});
       pushToCRM({action:'addNote',email:user.email,message:'Saved MLS# '+id+(price?' ($'+formatP(price)+')':'')+(city?' in '+city:'')+' as favorite'});
-      updateFavSummary();
+      syncFavoritesToCRM();
       document.querySelectorAll('[data-fav-id="'+id+'"]').forEach(function(el){el.classList.add('chg-fav-active')});
       return true;
     }
@@ -128,17 +134,59 @@
   window.chgGetFavorites=function(){return favorites};
   window.chgGetFavoriteCount=function(){return Object.keys(favorites).length};
 
-  function updateFavSummary(){
+  // Sync favorites to Sierra lead note field (persists across devices)
+  function syncFavoritesToCRM(){
+    if(!user||!user.email) return;
     var a=chgGetAnalytics();
     var favCount=Object.keys(favorites).length;
     var favPrices=[];
     for(var fid in favorites){if(favorites[fid].price>0)favPrices.push(favorites[fid].price)}
     var favAvg=favPrices.length?Math.round(favPrices.reduce(function(a,b){return a+b},0)/favPrices.length):0;
+
+    // Store favorites JSON in the lead's note field so it can be restored on login
+    var favData = JSON.stringify(favorites);
+    var noteText = 'CHG_FAVORITES:' + favData;
+
     pushToCRM({
       action:'update',email:user.email,
+      note: noteText,
       shortSummary:a.totalViews+' viewed | '+favCount+' saved | Avg '+formatP(a.avgPrice)+
         ' | Fav avg '+formatP(favAvg)+' | Range '+formatP(a.minPrice)+'-'+formatP(a.maxPrice)+' | Top: '+a.topCity
     });
+  }
+
+  // Restore favorites from Sierra lead record
+  function restoreFavoritesFromCRM(callback){
+    if(!user||!user.email){if(callback)callback();return}
+    fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getLead',email:user.email})})
+    .then(function(r){return r.json()})
+    .then(function(j){
+      if(j&&j.data){
+        // Update user name if we got it from Sierra
+        if(j.data.firstName){user.firstName=j.data.firstName;user.lastName=j.data.lastName||'';ss('user',user)}
+        // Parse favorites from note field
+        var note=j.data.note||'';
+        var marker='CHG_FAVORITES:';
+        var idx=note.indexOf(marker);
+        if(idx!==-1){
+          try{
+            var jsonStr=note.substring(idx+marker.length);
+            var restored=JSON.parse(jsonStr);
+            if(restored&&typeof restored==='object'){
+              // Merge: server wins for any ID not in local, local wins for any ID already present
+              var merged={};
+              for(var k in restored){merged[k]=restored[k]}
+              for(var k2 in favorites){merged[k2]=favorites[k2]}
+              favorites=merged;
+              ss('favorites',favorites);
+              console.log('[CHG] Restored '+Object.keys(restored).length+' favorites from CRM, merged to '+Object.keys(favorites).length);
+            }
+          }catch(e){console.warn('[CHG] Could not parse favorites from CRM note')}
+        }
+      }
+      if(callback)callback();
+    })
+    .catch(function(){if(callback)callback()});
   }
 
   // Inject favorite button styles
@@ -431,32 +479,22 @@
     document.getElementById('chgLoginBtn').onclick=function(){
       var email=document.getElementById('chgLoginEmail').value.trim();
       if(!email){return}
-      // Fetch lead data from Sierra to get name
-      fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getLead',email:email})})
-      .then(function(r){return r.json()})
-      .then(function(j){
-        if(j&&j.data){
-          user={email:email,firstName:j.data.firstName||'',lastName:j.data.lastName||'',phone:j.data.phone||'',registeredAt:new Date().toISOString()};
-        } else {
-          user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
-        }
-        ss('user',user);
-        renderAccountNav();
-      }).catch(function(){
-        user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
-        ss('user',user);
-        renderAccountNav();
-      });
-      // Don't wait for fetch to show success
+      // Set user immediately so UI updates
       user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
       ss('user',user);
       spawnConfetti(confZone,30,true);
       document.getElementById('chgLogin').style.display='none';
       document.getElementById('chgDoneTitle').textContent='Welcome Back!';
-      document.getElementById('chgDoneMsg').textContent='You\'re logged in.';
+      document.getElementById('chgDoneMsg').textContent='Restoring your favorites...';
       document.getElementById('chgDone').style.display='';
-      renderAccountNav();
-      setTimeout(function(){if(popup){popup.remove();popup=null}},2500);
+      // Fetch lead data + restore favorites from Sierra
+      restoreFavoritesFromCRM(function(){
+        renderAccountNav();
+        document.getElementById('chgDoneMsg').textContent=Object.keys(favorites).length>0
+          ? Object.keys(favorites).length+' favorites restored!'
+          : 'You\'re all set!';
+        setTimeout(function(){if(popup){popup.remove();popup=null}},2000);
+      });
     };
   }
 
