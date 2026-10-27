@@ -218,16 +218,23 @@
       hideTyping();
       isTyping = false;
       sendBtn.disabled = false;
+      console.log('[Kathy] Response:', data);
       if(data.reply){
         addBotMessage(data.reply);
       } else if(data.error){
-        addBotMessage("I'm having a little trouble right now. You can always reach our team directly at **(480) 203-3039**!");
+        console.error('[Kathy] Error:', data.error, data.detail);
+        if(data.error === 'Chat not configured'){
+          addBotMessage("I'm still getting set up! In the meantime, you can reach our team at **(480) 203-3039**.");
+        } else {
+          addBotMessage("I'm having a little trouble right now. You can always reach our team directly at **(480) 203-3039**!");
+        }
       }
     })
-    .catch(function(){
+    .catch(function(err){
       hideTyping();
       isTyping = false;
       sendBtn.disabled = false;
+      console.error('[Kathy] Fetch error:', err);
       addBotMessage("I'm having a little trouble connecting. Try again in a moment, or call us at **(480) 203-3039**!");
     });
   }
