@@ -181,6 +181,9 @@
   function getPageContext(){
     var ctx = document.title;
     if(location.pathname.indexOf('property.html') !== -1){
+      var params = new URLSearchParams(location.search);
+      var propId = params.get('id');
+      if(propId) ctx += ' | property.html?id=' + propId + ' (use get_listing with mlsId "' + propId + '" to pull details)';
       var addr = document.querySelector('.property-address');
       var price = document.getElementById('propPrice');
       if(addr) ctx += ' — ' + addr.textContent;

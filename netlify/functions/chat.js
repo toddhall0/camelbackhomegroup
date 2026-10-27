@@ -34,6 +34,14 @@ WHEN SEARCHING LISTINGS:
 - Include the property page link so they can see photos and details
 - Use this as an opportunity to offer more personalized help
 
+WHEN ASKED ABOUT A SPECIFIC PROPERTY:
+- If the user is on a property detail page (the page context will say "property.html?id=XXX"), use the get_listing tool with that mlsId to pull the full details
+- If someone gives you an MLS number, use get_listing with that as the mlsId
+- If someone gives you an address, use get_listing with that address
+- Present the details conversationally — price, beds/baths, sqft, lot size, year built, subdivision, key features from the description
+- Mention the number of photos available and link to the property page
+- If they seem interested, this is a great time to suggest scheduling a showing or connecting with an agent
+
 WHAT YOU KNOW:
 - General Phoenix real estate market knowledge
 - Neighborhood characteristics (Scottsdale = luxury/upscale, Gilbert = family-friendly, Tempe = young professionals/ASU, Mesa = affordable/diverse, etc.)
@@ -61,6 +69,17 @@ const TOOLS = [
         minBeds: { type: "number", description: "Minimum bedrooms" },
         minBaths: { type: "number", description: "Minimum bathrooms" },
         limit: { type: "number", description: "Max results (default 5)" }
+      }
+    }
+  },
+  {
+    name: "get_listing",
+    description: "Get full details about a specific property listing. Use this when the user asks about a specific property — by MLS number, address, or when they're viewing a property page and ask questions about it. Also use when the user says 'tell me about this property' or 'what can you tell me about this listing'.",
+    input_schema: {
+      type: "object",
+      properties: {
+        mlsId: { type: "string", description: "The SimplyRETS MLS ID (from the property page URL id= parameter)" },
+        address: { type: "string", description: "Property address to search for (used if mlsId not available)" }
       }
     }
   },
@@ -120,6 +139,70 @@ async function searchListings(params) {
       photo: p.photos && p.photos[0] ? p.photos[0] : null,
       link: `/property.html?id=${p.mlsId}`
     }));
+}
+
+async function getListing(params) {
+  const apiKey = process.env.SIMPLYRETS_API_KEY;
+  const apiSecret = process.env.SIMPLYRETS_API_SECRET;
+  if (!apiKey || !apiSecret) return { error: "Listing lookup not configured" };
+
+  const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+
+  // If we have an MLS ID, fetch directly
+  if (params.mlsId) {
+    const resp = await fetch(`https://api.simplyrets.com/properties/${params.mlsId}`, {
+      headers: { Authorization: `Basic ${auth}`, Accept: "application/json" }
+    });
+    if (!resp.ok) return { error: "Property not found" };
+    const p = await resp.json();
+    return formatFullListing(p);
+  }
+
+  // Otherwise search by address
+  if (params.address) {
+    const query = new URLSearchParams({ q: params.address, limit: "1" });
+    const resp = await fetch(`https://api.simplyrets.com/properties?${query}`, {
+      headers: { Authorization: `Basic ${auth}`, Accept: "application/json" }
+    });
+    if (!resp.ok) return { error: "Search failed" };
+    const data = await resp.json();
+    if (!data.length) return { error: "No property found matching that address" };
+    return formatFullListing(data[0]);
+  }
+
+  return { error: "Please provide an MLS number or address" };
+}
+
+function formatFullListing(p) {
+  const addr = p.address || {};
+  const prop = p.property || {};
+  return {
+    mlsNumber: p.listingId || "",
+    id: p.mlsId,
+    price: p.listPrice,
+    address: `${addr.streetNumberText || ""} ${addr.streetName || ""} ${addr.streetSuffix || ""}`.trim(),
+    city: addr.city || "",
+    state: addr.state || "",
+    zip: addr.postalCode || "",
+    beds: prop.bedrooms || null,
+    baths: prop.bathsFull || null,
+    halfBaths: prop.bathsHalf || null,
+    sqft: prop.area || null,
+    lotSizeAcres: prop.lotSize ? (prop.lotSize / 43560).toFixed(2) : null,
+    yearBuilt: prop.yearBuilt || null,
+    stories: prop.stories || null,
+    garageSpaces: prop.garageSpaces || null,
+    pool: prop.pool || null,
+    subdivision: prop.subdivision || null,
+    propertyType: prop.subType || null,
+    style: prop.style || null,
+    description: p.remarks || "",
+    status: p.mls ? p.mls.status : "Active",
+    daysOnMarket: p.mls ? p.mls.daysOnMarket : null,
+    listDate: p.listDate || null,
+    photoCount: p.photos ? p.photos.length : 0,
+    link: `/property.html?id=${p.mlsId}`
+  };
 }
 
 async function captureLead(params) {
@@ -223,6 +306,8 @@ exports.handler = async (event) => {
           let toolResult;
           if (tool.name === "search_listings") {
             toolResult = await searchListings(tool.input);
+          } else if (tool.name === "get_listing") {
+            toolResult = await getListing(tool.input);
           } else if (tool.name === "capture_lead") {
             toolResult = await captureLead(tool.input);
           } else {
