@@ -40,6 +40,7 @@ exports.handler = async (event) => {
 
     const listing = {
       id: p.mlsId || p.listingId,
+      mlsNumber: p.listingId || '',
       price: p.listPrice,
       address: p.address ? `${p.address.streetNumberText || ""} ${p.address.streetName || ""} ${p.address.streetSuffix || ""}`.trim() : "",
       city: p.address ? p.address.city : "",

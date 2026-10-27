@@ -106,6 +106,7 @@ exports.handler = async (event) => {
       })
       .map((p) => ({
         id: p.mlsId || p.listingId,
+        mlsNumber: p.listingId || '',
         lat: p.geo.lat,
         lng: p.geo.lng,
         price: p.listPrice,

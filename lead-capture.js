@@ -31,7 +31,7 @@
   });
 
   // Track a listing view with price and city data
-  window.chgTrackListingClick=function(id,price,city){
+  window.chgTrackListingClick=function(id,price,city,mlsNumber){
     stats.listingClicks++;
     if(id&&stats.viewedListings.indexOf(id)===-1){
       stats.viewedListings.push(id);
@@ -50,13 +50,14 @@
     // If user is registered, push activity to Sierra
     if(user&&user.email){
       var analytics = chgGetAnalytics();
+      var realMls = mlsNumber || String(id);
 
-      // Record the structured property view
-      if(id&&id!=='unknown'){
+      // Record the structured property view using the REAL MLS number
+      if(mlsNumber){
         pushToCRM({
           action:'propertyView',
           email:user.email,
-          mlsNumber:String(id),
+          mlsNumber:mlsNumber,
           partnerLink:location.origin+'/property.html?id='+id
         });
       }
@@ -76,7 +77,7 @@
       pushToCRM({
         action:'addNote',
         email:user.email,
-        message:'Viewed MLS# '+id+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')
+        message:'Viewed '+(mlsNumber?'MLS# '+mlsNumber:'listing #'+id)+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')
       });
     }
 
@@ -503,12 +504,19 @@
     var link=e.target.closest('a[href*="property.html"],.listing-card,.listing-prev-card,.result-card,.listing-popup,[onclick*="property.html"]');
     if(!link) return;
 
-    var id='unknown', price=0, city='';
+    var id='unknown', price=0, city='', mlsNumber='';
 
     // Try data attributes first (most reliable)
     if(link.dataset.price) price=parseFloat(link.dataset.price)||0;
     if(link.dataset.city) city=link.dataset.city;
     if(link.dataset.mlsid) id=link.dataset.mlsid;
+    if(link.dataset.mlsnumber) mlsNumber=link.dataset.mlsnumber;
+
+    // Also check parent card for data attrs
+    if(!mlsNumber){
+      var parentCard=link.closest('.listing-card,.listing-popup');
+      if(parentCard&&parentCard.dataset.mlsnumber) mlsNumber=parentCard.dataset.mlsnumber;
+    }
 
     // Extract MLS ID from href or onclick if not from data attr
     if(id==='unknown'){
@@ -539,8 +547,8 @@
       }
     }
 
-    console.log('[CHG] Track click: id='+id+' price='+price+' city='+city);
-    window.chgTrackListingClick(id,price,city);
+    console.log('[CHG] Track click: id='+id+' mlsNumber='+mlsNumber+' price='+price+' city='+city);
+    window.chgTrackListingClick(id,price,city,mlsNumber);
   });
 
   checkThreshold();
