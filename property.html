@@ -383,6 +383,10 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
 <input type="hidden" name="form-name" value="property-lead">
 <input type="hidden" name="propertyId" id="leadPropertyId">
 <input type="hidden" name="propertyAddress" id="leadPropertyAddress">
+<div id="leadUserGreeting" style="display:none;padding:12px 16px;background:var(--cream);border-radius:10px;margin-bottom:16px;font-size:0.9rem;color:var(--text-mid)">
+Sending as <strong id="leadUserName"></strong>
+</div>
+<div id="leadContactFields">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
 <div class="form-group">
 <label for="leadFirstName">First Name</label>
@@ -400,6 +404,7 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
 <div class="form-group">
 <label for="leadPhone">Phone</label>
 <input type="tel" id="leadPhone" name="phone" style="border-radius:8px">
+</div>
 </div>
 <div class="form-group">
 <label for="leadMessage">Message <span style="font-weight:400;color:var(--text-light)">(optional)</span></label>
@@ -737,13 +742,26 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
       photoContainer.innerHTML = '<img src="'+mainImg.src+'" style="width:100%;height:100%;object-fit:cover">';
     }
 
-    // Pre-fill user info if logged in
+    // If logged in, hide contact fields and show greeting
     var chgUser = typeof window.chgGetUser === 'function' ? window.chgGetUser() : null;
-    if(chgUser){
-      if(chgUser.firstName) document.getElementById('leadFirstName').value = chgUser.firstName;
-      if(chgUser.lastName) document.getElementById('leadLastName').value = chgUser.lastName;
-      if(chgUser.email) document.getElementById('leadEmail').value = chgUser.email;
-      if(chgUser.phone) document.getElementById('leadPhone').value = chgUser.phone;
+    var greeting = document.getElementById('leadUserGreeting');
+    var contactFields = document.getElementById('leadContactFields');
+    if(chgUser && chgUser.email){
+      var displayName = chgUser.firstName ? (chgUser.firstName + ' ' + (chgUser.lastName||'')).trim() : chgUser.email;
+      document.getElementById('leadUserName').textContent = displayName;
+      greeting.style.display = '';
+      contactFields.style.display = 'none';
+      // Still set values for form submission
+      document.getElementById('leadFirstName').value = chgUser.firstName || '';
+      document.getElementById('leadFirstName').removeAttribute('required');
+      document.getElementById('leadLastName').value = chgUser.lastName || '';
+      document.getElementById('leadLastName').removeAttribute('required');
+      document.getElementById('leadEmail').value = chgUser.email;
+      document.getElementById('leadEmail').removeAttribute('required');
+      document.getElementById('leadPhone').value = chgUser.phone || '';
+    } else {
+      greeting.style.display = 'none';
+      contactFields.style.display = '';
     }
 
     formState.style.display = '';
