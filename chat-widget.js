@@ -1,8 +1,22 @@
 /* Kathy — AI Chat Widget for Camelback Home Group */
 (function(){
+  var isTyping = false;
+
+  // Restore chat state from sessionStorage
   var chatOpen = false;
   var messages = [];
-  var isTyping = false;
+  try {
+    var saved = JSON.parse(sessionStorage.getItem('kathy_messages'));
+    if(saved && Array.isArray(saved)) messages = saved;
+    chatOpen = sessionStorage.getItem('kathy_open') === '1';
+  } catch(e){}
+
+  function saveChat(){
+    try{
+      sessionStorage.setItem('kathy_messages', JSON.stringify(messages));
+      sessionStorage.setItem('kathy_open', chatOpen ? '1' : '0');
+    }catch(e){}
+  }
 
   // Inject styles
   var style = document.createElement('style');
@@ -94,10 +108,24 @@
   var sendBtn = document.getElementById('kathySend');
   var badge = document.getElementById('kathyBadge');
 
+  // Restore previous messages into the DOM
+  if(messages.length > 0){
+    messages.forEach(function(m){
+      renderMessage(m.content, m.role === 'assistant' ? 'bot' : 'user');
+    });
+  }
+
+  // Restore open state
+  if(chatOpen){
+    chatWindow.classList.add('open');
+    if(messages.length === 0) addBotMessage(getGreeting());
+  }
+
   // Toggle chat
   toggleBtn.addEventListener('click', function(){
     chatOpen = !chatOpen;
     chatWindow.classList.toggle('open', chatOpen);
+    saveChat();
     badge.style.display = 'none';
     if(chatOpen && messages.length === 0){
       addBotMessage(getGreeting());
@@ -108,6 +136,7 @@
   closeBtn.addEventListener('click', function(){
     chatOpen = false;
     chatWindow.classList.remove('open');
+    saveChat();
   });
 
   // Auto-grow textarea
@@ -145,11 +174,13 @@
 
   function addBotMessage(text){
     messages.push({role: 'assistant', content: text});
+    saveChat();
     renderMessage(text, 'bot');
   }
 
   function addUserMessage(text){
     messages.push({role: 'user', content: text});
+    saveChat();
     renderMessage(text, 'user');
   }
 
