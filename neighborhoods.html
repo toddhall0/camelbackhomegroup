@@ -1901,7 +1901,7 @@ function initMap(){
   // Restore map state if coming back (within 30 min)
   try{
     var saved=JSON.parse(sessionStorage.getItem('chg_map_state')||'null');
-    if(saved && (Date.now()-saved.time)<1800000 && !new URLSearchParams(window.location.search).get('q') && !new URLSearchParams(window.location.search).get('view')){
+    if(saved && (Date.now()-saved.time)<1800000 && !new URLSearchParams(window.location.search).get('q') && !new URLSearchParams(window.location.search).get('view') && !new URLSearchParams(window.location.search).get('favorites')){
       if(saved.view && saved.view!=='cities'){
         switchView(saved.view);
         document.querySelectorAll('.view-btn').forEach(function(b){
