@@ -668,7 +668,7 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
     if(listing.lotAcres) details.push({label: 'Lot (Acres)', value: listing.lotAcres + ' ac'});
     if(listing.county) details.push({label: 'County', value: listing.county});
     if(listing.listDate) details.push({label: 'List Date', value: new Date(listing.listDate).toLocaleDateString()});
-    if(listing.id) details.push({label: 'MLS #', value: listing.id});
+    if(listing.mlsNumber) details.push({label: 'MLS #', value: listing.mlsNumber});
 
     if(details.length > 0){
       document.getElementById('detailsSection').style.display = '';
