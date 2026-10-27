@@ -191,7 +191,7 @@ font-size:1.4rem;z-index:3001;display:flex;align-items:center;justify-content:ce
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;
 align-items:center;justify-content:center}
 .modal-overlay.active{display:flex}
-.modal{background:var(--white);width:100%;max-width:440px;padding:40px 36px;position:relative;
+.modal{background:var(--white);width:100%;max-width:440px;padding:40px 36px;position:relative;border-radius:16px;
 box-shadow:0 8px 40px rgba(0,0,0,0.3)}
 .modal-close{position:absolute;top:12px;right:16px;background:none;border:none;
 font-size:1.5rem;color:var(--text-light);cursor:pointer;padding:4px 8px}
@@ -206,7 +206,7 @@ padding:12px 14px;border:1px solid var(--sand);background:var(--cream);color:var
 outline:none;transition:border-color 0.3s}
 .modal .form-group input:focus{border-color:var(--gold)}
 .modal-submit{width:100%;padding:14px;font-family:var(--font-sans);font-size:0.95rem;
-font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);
+font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);border-radius:10px;
 color:var(--white);border:none;cursor:pointer;transition:background 0.3s;margin-top:8px}
 .modal-submit:hover{background:var(--gold-light)}
 .modal-submit:disabled{opacity:0.6;cursor:not-allowed}
@@ -366,42 +366,54 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
 <button class="cta-btn" id="openLeadModal" style="background:var(--gold);color:var(--white);cursor:pointer">Request More Info</button>
 </div>
 
-<!-- LEAD CAPTURE MODAL -->
+<!-- PROPERTY INQUIRY MODAL -->
 <div class="modal-overlay" id="leadModal">
 <div class="modal">
 <button class="modal-close" id="closeLeadModal">&times;</button>
 <div id="leadFormState">
-<h3>Get More Information</h3>
-<p id="modalPropertyLine">Register below and we'll send you details about this property.</p>
+<h3>Request Information</h3>
+<div id="modalPropertyCard" style="background:var(--cream);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;gap:14px;align-items:center">
+<div id="modalPropertyPhoto" style="width:80px;height:60px;border-radius:8px;background:var(--cream-dark);overflow:hidden;flex-shrink:0"></div>
+<div>
+<div id="modalPropertyAddr" style="font-size:0.9rem;font-weight:500;color:var(--text-dark)"></div>
+<div id="modalPropertyPrice" style="font-size:0.85rem;color:var(--gold);font-weight:500;margin-top:2px"></div>
+</div>
+</div>
 <form id="leadForm" name="property-lead" method="POST" data-netlify="true">
 <input type="hidden" name="form-name" value="property-lead">
 <input type="hidden" name="propertyId" id="leadPropertyId">
 <input type="hidden" name="propertyAddress" id="leadPropertyAddress">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
 <div class="form-group">
 <label for="leadFirstName">First Name</label>
-<input type="text" id="leadFirstName" name="firstName" required>
+<input type="text" id="leadFirstName" name="firstName" required style="border-radius:8px">
 </div>
 <div class="form-group">
 <label for="leadLastName">Last Name</label>
-<input type="text" id="leadLastName" name="lastName" required>
+<input type="text" id="leadLastName" name="lastName" required style="border-radius:8px">
+</div>
 </div>
 <div class="form-group">
 <label for="leadEmail">Email</label>
-<input type="email" id="leadEmail" name="email" required>
+<input type="email" id="leadEmail" name="email" required style="border-radius:8px">
 </div>
 <div class="form-group">
 <label for="leadPhone">Phone</label>
-<input type="tel" id="leadPhone" name="phone">
+<input type="tel" id="leadPhone" name="phone" style="border-radius:8px">
 </div>
-<button type="submit" class="modal-submit" id="leadSubmitBtn">Send My Info</button>
+<div class="form-group">
+<label for="leadMessage">Message <span style="font-weight:400;color:var(--text-light)">(optional)</span></label>
+<textarea id="leadMessage" name="message" rows="3" placeholder="I'd like to know more about this property..." style="width:100%;font-family:var(--font-sans);font-size:0.95rem;padding:10px 14px;border:1px solid var(--cream-dark);border-radius:8px;background:var(--cream);color:var(--text-dark);resize:vertical;outline:none"></textarea>
+</div>
+<button type="submit" class="modal-submit" id="leadSubmitBtn" style="border-radius:10px">Request Info</button>
 </form>
 <p class="modal-disclaimer">Your information is confidential. By submitting, you agree to be contacted by Camelback Home Group.</p>
 </div>
 <div id="leadSuccessState" style="display:none">
 <div class="modal-success">
 <div class="modal-success-icon">&#10003;</div>
-<h4>We've Got Your Info!</h4>
-<p>A member of our team will reach out shortly with more details about this property.</p>
+<h4>Request Sent!</h4>
+<p>An agent will reach out to you shortly with details about this property.</p>
 </div>
 </div>
 </div>
@@ -621,7 +633,7 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
     document.getElementById('propAddress').textContent = addressParts.join(', ');
 
     /* FAVORITE BUTTON */
-    window._propListing = { id: listing.mlsId || mlsId, price: listing.price, city: listing.city || '', address: listing.address || '' };
+    window._propListing = { id: listing.mlsId || mlsId, mlsNumber: listing.mlsNumber || '', price: listing.price, city: listing.city || '', address: listing.address || '' };
     var favBtn = document.getElementById('propFavBtn');
     if(typeof window.chgIsFavorite === 'function' && window.chgIsFavorite(window._propListing.id)){
       favBtn.classList.add('chg-fav-active');
@@ -709,14 +721,31 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
   var submitBtn = document.getElementById('leadSubmitBtn');
 
   openBtn.addEventListener('click', function(){
-    // Pre-fill hidden fields with property info
     var addrEl = document.querySelector('.property-address');
     var addr = addrEl ? addrEl.textContent : '';
+    var priceEl = document.getElementById('propPrice');
+    var price = priceEl ? priceEl.textContent : '';
     document.getElementById('leadPropertyId').value = new URLSearchParams(window.location.search).get('id') || '';
     document.getElementById('leadPropertyAddress').value = addr;
-    document.getElementById('modalPropertyLine').textContent = addr
-      ? 'Register below and we\'ll send you details about ' + addr + '.'
-      : 'Register below and we\'ll send you details about this property.';
+
+    // Populate property card in modal
+    document.getElementById('modalPropertyAddr').textContent = addr || 'This property';
+    document.getElementById('modalPropertyPrice').textContent = price || '';
+    var photoContainer = document.getElementById('modalPropertyPhoto');
+    var mainImg = document.querySelector('.gallery-main img');
+    if(mainImg && mainImg.src){
+      photoContainer.innerHTML = '<img src="'+mainImg.src+'" style="width:100%;height:100%;object-fit:cover">';
+    }
+
+    // Pre-fill user info if logged in
+    var chgUser = typeof window.chgGetUser === 'function' ? window.chgGetUser() : null;
+    if(chgUser){
+      if(chgUser.firstName) document.getElementById('leadFirstName').value = chgUser.firstName;
+      if(chgUser.lastName) document.getElementById('leadLastName').value = chgUser.lastName;
+      if(chgUser.email) document.getElementById('leadEmail').value = chgUser.email;
+      if(chgUser.phone) document.getElementById('leadPhone').value = chgUser.phone;
+    }
+
     formState.style.display = '';
     successState.style.display = 'none';
     modal.classList.add('active');
@@ -730,6 +759,8 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
 
+    var propListing = window._propListing || {};
+    var msg = document.getElementById('leadMessage').value.trim();
     var data = {
       firstName: document.getElementById('leadFirstName').value,
       lastName: document.getElementById('leadLastName').value,
@@ -737,7 +768,10 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
       phone: document.getElementById('leadPhone').value,
       propertyAddress: document.getElementById('leadPropertyAddress').value,
       propertyMlsId: document.getElementById('leadPropertyId').value,
-      source: 'Property Detail Page'
+      source: 'Property Inquiry',
+      note: 'Requested info on: ' + (document.getElementById('leadPropertyAddress').value || 'property') +
+        (propListing.mlsNumber ? ' (MLS# ' + propListing.mlsNumber + ')' : '') +
+        (msg ? '\n\nMessage: ' + msg : '')
     };
 
     // Submit to Netlify Forms as backup
