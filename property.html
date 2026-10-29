@@ -331,8 +331,8 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
 <div class="property-price" id="propPrice"></div>
 <div class="property-status" id="propStatus"></div>
 <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-<button id="propFavBtn" class="chg-fav-inline" style="font-size:1.4rem;padding:6px 12px;border-radius:8px;background:rgba(204,98,76,0.08)" onclick="handlePropFav()">&#9829; Save</button>
-<button onclick="document.getElementById('openLeadModal').click()" style="font-size:0.85rem;font-weight:500;padding:8px 16px;border-radius:8px;background:var(--charcoal);color:#fff;border:none;cursor:pointer;transition:background 0.3s;letter-spacing:0.03em">Request Info</button>
+<button id="propFavBtn" style="font-size:0.85rem;font-weight:500;padding:8px 16px;border-radius:8px;background:rgba(204,98,76,0.08);color:var(--gold);border:1px solid var(--gold);cursor:pointer;transition:all 0.3s;letter-spacing:0.03em" onclick="handlePropFav()">&#9829; Save</button>
+<button onclick="document.getElementById('openLeadModal').click()" style="font-size:0.85rem;font-weight:500;padding:8px 16px;border-radius:8px;background:var(--charcoal);color:#fff;border:1px solid var(--charcoal);cursor:pointer;transition:all 0.3s;letter-spacing:0.03em">Request Info</button>
 </div>
 </div>
 
@@ -644,8 +644,10 @@ Sending as <strong id="leadUserName"></strong>
     window._propListing = { id: listing.mlsId || mlsId, mlsNumber: listing.mlsNumber || '', price: listing.price, city: listing.city || '', address: listing.address || '' };
     var favBtn = document.getElementById('propFavBtn');
     if(typeof window.chgIsFavorite === 'function' && window.chgIsFavorite(window._propListing.id)){
-      favBtn.classList.add('chg-fav-active');
       favBtn.innerHTML = '&#9829; Saved';
+      favBtn.style.background = 'var(--gold)';
+      favBtn.style.color = '#fff';
+      favBtn.style.borderColor = 'var(--gold)';
     }
 
     /* STATS BAR */
@@ -872,11 +874,15 @@ function handlePropFav(){
   if(typeof window.chgToggleFavorite !== 'function') return;
   var saved = window.chgToggleFavorite(l.id, l.price, l.city, l.address);
   if(saved){
-    btn.classList.add('chg-fav-active');
     btn.innerHTML = '&#9829; Saved';
+    btn.style.background = 'var(--gold)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--gold)';
   } else {
-    btn.classList.remove('chg-fav-active');
     btn.innerHTML = '&#9829; Save';
+    btn.style.background = 'rgba(204,98,76,0.08)';
+    btn.style.color = 'var(--gold)';
+    btn.style.borderColor = 'var(--gold)';
   }
 }
 </script>
