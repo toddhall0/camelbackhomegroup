@@ -330,7 +330,10 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
 <div class="property-header" style="display:flex;align-items:center;gap:12px">
 <div class="property-price" id="propPrice"></div>
 <div class="property-status" id="propStatus"></div>
-<button id="propFavBtn" class="chg-fav-inline" style="font-size:1.4rem;margin-left:auto;padding:6px 12px;border-radius:8px;background:rgba(204,98,76,0.08)" onclick="handlePropFav()">&#9829; Save</button>
+<div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+<button id="propFavBtn" class="chg-fav-inline" style="font-size:1.4rem;padding:6px 12px;border-radius:8px;background:rgba(204,98,76,0.08)" onclick="handlePropFav()">&#9829; Save</button>
+<button onclick="document.getElementById('openLeadModal').click()" style="font-size:0.85rem;font-weight:500;padding:8px 16px;border-radius:8px;background:var(--charcoal);color:#fff;border:none;cursor:pointer;transition:background 0.3s;letter-spacing:0.03em">Request Info</button>
+</div>
 </div>
 
 <div class="property-address" id="propAddress"></div>
