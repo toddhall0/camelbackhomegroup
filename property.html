@@ -805,7 +805,7 @@ Sending as <strong id="leadUserName"></strong>
       body: new URLSearchParams(formData).toString()
     }).catch(function(){});
 
-    // Submit to Sierra CRM via function
+    // Submit to the CRM via function
     fetch('/.netlify/functions/lead', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -872,7 +872,7 @@ function handlePropFav(){
   if(!l) return;
   var btn = document.getElementById('propFavBtn');
   if(typeof window.chgToggleFavorite !== 'function') return;
-  var saved = window.chgToggleFavorite(l.id, l.price, l.city, l.address);
+  var saved = window.chgToggleFavorite(l.id, l.price, l.city, l.address, l.mlsNumber);
   if(saved){
     btn.innerHTML = '&#9829; Saved';
     btn.style.background = 'var(--gold)';
