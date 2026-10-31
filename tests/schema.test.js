@@ -1,5 +1,7 @@
 const { test, before } = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const { createDatabase } = require("./helpers");
 
 const ADMIN_AUTH = "00000000-0000-0000-0000-00000000000a";
@@ -57,6 +59,32 @@ test("API roles have table access without relying on Supabase defaults", async (
     assert.ok(row.server, row.tablename);
     assert.equal(row.dashboard, row.tablename !== "leads", row.tablename);
   }
+});
+
+test("every lead column the dashboard requests is readable by agents", async () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "crm", "crm-app.js"), "utf8");
+  const match = /LEAD_COLUMNS = ([\s\S]*?);/.exec(source);
+  const columns = match[1].replace(/['+\s]/g, "");
+  assert.ok(!columns.includes("password_hash"));
+  assert.equal((await asUser("authenticated", AGENT_AUTH, `SELECT ${columns} FROM leads`)).rows.length, 2);
+});
+
+test("agents can make the dashboard's lead edits on assigned leads", async () => {
+  const { rows } = await asUser(
+    "authenticated",
+    AGENT_AUTH,
+    `UPDATE leads SET first_name = 'P', last_name = 'L', email = 'new@test', phone = '1', lead_type = 'seller', status = 'qualified',
+       min_price = 1, max_price = 2, tags = '{a}', email_opt_out = true, assigned_agent_id = $1 WHERE id = $2 RETURNING id`,
+    [otherId, ownLead]
+  );
+  assert.equal(rows.length, 1);
+  const added = await asUser(
+    "authenticated",
+    AGENT_AUTH,
+    `INSERT INTO leads (first_name, email, lead_type, source, source_detail, assigned_agent_id) VALUES ('N', 'n@test', 'buyer', 'manual', 'x', $1) RETURNING id`,
+    [agentId]
+  );
+  assert.equal(added.rows.length, 1);
 });
 
 test("anon cannot read or write anything", async () => {
