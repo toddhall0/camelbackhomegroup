@@ -48,6 +48,17 @@ test("every public table has RLS enabled", async () => {
   assert.equal(count[0].n, 15);
 });
 
+test("API roles have table access without relying on Supabase defaults", async () => {
+  const { rows } = await db.query(`SELECT tablename,
+      has_table_privilege('service_role', 'public.' || tablename, 'SELECT, INSERT, UPDATE, DELETE') AS server,
+      has_table_privilege('authenticated', 'public.' || tablename, 'SELECT') AS dashboard
+    FROM pg_tables WHERE schemaname = 'public'`);
+  for (const row of rows) {
+    assert.ok(row.server, row.tablename);
+    assert.equal(row.dashboard, row.tablename !== "leads", row.tablename);
+  }
+});
+
 test("anon cannot read or write anything", async () => {
   await assert.rejects(asUser("anon", null, "SELECT id FROM leads"), /permission denied/);
   await assert.rejects(asUser("anon", null, "INSERT INTO leads (email) VALUES ('x@test')"), /permission denied/);
