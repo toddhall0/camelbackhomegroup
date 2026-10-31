@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Lead — Camelback CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="crm-styles.css">
+</head>
+<body>
+<main class="crm-main">
+  <p><a href="leads.html">&larr; All leads</a></p>
+  <div id="content"><div class="crm-empty">Loading…</div></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="crm-app.js"></script>
+<script>
+(async function(){
+  var agent = await CRM.start('leads.html');
+  if(!agent) return;
+  var db = await CRM.getClient();
+  var esc = CRM.esc;
+  var leadId = new URLSearchParams(location.search).get('id');
+  var content = document.getElementById('content');
+  var lead, agents = [], activeTab = 'timeline';
+
+  function canEdit(){ return agent.role==='admin' || lead.assigned_agent_id===agent.id; }
+
+  async function fetchLead(){
+    var result = await db.from('leads').select(CRM.LEAD_COLUMNS).eq('id',leadId).maybeSingle();
+    if(result.error) throw new Error(result.error.message);
+    return result.data;
+  }
+
+  // RLS turns a forbidden update into zero rows rather than an error
+  async function saveLead(changes){
+    var result = await db.from('leads').update(changes).eq('id',leadId).select('id');
+    if(result.error){
+      CRM.toast(result.error.code==='23505' ? 'Another lead already uses that email.' : result.error.message, true);
+      return false;
+    }
+    if(!result.data.length){
+      CRM.toast('Only the assigned agent or an admin can change this lead.', true);
+      return false;
+    }
+    return true;
+  }
+
+  async function log(type, message){
+    await db.from('activities').insert({lead_id:leadId, type:type, message:message, created_by:agent.id});
+  }
+
+  function renderHeader(){
+    var contact = [lead.email, lead.phone].filter(Boolean).join(' · ') || 'No contact details';
+    var agentOptions = [['','Unassigned']].concat(agents.map(function(a){ return [a.id, CRM.agentName(a)]; }));
+    var locked = canEdit() ? '' : ' disabled';
+    return '<div class="crm-card crm-lead-head">'+
+      '<div><h1>'+esc(CRM.leadName(lead))+'</h1>'+
+        '<div class="crm-lead-contact">'+esc(contact)+'</div>'+
+        '<p>'+CRM.statusBadge(lead.status)+' '+CRM.scoreBadge(lead.score)+' <span class="crm-badge">'+esc(CRM.label(CRM.SOURCES,lead.source))+'</span></p>'+
+        (lead.email_opt_out?'<div class="crm-hint">Opted out of marketing email</div>':'')+
+      '</div>'+
+      '<div class="crm-lead-controls">'+
+        '<label>Status<select id="leadStatus"'+locked+'>'+CRM.options(CRM.STATUSES,lead.status)+'</select></label>'+
+        '<label>Assigned agent<select id="leadAgent"'+locked+'>'+CRM.options(agentOptions,lead.assigned_agent_id||'')+'</select></label>'+
+        (canEdit()?'':'<span class="crm-hint" style="grid-column:1/-1">Only the assigned agent or an admin can change these.</span>')+
+      '</div></div>';
+  }
+
+  function renderTabs(){
+    return '<div class="crm-tabs">'+[['timeline','Activity'],['favorites','Favorites'],['chats','Chats'],['details','Details']].map(function(t){
+      return '<button data-tab="'+t[0]+'" class="'+(t[0]===activeTab?'active':'')+'">'+t[1]+'</button>';
+    }).join('')+'</div><div class="crm-card" id="tabBody"></div>';
+  }
+
+  async function renderTimeline(body){
+    body.innerHTML =
+      '<form id="noteForm" class="crm-form"><textarea id="noteText" rows="2" placeholder="Add a note…" aria-label="Add a note"></textarea>'+
+      '<div><button class="crm-btn" type="submit">Add Note</button></div></form><ul class="crm-feed" id="timeline"></ul>';
+    document.getElementById('noteForm').onsubmit = async function(e){
+      e.preventDefault();
+      var text = document.getElementById('noteText').value.trim();
+      if(!text) return;
+      var result = await db.from('activities').insert({lead_id:leadId, type:'note', message:text, created_by:agent.id});
+      if(result.error){ CRM.toast(result.error.message, true); return; }
+      renderTab();
+    };
+
+    var result = await db.from('activities')
+      .select('id,type,message,page_url,property_id,mls_number,property_address,property_price,created_by,created_at,agents(first_name,last_name)')
+      .eq('lead_id',leadId).order('created_at',{ascending:false}).limit(200);
+    var list = document.getElementById('timeline');
+    if(result.error){ list.innerHTML = '<li class="crm-error">'+esc(result.error.message)+'</li>'; return; }
+    if(!result.data.length){ list.innerHTML = '<li class="crm-empty">No activity yet.</li>'; return; }
+
+    list.innerHTML = result.data.map(function(a){
+      var url = CRM.safeUrl(a.page_url);
+      var who = a.agents ? ' · '+CRM.agentName(a.agents) : '';
+      var mine = a.type==='note' && a.created_by===agent.id;
+      return '<li data-note="'+(mine?esc(a.id):'')+'"><div class="crm-feed-head"><span>'+esc(CRM.describeActivity(a))+esc(who)+
+        (a.property_price?' · '+esc(CRM.money(a.property_price)):'')+'</span>'+
+        '<span class="crm-feed-time">'+esc(CRM.formatDateTime(a.created_at))+(mine?' <button class="crm-link-btn" data-edit>Edit</button>':'')+'</span></div>'+
+        (a.message?'<div class="crm-feed-msg">'+esc(a.message)+'</div>':'')+
+        (url?'<div class="crm-feed-msg"><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a></div>':'')+'</li>';
+    }).join('');
+
+    list.addEventListener('click',function(e){
+      if(!e.target.matches('[data-edit]')) return;
+      var item = e.target.closest('li');
+      var message = item.querySelector('.crm-feed-msg');
+      var editor = document.createElement('textarea');
+      editor.rows = 3;
+      editor.value = message.textContent;
+      var save = document.createElement('button');
+      save.className = 'crm-btn';
+      save.textContent = 'Save';
+      save.onclick = async function(){
+        var update = await db.from('activities').update({message:editor.value.trim()}).eq('id',item.dataset.note).select('id');
+        if(update.error || !update.data.length){ CRM.toast('Could not save that note.', true); return; }
+        renderTab();
+      };
+      message.replaceWith(editor);
+      editor.after(save);
+      e.target.remove();
+    });
+  }
+
+  async function renderFavorites(body){
+    var result = await db.from('favorites').select('property_id,mls_number,property_address,property_price,property_city,saved_at')
+      .eq('lead_id',leadId).order('saved_at',{ascending:false});
+    if(result.error){ body.innerHTML = '<div class="crm-error">'+esc(result.error.message)+'</div>'; return; }
+    if(!result.data.length){ body.innerHTML = '<div class="crm-empty">No saved listings.</div>'; return; }
+    body.innerHTML = '<div class="crm-fav-grid">'+result.data.map(function(f){
+      return '<div class="crm-fav"><strong>'+esc(f.property_address||('Listing '+f.property_id))+'</strong>'+
+        '<div>'+esc(f.property_city||'')+'</div><div>'+esc(CRM.money(f.property_price))+'</div>'+
+        (f.mls_number?'<small>MLS# '+esc(f.mls_number)+'</small><br>':'')+
+        '<small>Saved '+esc(CRM.formatDate(f.saved_at))+'</small><br>'+
+        '<a href="/property.html?id='+encodeURIComponent(f.property_id)+'" target="_blank" rel="noopener">View listing</a></div>';
+    }).join('')+'</div>';
+  }
+
+  async function renderChats(body){
+    var conversations = await db.from('chat_conversations').select('id,started_at,message_count')
+      .eq('lead_id',leadId).order('started_at',{ascending:false});
+    if(conversations.error){ body.innerHTML = '<div class="crm-error">'+esc(conversations.error.message)+'</div>'; return; }
+    if(!conversations.data.length){ body.innerHTML = '<div class="crm-empty">No conversations with Kathy.</div>'; return; }
+
+    var messages = await db.from('chat_messages').select('conversation_id,role,content,created_at')
+      .in('conversation_id',conversations.data.map(function(c){ return c.id; })).order('created_at');
+    if(messages.error){ body.innerHTML = '<div class="crm-error">'+esc(messages.error.message)+'</div>'; return; }
+
+    body.innerHTML = conversations.data.map(function(c){
+      var lines = messages.data.filter(function(m){ return m.conversation_id===c.id; });
+      return '<div class="crm-chat"><h3>'+esc(CRM.formatDateTime(c.started_at))+'</h3>'+lines.map(function(m){
+        return '<div class="crm-chat-msg '+(m.role==='user'?'user':'')+'">'+esc(m.content)+'</div>';
+      }).join('')+'</div>';
+    }).join('');
+  }
+
+  function renderDetails(body){
+    var locked = canEdit() ? '' : ' disabled';
+    body.innerHTML =
+      '<div class="crm-grid-2"><form id="detailsForm" class="crm-form">'+
+        '<div class="crm-form-row"><label>First name<input name="first_name" value="'+esc(lead.first_name||'')+'"'+locked+'></label>'+
+        '<label>Last name<input name="last_name" value="'+esc(lead.last_name||'')+'"'+locked+'></label></div>'+
+        '<label>Email<input name="email" type="email" value="'+esc(lead.email||'')+'"'+locked+'></label>'+
+        '<label>Phone<input name="phone" value="'+esc(lead.phone||'')+'"'+locked+'></label>'+
+        '<label>Type<select name="lead_type"'+locked+'>'+CRM.options(CRM.LEAD_TYPES,lead.lead_type)+'</select></label>'+
+        '<div class="crm-form-row"><label>Min price<input name="min_price" type="number" min="0" value="'+esc(lead.min_price||'')+'"'+locked+'></label>'+
+        '<label>Max price<input name="max_price" type="number" min="0" value="'+esc(lead.max_price||'')+'"'+locked+'></label></div>'+
+        '<label>Tags (comma separated)<input name="tags" value="'+esc((lead.tags||[]).join(', '))+'"'+locked+'></label>'+
+        '<label class="crm-check"><input name="email_opt_out" type="checkbox"'+(lead.email_opt_out?' checked':'')+locked+'> Opted out of marketing email</label>'+
+        (canEdit()?'<div><button class="crm-btn" type="submit">Save Changes</button></div>':'')+
+      '</form>'+
+      '<dl class="crm-dl">'+
+        '<dt>Page views</dt><dd>'+esc(lead.total_page_views||0)+'</dd>'+
+        '<dt>Listing views</dt><dd>'+esc(lead.total_listing_views||0)+'</dd>'+
+        '<dt>Favorites</dt><dd>'+esc(lead.total_favorites||0)+'</dd>'+
+        '<dt>Browsing summary</dt><dd>'+esc(lead.short_summary||'—')+'</dd>'+
+        '<dt>Source detail</dt><dd>'+esc(lead.source_detail||'—')+'</dd>'+
+        '<dt>Last active</dt><dd>'+esc(CRM.formatDateTime(lead.last_active_at))+'</dd>'+
+        '<dt>Created</dt><dd>'+esc(CRM.formatDateTime(lead.created_at))+'</dd>'+
+      '</dl></div>';
+
+    if(!canEdit()) return;
+    document.getElementById('detailsForm').onsubmit = async function(e){
+      e.preventDefault();
+      var f = e.target;
+      var changes = {
+        first_name: f.first_name.value.trim() || null,
+        last_name: f.last_name.value.trim() || null,
+        email: f.email.value.trim().toLowerCase() || null,
+        phone: f.phone.value.trim() || null,
+        lead_type: f.lead_type.value,
+        min_price: f.min_price.value ? Math.round(Number(f.min_price.value)) : null,
+        max_price: f.max_price.value ? Math.round(Number(f.max_price.value)) : null,
+        tags: f.tags.value.split(',').map(function(t){ return t.trim(); }).filter(Boolean),
+        email_opt_out: f.email_opt_out.checked
+      };
+      if(!changes.email && !changes.phone){ CRM.toast('Keep at least an email or a phone number.', true); return; }
+      if(await saveLead(changes)){
+        CRM.toast('Saved.');
+        await refresh();
+      }
+    };
+  }
+
+  async function renderTab(){
+    var body = document.getElementById('tabBody');
+    if(activeTab==='timeline') await renderTimeline(body);
+    else if(activeTab==='favorites') await renderFavorites(body);
+    else if(activeTab==='chats') await renderChats(body);
+    else renderDetails(body);
+  }
+
+  async function refresh(){
+    lead = await fetchLead();
+    render();
+  }
+
+  function render(){
+    document.title = CRM.leadName(lead)+' — Camelback CRM';
+    content.innerHTML = renderHeader()+renderTabs();
+
+    document.querySelectorAll('.crm-tabs button').forEach(function(btn){
+      btn.onclick = function(){ activeTab = btn.dataset.tab; render(); };
+    });
+
+    document.getElementById('leadStatus').onchange = async function(){
+      var next = this.value, previous = lead.status;
+      if(await saveLead({status:next})){
+        await log('status_change', CRM.label(CRM.STATUSES,previous)+' → '+CRM.label(CRM.STATUSES,next));
+      }
+      await refresh();
+    };
+
+    document.getElementById('leadAgent').onchange = async function(){
+      var next = this.value || null;
+      if(await saveLead({assigned_agent_id:next})){
+        var chosen = agents.filter(function(a){ return a.id===next; })[0];
+        await log('agent_assigned', chosen ? 'Assigned to '+CRM.agentName(chosen) : 'Unassigned');
+      }
+      await refresh();
+    };
+
+    renderTab();
+  }
+
+  try{
+    var roster = await db.from('agents').select('id,first_name,last_name,role').eq('is_active',true).order('first_name');
+    agents = (roster.data||[]).filter(function(a){ return a.role!=='paralegal'; });
+    lead = await fetchLead();
+    if(!lead){ content.innerHTML = '<div class="crm-card crm-empty">Lead not found.</div>'; return; }
+    render();
+  }catch(err){
+    content.innerHTML = '<div class="crm-card crm-error">'+esc(err.message)+'</div>';
+  }
+})();
+</script>
+</body>
+</html>

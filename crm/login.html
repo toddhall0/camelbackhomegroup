@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Agent Login — Camelback CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="crm-styles.css">
+</head>
+<body>
+<div class="crm-center">
+  <div class="crm-card crm-login-card">
+    <h1>Camelback CRM</h1>
+
+    <form id="loginForm" class="crm-form">
+      <p>Sign in with your agent account.</p>
+      <label>Email<input id="email" type="email" autocomplete="username" required></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+      <div class="crm-error" id="loginError"></div>
+      <button class="crm-btn" type="submit">Sign In</button>
+      <button class="crm-link-btn" type="button" id="forgotBtn">Forgot password?</button>
+    </form>
+
+    <form id="resetForm" class="crm-form" hidden>
+      <p>Choose a new password.</p>
+      <label>New password<input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+      <div class="crm-error" id="resetError"></div>
+      <button class="crm-btn" type="submit">Save Password</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="crm-app.js"></script>
+<script>
+(async function(){
+  var loginForm = document.getElementById('loginForm');
+  var resetForm = document.getElementById('resetForm');
+  var loginError = document.getElementById('loginError');
+  var db;
+
+  try{
+    db = await CRM.getClient();
+  }catch(err){
+    loginError.textContent = err.message;
+    return;
+  }
+
+  // Password-reset and invite emails land here with a recovery session
+  var recovering = /type=(recovery|invite)/.test(location.hash);
+  function showReset(){
+    recovering = true;
+    loginForm.hidden = true;
+    resetForm.hidden = false;
+  }
+  if(recovering) showReset();
+  db.auth.onAuthStateChange(function(event){
+    if(event === 'PASSWORD_RECOVERY') showReset();
+  });
+
+  if(!recovering){
+    var session = (await db.auth.getSession()).data.session;
+    if(session && !recovering) location.href = 'index.html';
+  }
+
+  loginForm.onsubmit = async function(e){
+    e.preventDefault();
+    loginError.textContent = '';
+    var result = await db.auth.signInWithPassword({
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value
+    });
+    if(result.error){ loginError.textContent = 'That email or password is not right.'; return; }
+    location.href = 'index.html';
+  };
+
+  document.getElementById('forgotBtn').onclick = async function(){
+    var email = document.getElementById('email').value.trim();
+    if(!email){ loginError.textContent = 'Enter your email first.'; return; }
+    await db.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/crm/login.html' });
+    // Same message either way, so this form can't reveal who has an account
+    CRM.toast('If that email has an account, a reset link is on its way.');
+  };
+
+  resetForm.onsubmit = async function(e){
+    e.preventDefault();
+    var result = await db.auth.updateUser({ password: document.getElementById('newPassword').value });
+    if(result.error){ document.getElementById('resetError').textContent = result.error.message; return; }
+    location.href = 'index.html';
+  };
+})();
+</script>
+</body>
+</html>

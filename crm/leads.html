@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Leads — Camelback CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="crm-styles.css">
+</head>
+<body>
+<main class="crm-main">
+  <div class="crm-page-head">
+    <h1>Leads</h1>
+    <button class="crm-btn" id="addLead">Add Lead</button>
+  </div>
+  <div class="crm-filters">
+    <input id="search" type="search" placeholder="Search name, email or phone" aria-label="Search leads">
+    <select id="filterStatus" aria-label="Status"></select>
+    <select id="filterSource" aria-label="Source"></select>
+    <select id="filterAgent" aria-label="Agent"></select>
+  </div>
+  <div class="crm-card crm-table-wrap">
+    <table class="crm-table">
+      <thead><tr>
+        <th data-sort="first_name">Name</th>
+        <th data-sort="email">Email</th>
+        <th data-sort="phone">Phone</th>
+        <th data-sort="status">Status</th>
+        <th data-sort="score">Score</th>
+        <th data-sort="source">Source</th>
+        <th>Agent</th>
+        <th data-sort="last_active_at">Last Active</th>
+        <th data-sort="created_at">Created</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="crm-pager">
+    <span id="pagerText"></span>
+    <span>
+      <button class="crm-btn crm-btn-plain" id="prevPage">Prev</button>
+      <button class="crm-btn crm-btn-plain" id="nextPage">Next</button>
+    </span>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="crm-app.js"></script>
+<script>
+(async function(){
+  var agent = await CRM.start('leads.html');
+  if(!agent) return;
+  var db = await CRM.getClient();
+  var esc = CRM.esc;
+  var PAGE_SIZE = 50;
+  var state = { page:0, sort:'created_at', ascending:false, total:0 };
+  var el = function(id){ return document.getElementById(id); };
+
+  document.getElementById('addLead').onclick = CRM.openAddLead;
+  el('filterStatus').innerHTML = '<option value="">All statuses</option>'+CRM.options(CRM.STATUSES);
+  el('filterSource').innerHTML = '<option value="">All sources</option>'+CRM.options(CRM.SOURCES);
+
+  var agents = await db.from('agents').select('id,first_name,last_name').order('first_name');
+  el('filterAgent').innerHTML = '<option value="">All agents</option><option value="none">Unassigned</option>'+
+    CRM.options((agents.data||[]).map(function(a){ return [a.id, CRM.agentName(a)]; }));
+
+  async function load(){
+    var query = db.from('leads').select(CRM.LEAD_COLUMNS+',agents(first_name,last_name)',{count:'exact'})
+      .order(state.sort,{ascending:state.ascending,nullsFirst:false})
+      .range(state.page*PAGE_SIZE,(state.page+1)*PAGE_SIZE-1);
+
+    if(el('filterStatus').value) query = query.eq('status',el('filterStatus').value);
+    if(el('filterSource').value) query = query.eq('source',el('filterSource').value);
+    if(el('filterAgent').value==='none') query = query.is('assigned_agent_id',null);
+    else if(el('filterAgent').value) query = query.eq('assigned_agent_id',el('filterAgent').value);
+
+    // These characters have meaning inside a PostgREST or() filter
+    var term = el('search').value.replace(/[,()*%\\:"]/g,' ').trim();
+    if(term){
+      query = query.or(['first_name','last_name','email','phone'].map(function(c){ return c+'.ilike.*'+term+'*'; }).join(','));
+    }
+
+    var result = await query;
+    var rows = el('rows');
+    if(result.error){
+      rows.innerHTML = '<tr><td colspan="9" class="crm-error">'+esc(result.error.message)+'</td></tr>';
+      return;
+    }
+    state.total = result.count || 0;
+    rows.innerHTML = result.data.length ? result.data.map(function(l){
+      return '<tr data-id="'+esc(l.id)+'">'+
+        '<td><a href="lead.html?id='+encodeURIComponent(l.id)+'">'+esc(CRM.leadName(l))+'</a></td>'+
+        '<td>'+esc(l.email||'—')+'</td><td>'+esc(l.phone||'—')+'</td>'+
+        '<td>'+CRM.statusBadge(l.status)+'</td><td>'+CRM.scoreBadge(l.score)+'</td>'+
+        '<td>'+esc(CRM.label(CRM.SOURCES,l.source))+'</td>'+
+        '<td>'+esc(CRM.agentName(l.agents))+'</td>'+
+        '<td>'+esc(CRM.timeAgo(l.last_active_at))+'</td><td>'+esc(CRM.formatDate(l.created_at))+'</td></tr>';
+    }).join('') : '<tr><td colspan="9" class="crm-empty">No leads match.</td></tr>';
+
+    var first = state.total ? state.page*PAGE_SIZE+1 : 0;
+    el('pagerText').textContent = first+'–'+Math.min((state.page+1)*PAGE_SIZE,state.total)+' of '+state.total;
+    el('prevPage').disabled = state.page===0;
+    el('nextPage').disabled = (state.page+1)*PAGE_SIZE >= state.total;
+  }
+
+  function reload(){ state.page = 0; load(); }
+  var searchTimer;
+  el('search').addEventListener('input',function(){ clearTimeout(searchTimer); searchTimer = setTimeout(reload,250); });
+  ['filterStatus','filterSource','filterAgent'].forEach(function(id){ el(id).addEventListener('change',reload); });
+  el('prevPage').onclick = function(){ state.page--; load(); };
+  el('nextPage').onclick = function(){ state.page++; load(); };
+  document.querySelectorAll('th[data-sort]').forEach(function(th){
+    th.onclick = function(){
+      var column = th.dataset.sort;
+      state.ascending = state.sort===column ? !state.ascending : column!=='created_at' && column!=='score' && column!=='last_active_at';
+      state.sort = column;
+      reload();
+    };
+  });
+  el('rows').addEventListener('click',function(e){
+    var row = e.target.closest('tr[data-id]');
+    if(row) location.href = 'lead.html?id='+encodeURIComponent(row.dataset.id);
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Dashboard — Camelback CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="crm-styles.css">
+</head>
+<body>
+<main class="crm-main">
+  <div class="crm-page-head">
+    <h1>Dashboard</h1>
+    <button class="crm-btn" id="addLead">Add Lead</button>
+  </div>
+  <div class="crm-grid">
+    <div class="crm-card"><div class="crm-stat-num" id="statNew">–</div><div class="crm-stat-label">New leads today</div></div>
+    <div class="crm-card"><div class="crm-stat-num" id="statActive">–</div><div class="crm-stat-label">Active leads</div></div>
+    <div class="crm-card"><div class="crm-stat-num" id="statTasks">–</div><div class="crm-stat-label">Tasks due today</div></div>
+    <div class="crm-card"><div class="crm-stat-num" id="statEmails">–</div><div class="crm-stat-label">Emails sent today</div></div>
+  </div>
+  <div class="crm-grid-2">
+    <section class="crm-card">
+      <h2>Recent Activity</h2>
+      <ul class="crm-feed" id="feed"></ul>
+    </section>
+    <div class="crm-form">
+      <section class="crm-card">
+        <h2>Pipeline</h2>
+        <div id="pipeline"></div>
+      </section>
+      <section class="crm-card">
+        <h2>Upcoming Tasks</h2>
+        <div id="tasks"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="crm-app.js"></script>
+<script>
+(async function(){
+  var agent = await CRM.start('index.html');
+  if(!agent) return;
+  var db = await CRM.getClient();
+  var esc = CRM.esc;
+  document.getElementById('addLead').onclick = CRM.openAddLead;
+
+  var dayStart = new Date(); dayStart.setHours(0,0,0,0);
+  var dayEnd = new Date(dayStart.getTime()+86400000);
+
+  async function count(query, id){
+    var result = await query;
+    document.getElementById(id).textContent = result.error ? '–' : (result.count || 0);
+  }
+  count(db.from('leads').select('id',{count:'exact',head:true}).gte('created_at',dayStart.toISOString()),'statNew');
+  count(db.from('leads').select('id',{count:'exact',head:true}).not('status','in','(closed_won,closed_lost)'),'statActive');
+  count(db.from('tasks').select('id',{count:'exact',head:true}).eq('status','pending').gte('due_date',dayStart.toISOString()).lt('due_date',dayEnd.toISOString()),'statTasks');
+  count(db.from('email_log').select('id',{count:'exact',head:true}).gte('sent_at',dayStart.toISOString()),'statEmails');
+
+  var feed = await db.from('activities')
+    .select('id,type,message,lead_id,property_id,mls_number,property_address,created_at,leads(first_name,last_name,email,phone)')
+    .order('created_at',{ascending:false}).limit(20);
+  var feedEl = document.getElementById('feed');
+  if(feed.error) feedEl.innerHTML = '<li class="crm-error">'+esc(feed.error.message)+'</li>';
+  else if(!feed.data.length) feedEl.innerHTML = '<li class="crm-empty">No activity yet.</li>';
+  else feedEl.innerHTML = feed.data.map(function(a){
+    return '<li><div class="crm-feed-head"><span><a href="lead.html?id='+encodeURIComponent(a.lead_id)+'">'+esc(CRM.leadName(a.leads))+'</a> · '+esc(CRM.describeActivity(a))+'</span>'+
+      '<span class="crm-feed-time">'+esc(CRM.timeAgo(a.created_at))+'</span></div></li>';
+  }).join('');
+
+  var pipelineEl = document.getElementById('pipeline');
+  var counts = await Promise.all(CRM.STATUSES.map(function(s){
+    return db.from('leads').select('id',{count:'exact',head:true}).eq('status',s[0]);
+  }));
+  var totals = counts.map(function(r){ return r.count || 0; });
+  var max = Math.max.apply(null, totals.concat([1]));
+  pipelineEl.innerHTML = CRM.STATUSES.map(function(s,i){
+    return '<div class="crm-bar-row"><span>'+esc(s[1])+'</span><div class="crm-bar"><div style="width:'+Math.round(totals[i]/max*100)+'%"></div></div><span>'+totals[i]+'</span></div>';
+  }).join('');
+
+  var tasks = await db.from('tasks').select('id,title,due_date,lead_id').eq('status','pending')
+    .order('due_date',{ascending:true}).limit(5);
+  var tasksEl = document.getElementById('tasks');
+  if(tasks.error || !tasks.data.length) tasksEl.innerHTML = '<div class="crm-empty">No upcoming tasks.</div>';
+  else tasksEl.innerHTML = '<ul class="crm-feed">'+tasks.data.map(function(t){
+    return '<li><div class="crm-feed-head"><span>'+esc(t.title)+'</span><span class="crm-feed-time">'+esc(CRM.formatDate(t.due_date))+'</span></div></li>';
+  }).join('')+'</ul>';
+})();
+</script>
+</body>
+</html>
