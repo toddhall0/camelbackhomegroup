@@ -47,7 +47,7 @@
     }
     ss('stats',stats);
 
-    // If user is registered, push activity to Sierra
+    // If user is registered, push activity to the CRM
     if(user&&user.email){
       var analytics = chgGetAnalytics();
       var realMls = mlsNumber || String(id);
@@ -113,20 +113,25 @@
 
   window.chgIsFavorite=function(id){return !!favorites[id]};
 
-  window.chgToggleFavorite=function(id,price,city,address){
+  function saveListingToCRM(id,fav){
+    pushToCRM({action:'saveListing',email:user.email,mlsNumber:fav.mlsNumber||String(id),propertyId:String(id),price:fav.price,city:fav.city,address:fav.address});
+  }
+
+  window.chgToggleFavorite=function(id,price,city,address,mlsNumber){
     if(!user||!user.email){showPopup();return false}
     if(favorites[id]){
+      var removed=favorites[id];
       delete favorites[id];
       ss('favorites',favorites);
-      pushToCRM({action:'addNote',email:user.email,message:'Removed MLS# '+id+' from favorites'});
-      syncFavoritesToCRM();
+      pushToCRM({action:'removeListing',email:user.email,mlsNumber:removed.mlsNumber||String(id),propertyId:String(id)});
+      syncSummaryToCRM();
       document.querySelectorAll('[data-fav-id="'+id+'"]').forEach(function(el){el.classList.remove('chg-fav-active')});
       return false;
     } else {
-      favorites[id]={price:price||0,city:city||'',address:address||'',savedAt:new Date().toISOString()};
+      favorites[id]={price:price||0,city:city||'',address:address||'',mlsNumber:mlsNumber||'',savedAt:new Date().toISOString()};
       ss('favorites',favorites);
-      pushToCRM({action:'addNote',email:user.email,message:'Saved MLS# '+id+(price?' ($'+formatP(price)+')':'')+(city?' in '+city:'')+' as favorite'});
-      syncFavoritesToCRM();
+      saveListingToCRM(id,favorites[id]);
+      syncSummaryToCRM();
       document.querySelectorAll('[data-fav-id="'+id+'"]').forEach(function(el){el.classList.add('chg-fav-active')});
       return true;
     }
@@ -135,8 +140,8 @@
   window.chgGetFavorites=function(){return favorites};
   window.chgGetFavoriteCount=function(){return Object.keys(favorites).length};
 
-  // Sync favorites to Sierra lead note field (persists across devices)
-  function syncFavoritesToCRM(){
+  // Refresh the browsing summary on the lead record
+  function syncSummaryToCRM(){
     if(!user||!user.email) return;
     var a=chgGetAnalytics();
     var favCount=Object.keys(favorites).length;
@@ -144,46 +149,35 @@
     for(var fid in favorites){if(favorites[fid].price>0)favPrices.push(favorites[fid].price)}
     var favAvg=favPrices.length?Math.round(favPrices.reduce(function(a,b){return a+b},0)/favPrices.length):0;
 
-    // Store favorites JSON in the lead's note field so it can be restored on login
-    var favData = JSON.stringify(favorites);
-    var noteText = 'CHG_FAVORITES:' + favData;
-
     pushToCRM({
       action:'update',email:user.email,
-      note: noteText,
       shortSummary:a.totalViews+' viewed | '+favCount+' saved | Avg '+formatP(a.avgPrice)+
         ' | Fav avg '+formatP(favAvg)+' | Range '+formatP(a.minPrice)+'-'+formatP(a.maxPrice)+' | Top: '+a.topCity
     });
   }
 
-  // Restore favorites from Sierra lead record
+  // Restore favorites from the CRM. The server is the source of truth, so a
+  // removal on one device sticks everywhere.
   function restoreFavoritesFromCRM(callback){
     if(!user||!user.email){if(callback)callback();return}
     fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getLead',email:user.email})})
     .then(function(r){return r.json()})
     .then(function(j){
-      if(j&&j.data){
-        // Update user name if we got it from Sierra
-        if(j.data.firstName){user.firstName=j.data.firstName;user.lastName=j.data.lastName||'';ss('user',user)}
-        // Parse favorites from note field
-        var note=j.data.note||'';
-        var marker='CHG_FAVORITES:';
-        var idx=note.indexOf(marker);
-        if(idx!==-1){
-          try{
-            var jsonStr=note.substring(idx+marker.length);
-            var restored=JSON.parse(jsonStr);
-            if(restored&&typeof restored==='object'){
-              // Merge: server wins for any ID not in local, local wins for any ID already present
-              var merged={};
-              for(var k in restored){merged[k]=restored[k]}
-              for(var k2 in favorites){merged[k2]=favorites[k2]}
-              favorites=merged;
-              ss('favorites',favorites);
-              console.log('[CHG] Restored '+Object.keys(restored).length+' favorites from CRM, merged to '+Object.keys(favorites).length);
-            }
-          }catch(e){console.warn('[CHG] Could not parse favorites from CRM note')}
+      if(j&&j.data&&j.data.firstName){user.firstName=j.data.firstName;user.lastName=j.data.lastName||'';ss('user',user)}
+      // A lead that isn't in Supabase yet comes back as data:null; anything else
+      // without a favorites map means the lookup failed, so keep the local copy
+      var restored=j&&j.data?j.data.favorites:(j&&j.crm==='supabase'?{}:null);
+      if(restored&&typeof restored==='object'){
+        // First run after the Sierra migration: this browser's favorites may only exist here
+        if(!gs('favMigrated',false)){
+          for(var k in favorites){
+            if(!restored[k]){restored[k]=favorites[k];saveListingToCRM(k,favorites[k])}
+          }
+          ss('favMigrated',true);
         }
+        favorites=restored;
+        ss('favorites',favorites);
+        console.log('[CHG] Restored '+Object.keys(favorites).length+' favorites from CRM');
       }
       if(callback)callback();
     })
@@ -206,7 +200,7 @@
     if(!user||!user.email){console.log('[CHG] No registered user');return}
     fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getLead',email:user.email})})
     .then(function(r){return r.json()})
-    .then(function(j){console.log('[CHG] Sierra lead data:',JSON.stringify(j,null,2))})
+    .then(function(j){console.log('[CHG] CRM lead data:',JSON.stringify(j,null,2))})
     .catch(function(e){console.warn('[CHG] error:',e)})
   };
   window.chgLogout=function(){
@@ -488,7 +482,7 @@
       document.getElementById('chgDoneTitle').textContent='Welcome Back!';
       document.getElementById('chgDoneMsg').textContent='Restoring your favorites...';
       document.getElementById('chgDone').style.display='';
-      // Fetch lead data + restore favorites from Sierra
+      // Fetch lead data + restore favorites from the CRM
       restoreFavoritesFromCRM(function(){
         renderAccountNav();
         document.getElementById('chgDoneMsg').textContent=Object.keys(favorites).length>0
