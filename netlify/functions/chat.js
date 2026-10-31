@@ -1,5 +1,11 @@
 // AI Chat — "Kathy" powered by Claude
-// Env vars: ANTHROPIC_API_KEY, SIMPLYRETS_API_KEY, SIMPLYRETS_API_SECRET
+// Env vars: ANTHROPIC_API_KEY, SIMPLYRETS_API_KEY, SIMPLYRETS_API_SECRET,
+//           SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+
+const { createClient } = require("@supabase/supabase-js");
+const { unwrap, normalizeEmail, logActivity, saveContact } = require("../lib/crm");
+
+const MAX_STORED_MESSAGE = 5000;
 
 const SYSTEM_PROMPT = `You are Kathy, a friendly and knowledgeable real estate assistant for Camelback Home Group (CHG), a Phoenix-area real estate brokerage. You're warm, approachable, and genuinely helpful.
 
@@ -205,34 +211,87 @@ function formatFullListing(p) {
   };
 }
 
-async function captureLead(params) {
-  const sierraKey = process.env.SIERRA_API_KEY;
-  if (!sierraKey) return { saved: false };
+function getDb() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.error("Supabase is not configured; chat will not be saved");
+    return null;
+  }
+  return createClient(url, key, { auth: { persistSession: false } });
+}
 
-  const randomPwd = Math.random().toString(36).slice(-10) + "A1!";
-  const leadData = {
-    firstName: params.firstName || "",
-    lastName: params.lastName || "",
-    email: params.email,
-    password: randomPwd,
-    phone: params.phone || "",
-    source: "Kathy AI Chat",
-    sourceType: "AgentSite",
-    leadType: 1,
-    sendRegistrationEmail: false,
-    note: params.notes || "Lead from AI chat assistant",
-  };
+// `chat` carries the lead id, so the rest of this conversation attaches to the lead
+async function captureLead(db, chat, params) {
+  const email = normalizeEmail(params.email);
+  if (!db || !email) return { saved: false };
 
   try {
-    const resp = await fetch("https://api.sierrainteractivedev.com/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Sierra-ApiKey": sierraKey },
-      body: JSON.stringify(leadData),
+    const { lead } = await saveContact(db, {
+      email,
+      phone: params.phone,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      source: "Kathy AI Chat",
+      createdMessage: "Lead from AI chat assistant",
     });
-    const txt = await resp.text();
-    return { saved: resp.ok, detail: txt };
-  } catch {
+    if (params.notes) await logActivity(db, lead.id, "note", { message: params.notes });
+    chat.leadId = lead.id;
+    return { saved: true };
+  } catch (err) {
+    console.error("chat lead capture failed:", err.message);
     return { saved: false };
+  }
+}
+
+async function findLeadId(db, email) {
+  const address = normalizeEmail(email);
+  if (!address) return null;
+  const lead = unwrap(await db.from("leads").select("id").eq("email", address).maybeSingle());
+  return lead ? lead.id : null;
+}
+
+async function findConversation(db, sessionId) {
+  const [existing] = unwrap(
+    await db.from("chat_conversations").select("id, lead_id, message_count").eq("session_id", sessionId).order("started_at").limit(1)
+  );
+  if (existing) return existing;
+  return unwrap(
+    await db.from("chat_conversations").insert({ session_id: sessionId }).select("id, lead_id, message_count").single()
+  );
+}
+
+async function saveMessage(db, conversationId, role, content) {
+  unwrap(await db.from("chat_messages").insert({ conversation_id: conversationId, role, content: content.slice(0, MAX_STORED_MESSAGE) }));
+}
+
+// Called once per reply, so only the newest exchange is new: the widget resends
+// the whole conversation with every message
+async function saveExchange(db, chat, sessionId, userText, replyText) {
+  if (!db || !sessionId || typeof userText !== "string") return;
+
+  try {
+    const conversation = await findConversation(db, sessionId);
+    const leadId = chat.leadId || conversation.lead_id;
+
+    await saveMessage(db, conversation.id, "user", userText);
+    await saveMessage(db, conversation.id, "assistant", replyText);
+
+    unwrap(
+      await db
+        .from("chat_conversations")
+        .update({ lead_id: leadId, last_message_at: new Date().toISOString(), message_count: conversation.message_count + 2 })
+        .eq("id", conversation.id)
+    );
+
+    if (leadId) {
+      await logActivity(db, leadId, "chat_message", {
+        message: userText.slice(0, MAX_STORED_MESSAGE),
+        metadata: { conversation_id: conversation.id },
+      });
+    }
+  } catch (err) {
+    console.error("saving chat failed:", err.message);
   }
 }
 
@@ -262,8 +321,21 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
   }
 
-  const { messages = [], pageContext = "" } = body;
+  const { messages = [], pageContext = "", sessionId, email } = body;
   const systemWithContext = SYSTEM_PROMPT + (pageContext ? `\n\nThe user is currently viewing: ${pageContext}` : "");
+
+  const db = getDb();
+  const chat = { leadId: null };
+  const userText = messages.length ? messages[messages.length - 1].content : null;
+
+  // A saved-chat problem must never stop Kathy from answering
+  if (db) {
+    try {
+      chat.leadId = await findLeadId(db, email);
+    } catch (err) {
+      console.error("chat lead lookup failed:", err.message);
+    }
+  }
 
   try {
     let claudeMessages = messages.map(m => ({
@@ -309,7 +381,7 @@ exports.handler = async (event) => {
           } else if (tool.name === "get_listing") {
             toolResult = await getListing(tool.input);
           } else if (tool.name === "capture_lead") {
-            toolResult = await captureLead(tool.input);
+            toolResult = await captureLead(db, chat, tool.input);
           } else {
             toolResult = { error: "Unknown tool" };
           }
@@ -324,20 +396,22 @@ exports.handler = async (event) => {
         claudeMessages.push({ role: "user", content: toolResults });
       } else {
         const textBlock = result.content.find(b => b.type === "text");
+        const reply = textBlock ? textBlock.text : "I'm sorry, I didn't catch that. Could you try again?";
+        await saveExchange(db, chat, sessionId, userText, reply);
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify({
-            reply: textBlock ? textBlock.text : "I'm sorry, I didn't catch that. Could you try again?",
-          }),
+          body: JSON.stringify({ reply }),
         };
       }
     }
 
+    const reply = "Let me look into that for you. Could you give me a moment?";
+    await saveExchange(db, chat, sessionId, userText, reply);
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ reply: "Let me look into that for you. Could you give me a moment?" }),
+      body: JSON.stringify({ reply }),
     };
   } catch (err) {
     return {

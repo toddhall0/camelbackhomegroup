@@ -11,6 +11,14 @@
     chatOpen = sessionStorage.getItem('kathy_open') === '1';
   } catch(e){}
 
+  // Identifies this conversation in the CRM for the life of the browser tab
+  var sessionId = '';
+  try { sessionId = sessionStorage.getItem('kathy_session') || ''; } catch(e){}
+  if(!sessionId){
+    sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    try { sessionStorage.setItem('kathy_session', sessionId); } catch(e){}
+  }
+
   function saveChat(){
     try{
       sessionStorage.setItem('kathy_messages', JSON.stringify(messages));
@@ -239,12 +247,16 @@
       return { role: m.role, content: m.content };
     });
 
+    var siteUser = typeof window.chgGetUser === 'function' ? window.chgGetUser() : null;
+
     fetch('/.netlify/functions/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: apiMessages,
-        pageContext: getPageContext()
+        pageContext: getPageContext(),
+        sessionId: sessionId,
+        email: siteUser ? siteUser.email : ''
       })
     })
     .then(function(r){ return r.json(); })

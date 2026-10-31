@@ -5,7 +5,7 @@ const path = require("node:path");
 const Module = require("node:module");
 const { PGlite } = require("@electric-sql/pglite");
 
-const MIGRATION = path.join(__dirname, "..", "supabase", "migrations", "20261030000000_crm_schema.sql");
+const MIGRATIONS = path.join(__dirname, "..", "supabase", "migrations");
 
 // The parts of a Supabase project the migration relies on
 const SUPABASE_BOOTSTRAP = `
@@ -18,13 +18,15 @@ const SUPABASE_BOOTSTRAP = `
     $$ SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   GRANT USAGE ON SCHEMA public, auth TO anon, authenticated, service_role;
   GRANT EXECUTE ON FUNCTION auth.uid() TO anon, authenticated, service_role;
-  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon;
 `;
 
 async function createDatabase() {
   const db = new PGlite();
   await db.exec(SUPABASE_BOOTSTRAP);
-  await db.exec(fs.readFileSync(MIGRATION, "utf8"));
+  for (const file of fs.readdirSync(MIGRATIONS).sort()) {
+    await db.exec(fs.readFileSync(path.join(MIGRATIONS, file), "utf8"));
+  }
   return db;
 }
 
@@ -104,8 +106,8 @@ class Query {
   }
 }
 
-// Loads netlify/functions/lead.js with supabase-js swapped for the SQL stand-in
-function loadLeadHandler(pg) {
+// Loads a Netlify function with supabase-js swapped for the SQL stand-in
+function loadHandler(pg, name) {
   process.env.SUPABASE_URL = "http://test";
   process.env.SUPABASE_SERVICE_ROLE_KEY = "test";
   const fake = {
@@ -127,7 +129,7 @@ function loadLeadHandler(pg) {
     return request === "@supabase/supabase-js" ? fake : originalLoad.call(this, request, ...rest);
   };
   try {
-    const file = require.resolve("../netlify/functions/lead.js");
+    const file = require.resolve(`../netlify/functions/${name}.js`);
     delete require.cache[file];
     return require(file).handler;
   } finally {
@@ -135,4 +137,6 @@ function loadLeadHandler(pg) {
   }
 }
 
-module.exports = { createDatabase, loadLeadHandler };
+const loadLeadHandler = (pg) => loadHandler(pg, "lead");
+
+module.exports = { createDatabase, loadHandler, loadLeadHandler };
