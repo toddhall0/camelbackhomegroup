@@ -25,9 +25,80 @@
   var esc = CRM.esc;
   var leadId = new URLSearchParams(location.search).get('id');
   var content = document.getElementById('content');
-  var lead, agents = [], activeTab = 'timeline';
+  var lead, agents = [], activeTab = 'timeline', timelineFilter = '';
+  var insights = { views:[], searches:[], chats:0 };
+
+  var TIMELINE_FILTERS = [
+    ['','All activity'],
+    ['listing_view','Listings viewed'],
+    ['search','Searches'],
+    ['favorite_add,favorite_remove','Favorites'],
+    ['chat_message','Kathy chats'],
+    ['property_inquiry,form_submit','Forms and inquiries'],
+    ['site_visit,page_view','Site visits'],
+    ['note,status_change,agent_assigned','Agent activity']
+  ];
 
   function canEdit(){ return agent.role==='admin' || lead.assigned_agent_id===agent.id; }
+
+  async function fetchInsights(){
+    var activity = await db.from('activities')
+      .select('type,message,metadata,property_id,mls_number,property_address,property_price,property_city,created_at')
+      .eq('lead_id',leadId).in('type',['listing_view','search'])
+      .order('created_at',{ascending:false}).limit(1000);
+    var chats = await db.from('chat_conversations').select('id',{count:'exact',head:true}).eq('lead_id',leadId);
+    var rows = activity.data || [];
+    insights = {
+      views: rows.filter(function(a){ return a.type==='listing_view'; }),
+      searches: rows.filter(function(a){ return a.type==='search'; }),
+      chats: chats.count || 0
+    };
+  }
+
+  // One row per listing, however many times it was viewed. Newest first.
+  function viewedListings(){
+    var byListing = {}, order = [];
+    insights.views.forEach(function(v){
+      var key = v.property_id || v.mls_number;
+      if(!byListing[key]){ byListing[key] = Object.assign({count:0}, v); order.push(key); }
+      var row = byListing[key];
+      row.count++;
+      row.property_address = row.property_address || v.property_address;
+      row.property_price = row.property_price || v.property_price;
+      row.property_city = row.property_city || v.property_city;
+      row.mls_number = row.mls_number || v.mls_number;
+    });
+    return order.map(function(k){ return byListing[k]; });
+  }
+
+  function topCity(){
+    var counts = {}, best = '', max = 0;
+    insights.views.forEach(function(v){ if(v.property_city) counts[v.property_city] = (counts[v.property_city]||0)+1; });
+    for(var city in counts){ if(counts[city] > max){ max = counts[city]; best = city; } }
+    return best;
+  }
+
+  function priceRange(){
+    var prices = insights.views.map(function(v){ return v.property_price; }).filter(Boolean);
+    if(!prices.length) return '—';
+    var low = Math.min.apply(null,prices), high = Math.max.apply(null,prices);
+    var short = function(n){ return n >= 1000000 ? '$'+(n/1000000).toFixed(1)+'M' : '$'+Math.round(n/1000)+'K'; };
+    return low===high ? short(low) : short(low)+'–'+short(high);
+  }
+
+  function renderInsights(){
+    var cards = [
+      [viewedListings().length, 'Listings viewed'],
+      [lead.total_favorites||0, 'Favorites'],
+      [insights.searches.length, 'Searches'],
+      [insights.chats, 'Kathy chats'],
+      [topCity()||'—', 'Top city'],
+      [priceRange(), 'Price range viewed']
+    ];
+    return '<div class="crm-insights">'+cards.map(function(c){
+      return '<div class="crm-card"><div class="crm-insight-num">'+esc(c[0])+'</div><div class="crm-stat-label">'+esc(c[1])+'</div></div>';
+    }).join('')+'</div>';
+  }
 
   async function fetchLead(){
     var result = await db.from('leads').select(CRM.LEAD_COLUMNS).eq('id',leadId).maybeSingle();
@@ -71,7 +142,7 @@
   }
 
   function renderTabs(){
-    return '<div class="crm-tabs">'+[['timeline','Activity'],['favorites','Favorites'],['chats','Chats'],['details','Details']].map(function(t){
+    return '<div class="crm-tabs">'+[['timeline','Activity'],['viewed','Viewed'],['searches','Searches'],['favorites','Favorites'],['chats','Chats'],['details','Details']].map(function(t){
       return '<button data-tab="'+t[0]+'" class="'+(t[0]===activeTab?'active':'')+'">'+t[1]+'</button>';
     }).join('')+'</div><div class="crm-card" id="tabBody"></div>';
   }
@@ -79,7 +150,10 @@
   async function renderTimeline(body){
     body.innerHTML =
       '<form id="noteForm" class="crm-form"><textarea id="noteText" rows="2" placeholder="Add a note…" aria-label="Add a note"></textarea>'+
-      '<div><button class="crm-btn" type="submit">Add Note</button></div></form><ul class="crm-feed" id="timeline"></ul>';
+      '<div><button class="crm-btn" type="submit">Add Note</button></div></form>'+
+      '<select class="crm-timeline-filter" id="timelineFilter" aria-label="Filter activity">'+CRM.options(TIMELINE_FILTERS,timelineFilter)+'</select>'+
+      '<ul class="crm-feed" id="timeline"></ul>';
+    document.getElementById('timelineFilter').onchange = function(){ timelineFilter = this.value; renderTab(); };
     document.getElementById('noteForm').onsubmit = async function(e){
       e.preventDefault();
       var text = document.getElementById('noteText').value.trim();
@@ -89,9 +163,11 @@
       renderTab();
     };
 
-    var result = await db.from('activities')
-      .select('id,type,message,page_url,property_id,mls_number,property_address,property_price,created_by,created_at,agents(first_name,last_name)')
-      .eq('lead_id',leadId).order('created_at',{ascending:false}).limit(200);
+    var query = db.from('activities')
+      .select('id,type,message,metadata,page_url,property_id,mls_number,property_address,property_price,created_by,created_at,agents(first_name,last_name)')
+      .eq('lead_id',leadId);
+    if(timelineFilter) query = query.in('type',timelineFilter.split(','));
+    var result = await query.order('created_at',{ascending:false}).limit(200);
     var list = document.getElementById('timeline');
     if(result.error){ list.innerHTML = '<li class="crm-error">'+esc(result.error.message)+'</li>'; return; }
     if(!result.data.length){ list.innerHTML = '<li class="crm-empty">No activity yet.</li>'; return; }
@@ -103,7 +179,7 @@
       return '<li data-note="'+(mine?esc(a.id):'')+'"><div class="crm-feed-head"><span>'+esc(CRM.describeActivity(a))+esc(who)+
         (a.property_price?' · '+esc(CRM.money(a.property_price)):'')+'</span>'+
         '<span class="crm-feed-time">'+esc(CRM.formatDateTime(a.created_at))+(mine?' <button class="crm-link-btn" data-edit>Edit</button>':'')+'</span></div>'+
-        (a.message?'<div class="crm-feed-msg">'+esc(a.message)+'</div>':'')+
+        (a.message&&a.type!=='search'?'<div class="crm-feed-msg">'+esc(a.message)+'</div>':'')+
         (url?'<div class="crm-feed-msg"><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a></div>':'')+'</li>';
     }).join('');
 
@@ -126,6 +202,28 @@
       editor.after(save);
       e.target.remove();
     });
+  }
+
+  function renderViewed(body){
+    var rows = viewedListings();
+    if(!rows.length){ body.innerHTML = '<div class="crm-empty">No listings viewed yet.</div>'; return; }
+    body.innerHTML = '<div class="crm-table-wrap"><table class="crm-table"><thead><tr>'+
+      '<th>Listing</th><th>City</th><th>Price</th><th>Views</th><th>Last viewed</th></tr></thead><tbody>'+
+      rows.map(function(v){
+        var title = v.property_address || (v.mls_number ? 'MLS# '+v.mls_number : 'Listing '+v.property_id);
+        return '<tr><td><a href="/property.html?id='+encodeURIComponent(v.property_id)+'" target="_blank" rel="noopener">'+esc(title)+'</a></td>'+
+          '<td>'+esc(v.property_city||'—')+'</td><td>'+esc(CRM.money(v.property_price))+'</td>'+
+          '<td>'+esc(v.count)+'</td><td>'+esc(CRM.formatDateTime(v.created_at))+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+
+  function renderSearches(body){
+    if(!insights.searches.length){ body.innerHTML = '<div class="crm-empty">No searches yet.</div>'; return; }
+    body.innerHTML = '<div class="crm-table-wrap"><table class="crm-table"><thead><tr>'+
+      '<th>Search</th><th>Filters</th><th>When</th></tr></thead><tbody>'+
+      insights.searches.map(function(s){
+        return '<tr><td>'+esc(s.message)+'</td><td>'+esc(CRM.describeFilters(s.metadata)||'—')+'</td><td>'+esc(CRM.formatDateTime(s.created_at))+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
   }
 
   async function renderFavorites(body){
@@ -211,6 +309,8 @@
   async function renderTab(){
     var body = document.getElementById('tabBody');
     if(activeTab==='timeline') await renderTimeline(body);
+    else if(activeTab==='viewed') renderViewed(body);
+    else if(activeTab==='searches') renderSearches(body);
     else if(activeTab==='favorites') await renderFavorites(body);
     else if(activeTab==='chats') await renderChats(body);
     else renderDetails(body);
@@ -223,7 +323,7 @@
 
   function render(){
     document.title = CRM.leadName(lead)+' — Camelback CRM';
-    content.innerHTML = renderHeader()+renderTabs();
+    content.innerHTML = renderHeader()+renderInsights()+renderTabs();
 
     document.querySelectorAll('.crm-tabs button').forEach(function(btn){
       btn.onclick = function(){ activeTab = btn.dataset.tab; render(); };
@@ -254,6 +354,7 @@
     agents = (roster.data||[]).filter(function(a){ return a.role!=='paralegal'; });
     lead = await fetchLead();
     if(!lead){ content.innerHTML = '<div class="crm-card crm-empty">Lead not found.</div>'; return; }
+    await fetchInsights();
     render();
   }catch(err){
     content.innerHTML = '<div class="crm-card crm-error">'+esc(err.message)+'</div>';

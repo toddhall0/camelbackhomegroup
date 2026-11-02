@@ -144,6 +144,63 @@ test("tracking updates activity and lead counters", async () => {
   assert.equal(view.mls_number, "7080336");
 });
 
+test("listing views keep address, price and city, even without an MLS number", async () => {
+  await call({ action: "propertyView", email: "rich@test.com", propertyId: "99", address: "1 Main St", price: 650000, city: "Mesa" });
+  const lead = await leadByEmail("rich@test.com");
+  const [view] = await rows("SELECT * FROM activities WHERE lead_id = $1 AND type = 'listing_view'", [lead.id]);
+  assert.equal(view.property_id, "99");
+  assert.equal(view.mls_number, null);
+  assert.equal(view.property_address, "1 Main St");
+  assert.equal(view.property_price, 650000);
+  assert.equal(view.property_city, "Mesa");
+});
+
+test("searches record the term and known filters only", async () => {
+  assert.equal((await call({ action: "search", email: "s@test.com" })).status, 400);
+  await call({ action: "search", email: "s@test.com", query: "Gilbert", filters: { minPrice: 400000, minBeds: 3, evil: "x" } });
+  const lead = await leadByEmail("s@test.com");
+  const [search] = await rows("SELECT * FROM activities WHERE lead_id = $1 AND type = 'search'", [lead.id]);
+  assert.equal(search.message, "Gilbert");
+  assert.deepEqual(search.metadata.filters, { minPrice: 400000, minBeds: 3 });
+});
+
+test("signing up brings earlier browsing along, keeping its real time", async () => {
+  const at = new Date(Date.now() - 2 * 3600000).toISOString();
+  await call({
+    email: "later@test.com",
+    firstName: "Later",
+    events: [
+      { action: "search", query: "Tempe", filters: { maxPrice: 500000 }, at },
+      { action: "propertyView", propertyId: "55", price: 450000, at },
+      { action: "somethingElse", at },
+    ],
+  });
+  const lead = await leadByEmail("later@test.com");
+  assert.ok(lead.assigned_agent_id);
+  assert.equal(lead.total_listing_views, 1);
+  const history = await rows("SELECT type, created_at FROM activities WHERE lead_id = $1 AND type IN ('search', 'listing_view')", [lead.id]);
+  assert.equal(history.length, 2);
+  for (const row of history) assert.equal(new Date(row.created_at).toISOString(), at);
+});
+
+test("batches ignore impossible times and stay capped", async () => {
+  const events = Array.from({ length: 80 }, (_, i) => ({ action: "search", query: `q${i}`, at: "2999-01-01T00:00:00Z" }));
+  await call({ action: "trackBatch", email: "batch@test.com", events });
+  const lead = await leadByEmail("batch@test.com");
+  const history = await rows("SELECT created_at FROM activities WHERE lead_id = $1", [lead.id]);
+  assert.equal(history.length, 50);
+  for (const row of history) assert.ok(new Date(row.created_at) <= new Date());
+});
+
+test("valuation requests become seller leads", async () => {
+  await call({ email: "sell@test.com", source: "Home Valuation Request", leadType: "seller", propertyAddress: "9 Elm", note: "Requested a home value for: 9 Elm" });
+  const lead = await leadByEmail("sell@test.com");
+  assert.equal(lead.lead_type, "seller");
+  assert.ok((await activityTypes(lead.id)).includes("form_submit"));
+  await call({ email: "bad-type@test.com", leadType: "nonsense" });
+  assert.equal((await leadByEmail("bad-type@test.com")).lead_type, "buyer");
+});
+
 test("tracking creates a row for registered visitors from before the migration", async () => {
   const { json } = await call({ action: "siteVisit", email: "old-user@test.com", url: "https://x/" });
   assert.equal(json.crm, "supabase");

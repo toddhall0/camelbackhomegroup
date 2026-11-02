@@ -1626,6 +1626,8 @@ function initMap(){
     if(filters.maxSqft) apiBody.maxSqft = filters.maxSqft;
     if(filters.sort) apiBody.sort = filters.sort;
 
+    if(typeof window.chgTrackSearch === 'function') window.chgTrackSearch(hood.searchQ || hood.name, filters);
+
     fetch('/.netlify/functions/listings',{
       method:'POST',
       headers:{'Content-Type':'application/json'},

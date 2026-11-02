@@ -30,8 +30,77 @@
     }
   });
 
-  // Track a listing view with price and city data
+  // Sends to the CRM for known visitors. Anonymous browsing stays in this browser
+  // and only reaches the CRM if the visitor later gives us their email.
+  function trackEvent(ev){
+    if(user&&user.email){ev.email=user.email;pushToCRM(ev);return}
+    var pending=gs('pending',[]);
+    ev.at=new Date().toISOString();
+    pending.push(ev);
+    if(pending.length>50)pending=pending.slice(-50);
+    ss('pending',pending);
+  }
+
+  // Hands over anonymous browsing for a form to send along with the visitor's email
+  window.chgTakeBrowsing=function(){
+    var pending=gs('pending',[]);
+    ss('pending',[]);
+    return pending;
+  };
+
+  function sendBrowsing(email){
+    var events=window.chgTakeBrowsing();
+    if(events.length)pushToCRM({action:'trackBatch',email:email,events:events});
+  }
+
+  function once(key){
+    try{
+      if(sessionStorage.getItem(key))return false;
+      sessionStorage.setItem(key,'1');
+    }catch(e){}
+    return true;
+  }
+
+  // Called by property.html, so shared links and links from Kathy count as well as card clicks
+  window.chgTrackPropertyView=function(listing){
+    var id=String(listing.id);
+    if(stats.viewedListings.indexOf(id)===-1)recordListingStats(id,listing.price,listing.city);
+    if(!once('chg_view_'+id))return;
+    trackEvent({action:'propertyView',mlsNumber:listing.mlsNumber||'',propertyId:id,price:listing.price,city:listing.city,address:listing.address,partnerLink:location.href});
+    if(user&&user.email){
+      var analytics=chgGetAnalytics();
+      var updateData={
+        action:'update',
+        email:user.email,
+        shortSummary:analytics.totalViews+' properties viewed | Avg '+formatP(analytics.avgPrice)+
+          ' | Range '+formatP(analytics.minPrice)+'-'+formatP(analytics.maxPrice)+' | Top: '+analytics.topCity
+      };
+      if(analytics.minPrice>0) updateData.minPrice=analytics.minPrice;
+      if(analytics.maxPrice>0) updateData.maxPrice=analytics.maxPrice;
+      pushToCRM(updateData);
+    }
+    checkThreshold();
+  };
+
+  // Called by neighborhoods.html when an area or typed search loads its listings
+  window.chgTrackSearch=function(query,filters){
+    if(!query)return;
+    var clean={};
+    for(var k in filters||{}){clean[k]=filters[k]}
+    var key=JSON.stringify([query,clean]);
+    var last='';try{last=sessionStorage.getItem('chg_lastSearch')||''}catch(e){}
+    if(key===last)return;
+    try{sessionStorage.setItem('chg_lastSearch',key)}catch(e){}
+    trackEvent({action:'search',query:query,filters:clean});
+  };
+
+  // Track a listing click with price and city data
   window.chgTrackListingClick=function(id,price,city,mlsNumber){
+    recordListingStats(id,price,city);
+    checkThreshold();
+  };
+
+  function recordListingStats(id,price,city){
     stats.listingClicks++;
     if(id&&stats.viewedListings.indexOf(id)===-1){
       stats.viewedListings.push(id);
@@ -46,43 +115,7 @@
       stats.viewedCities[city]=(stats.viewedCities[city]||0)+1;
     }
     ss('stats',stats);
-
-    // If user is registered, push activity to the CRM
-    if(user&&user.email){
-      var analytics = chgGetAnalytics();
-      var realMls = mlsNumber || String(id);
-
-      // Record the structured property view using the REAL MLS number
-      if(mlsNumber){
-        pushToCRM({
-          action:'propertyView',
-          email:user.email,
-          mlsNumber:mlsNumber,
-          partnerLink:location.origin+'/property.html?id='+id
-        });
-      }
-
-      // Update lead profile with current browsing stats
-      var updateData={
-        action:'update',
-        email:user.email,
-        shortSummary:analytics.totalViews+' properties viewed | Avg '+formatP(analytics.avgPrice)+
-          ' | Range '+formatP(analytics.minPrice)+'-'+formatP(analytics.maxPrice)+' | Top: '+analytics.topCity
-      };
-      if(analytics.minPrice>0) updateData.minPrice=analytics.minPrice;
-      if(analytics.maxPrice>0) updateData.maxPrice=analytics.maxPrice;
-      pushToCRM(updateData);
-
-      // Add a note to the timeline
-      pushToCRM({
-        action:'addNote',
-        email:user.email,
-        message:'Viewed '+(mlsNumber?'MLS# '+mlsNumber:'listing #'+id)+(price?' ($'+Math.round(price).toLocaleString()+')':'')+(city?' in '+city:'')
-      });
-    }
-
-    checkThreshold();
-  };
+  }
 
   function formatP(n){if(!n||n===0)return'N/A';if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+(n/1000).toFixed(0)+'K';return'$'+n}
 
@@ -282,7 +315,7 @@
   else{renderAccountNav()}
 
   function pushToCRM(d){
-    fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+    fetch('/.netlify/functions/lead',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify(d)})
     .then(function(r){return r.json()})
     .then(function(j){console.log('[CHG CRM] '+d.action+':',j)})
     .catch(function(e){console.warn('[CHG CRM] error:',e)})
@@ -420,7 +453,9 @@
       if(!email||email.indexOf('@')===-1){document.getElementById('chgEmail').style.borderColor='#cc624c';return}
       partialData.email=email;
       partialData.source='Website Popup (partial - name+email)';
+      partialData.events=window.chgTakeBrowsing();
       pushToCRM(partialData);
+      partialData.events=[];
       spawnConfetti(confZone,20,false);
       showS(3);document.getElementById('chgPhone').focus();
     };
@@ -477,6 +512,7 @@
       // Set user immediately so UI updates
       user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
       ss('user',user);
+      sendBrowsing(email);
       spawnConfetti(confZone,30,true);
       document.getElementById('chgLogin').style.display='none';
       document.getElementById('chgDoneTitle').textContent='Welcome Back!';
@@ -492,6 +528,24 @@
       });
     };
   }
+
+  // The homepage contact form posts to Netlify Forms; copy it to the CRM on the way out
+  document.addEventListener('submit',function(e){
+    var form=e.target;
+    if(!form||!form.getAttribute||form.getAttribute('name')!=='contact')return;
+    var d=new FormData(form);
+    var interest=d.get('interest')||'';
+    var message=d.get('message')||'';
+    pushToCRM({
+      firstName:d.get('firstName'),
+      lastName:d.get('lastName'),
+      email:d.get('email'),
+      phone:d.get('phone'),
+      source:'Website Contact Form',
+      note:'Contact form'+(interest?' ('+interest+')':'')+(message?'\n\n'+message:''),
+      events:window.chgTakeBrowsing()
+    });
+  });
 
   // Auto-track listing clicks with price and city data
   document.addEventListener('click',function(e){

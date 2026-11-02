@@ -69,11 +69,22 @@ window.CRM = (function(){
   }
   // Only http(s) links are clickable, so a stored javascript: URL can't run
   function safeUrl(url){ return /^https?:\/\//i.test(url || '') ? url : ''; }
+  function describeFilters(metadata){
+    var f = (metadata && metadata.filters) || {};
+    var parts = [];
+    if(f.minPrice || f.maxPrice) parts.push((f.minPrice?money(f.minPrice):'Any')+'–'+(f.maxPrice?money(f.maxPrice):'Any'));
+    if(f.minBeds) parts.push(f.minBeds+'+ beds');
+    if(f.minBaths) parts.push(f.minBaths+'+ baths');
+    if(f.minSqft) parts.push(f.minSqft+'+ sqft');
+    if(f.maxSqft) parts.push('under '+f.maxSqft+' sqft');
+    return parts.join(', ');
+  }
   function describeActivity(a){
     var where = a.property_address || (a.mls_number ? 'MLS# '+a.mls_number : a.property_id ? 'listing '+a.property_id : 'a listing');
     switch(a.type){
       case 'lead_created': return 'Lead created';
       case 'listing_view': return 'Viewed '+where;
+      case 'search': return 'Searched “'+(a.message||'')+'”'+(describeFilters(a.metadata)?' · '+describeFilters(a.metadata):'');
       case 'site_visit': case 'page_view': return 'Visited the website';
       case 'favorite_add': return 'Saved '+where;
       case 'favorite_remove': return 'Removed '+where+' from favorites';
@@ -241,6 +252,7 @@ window.CRM = (function(){
     esc:esc, label:label, options:options, leadName:leadName, agentName:agentName,
     formatDate:formatDate, formatDateTime:formatDateTime, timeAgo:timeAgo, money:money,
     scoreBadge:scoreBadge, statusBadge:statusBadge, safeUrl:safeUrl, describeActivity:describeActivity,
+    describeFilters:describeFilters,
     toast:toast, getClient:getClient, start:start, openModal:openModal, closeModal:closeModal,
     openAddLead:openAddLead
   };
