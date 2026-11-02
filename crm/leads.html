@@ -20,6 +20,12 @@
     <select id="filterStatus" aria-label="Status"></select>
     <select id="filterSource" aria-label="Source"></select>
     <select id="filterAgent" aria-label="Agent"></select>
+    <select id="filterCreated" aria-label="Created">
+      <option value="">Any date</option>
+      <option value="today">Created today</option>
+      <option value="week">Last 7 days</option>
+      <option value="month">Last 30 days</option>
+    </select>
   </div>
   <div class="crm-card crm-table-wrap">
     <table class="crm-table">
@@ -59,20 +65,36 @@
   var el = function(id){ return document.getElementById(id); };
 
   document.getElementById('addLead').onclick = CRM.openAddLead;
-  el('filterStatus').innerHTML = '<option value="">All statuses</option>'+CRM.options(CRM.STATUSES);
+  el('filterStatus').innerHTML = '<option value="">All statuses</option><option value="active">All active</option>'+CRM.options(CRM.STATUSES);
   el('filterSource').innerHTML = '<option value="">All sources</option>'+CRM.options(CRM.SOURCES);
 
   var agents = await db.from('agents').select('id,first_name,last_name').order('first_name');
   el('filterAgent').innerHTML = '<option value="">All agents</option><option value="none">Unassigned</option>'+
     CRM.options((agents.data||[]).map(function(a){ return [a.id, CRM.agentName(a)]; }));
 
+  // The dashboard links here with filters already chosen
+  var params = new URLSearchParams(location.search);
+  if(params.get('status')) el('filterStatus').value = params.get('status');
+  if(params.get('source')) el('filterSource').value = params.get('source');
+  if(params.get('created')) el('filterCreated').value = params.get('created');
+  if(params.get('agent')) el('filterAgent').value = params.get('agent')==='mine' ? agent.id : params.get('agent');
+
+  function createdSince(){
+    var choice = el('filterCreated').value;
+    if(!choice) return null;
+    if(choice==='today'){ var start = new Date(); start.setHours(0,0,0,0); return start.toISOString(); }
+    return new Date(Date.now()-(choice==='week'?7:30)*86400000).toISOString();
+  }
+
   async function load(){
     var query = db.from('leads').select(CRM.LEAD_COLUMNS+',agents(first_name,last_name)',{count:'exact'})
       .order(state.sort,{ascending:state.ascending,nullsFirst:false})
       .range(state.page*PAGE_SIZE,(state.page+1)*PAGE_SIZE-1);
 
-    if(el('filterStatus').value) query = query.eq('status',el('filterStatus').value);
+    if(el('filterStatus').value==='active') query = query.not('status','in','(closed_won,closed_lost)');
+    else if(el('filterStatus').value) query = query.eq('status',el('filterStatus').value);
     if(el('filterSource').value) query = query.eq('source',el('filterSource').value);
+    if(createdSince()) query = query.gte('created_at',createdSince());
     if(el('filterAgent').value==='none') query = query.is('assigned_agent_id',null);
     else if(el('filterAgent').value) query = query.eq('assigned_agent_id',el('filterAgent').value);
 
@@ -108,7 +130,7 @@
   function reload(){ state.page = 0; load(); }
   var searchTimer;
   el('search').addEventListener('input',function(){ clearTimeout(searchTimer); searchTimer = setTimeout(reload,250); });
-  ['filterStatus','filterSource','filterAgent'].forEach(function(id){ el(id).addEventListener('change',reload); });
+  ['filterStatus','filterSource','filterAgent','filterCreated'].forEach(function(id){ el(id).addEventListener('change',reload); });
   el('prevPage').onclick = function(){ state.page--; load(); };
   el('nextPage').onclick = function(){ state.page++; load(); };
   document.querySelectorAll('th[data-sort]').forEach(function(th){

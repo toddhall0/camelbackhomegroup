@@ -69,6 +69,14 @@ test("every lead column the dashboard requests is readable by agents", async () 
   assert.equal((await asUser("authenticated", AGENT_AUTH, `SELECT ${columns} FROM leads`)).rows.length, 2);
 });
 
+test("dashboard queries run as an agent", async () => {
+  const queries = [
+    "SELECT l.id, l.first_name, l.last_name, l.email, l.phone, l.source, l.created_at, a.first_name AS agent FROM leads l LEFT JOIN agents a ON a.id = l.assigned_agent_id WHERE l.status = 'new'",
+    "SELECT a.type, a.lead_id, a.message, a.metadata, a.property_id, a.property_city, a.property_price, l.status FROM activities a LEFT JOIN leads l ON l.id = a.lead_id",
+  ];
+  for (const sql of queries) await asUser("authenticated", AGENT_AUTH, sql);
+});
+
 test("agents can make the dashboard's lead edits on assigned leads", async () => {
   const { rows } = await asUser(
     "authenticated",
