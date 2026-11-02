@@ -17,7 +17,7 @@
 //   removeListing — remove a favorite
 
 const { createClient } = require("@supabase/supabase-js");
-const { unwrap, normalizeEmail, ensureLead, logActivity, saveContact } = require("../lib/crm");
+const { unwrap, normalizeEmail, ensureLead, logActivity, saveContact, enrollInDrips } = require("../lib/crm");
 
 const MAX_INT = 2147483647;
 const MAX_BATCH = 50;
@@ -263,6 +263,7 @@ exports.handler = async (event) => {
       if (note && !note.startsWith(LEGACY_FAVORITES_MARKER)) {
         await logActivity(db, lead.id, "note", { message: note });
       }
+      if (body.completeSignup) await enrollInDrips(db, lead);
       return ok();
     }
 

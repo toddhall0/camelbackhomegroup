@@ -70,10 +70,10 @@ async function enrollInDrips(db, lead) {
 }
 
 // Saving the lead matters more than these follow-ups, so a failure here is only logged
-async function onLeadCreated(db, lead, hasEmail) {
+async function onLeadCreated(db, lead, sendDrips) {
   try {
     unwrap(await db.rpc("assign_lead_round_robin", { p_lead_id: lead.id }));
-    if (hasEmail) await enrollInDrips(db, lead);
+    if (sendDrips) await enrollInDrips(db, lead);
   } catch (err) {
     console.error("lead follow-up failed:", err.message);
   }
@@ -95,7 +95,8 @@ async function saveContact(db, { email, phone, firstName, lastName, source, lead
 
   if (created) {
     await logActivity(db, lead.id, "lead_created", { message: createdMessage });
-    await onLeadCreated(db, lead, !!email);
+    // Partial sign-ups haven't seen the consent line yet; finishing enrolls them
+    await onLeadCreated(db, lead, !!email && !/partial/i.test(source || ""));
   } else {
     const updateData = {};
     if (firstName) updateData.first_name = firstName;
@@ -109,4 +110,4 @@ async function saveContact(db, { email, phone, firstName, lastName, source, lead
   return { lead, created, source: leadData.source };
 }
 
-module.exports = { unwrap, normalizeEmail, ensureLead, logActivity, saveContact };
+module.exports = { unwrap, normalizeEmail, ensureLead, logActivity, saveContact, enrollInDrips };

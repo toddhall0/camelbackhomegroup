@@ -67,6 +67,11 @@ window.CRM = (function(){
   function statusBadge(status){
     return '<span class="crm-badge crm-status-'+esc(status)+'">'+esc(label(STATUSES,status))+'</span>';
   }
+  // Gave an email in the sign-up popup but didn't finish it
+  var PARTIAL_SOURCE = 'Website Popup (partial';
+  function partialBadge(lead){
+    return (lead.source_detail||'').indexOf(PARTIAL_SOURCE)===0 ? ' <span class="crm-badge crm-partial">Partial</span>' : '';
+  }
   // Only http(s) links are clickable, so a stored javascript: URL can't run
   function safeUrl(url){ return /^https?:\/\//i.test(url || '') ? url : ''; }
   function describeFilters(metadata){
@@ -251,7 +256,8 @@ window.CRM = (function(){
     STATUSES:STATUSES, LEAD_TYPES:LEAD_TYPES, SOURCES:SOURCES, LEAD_COLUMNS:LEAD_COLUMNS,
     esc:esc, label:label, options:options, leadName:leadName, agentName:agentName,
     formatDate:formatDate, formatDateTime:formatDateTime, timeAgo:timeAgo, money:money,
-    scoreBadge:scoreBadge, statusBadge:statusBadge, safeUrl:safeUrl, describeActivity:describeActivity,
+    scoreBadge:scoreBadge, statusBadge:statusBadge, partialBadge:partialBadge, PARTIAL_SOURCE:PARTIAL_SOURCE,
+    safeUrl:safeUrl, describeActivity:describeActivity,
     describeFilters:describeFilters,
     toast:toast, getClient:getClient, start:start, openModal:openModal, closeModal:closeModal,
     openAddLead:openAddLead
