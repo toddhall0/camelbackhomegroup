@@ -88,15 +88,16 @@
 
   function renderInsights(){
     var cards = [
-      [viewedListings().length, 'Listings viewed'],
-      [lead.total_favorites||0, 'Favorites'],
-      [insights.searches.length, 'Searches'],
-      [insights.chats, 'Kathy chats'],
-      [topCity()||'—', 'Top city'],
-      [priceRange(), 'Price range viewed']
+      [viewedListings().length, 'Listings viewed', 'viewed'],
+      [lead.total_favorites||0, 'Favorites', 'favorites'],
+      [insights.searches.length, 'Searches', 'searches'],
+      [insights.chats, 'Kathy chats', 'chats'],
+      [topCity()||'—', 'Top city', 'viewed'],
+      [priceRange(), 'Price range viewed', 'viewed']
     ];
     return '<div class="crm-insights">'+cards.map(function(c){
-      return '<div class="crm-card"><div class="crm-insight-num">'+esc(c[0])+'</div><div class="crm-stat-label">'+esc(c[1])+'</div></div>';
+      return '<button type="button" class="crm-card crm-insight'+(c[2]===activeTab?' active':'')+'" data-open-tab="'+c[2]+'">'+
+        '<div class="crm-insight-num">'+esc(c[0])+'</div><div class="crm-stat-label">'+esc(c[1])+'</div></button>';
     }).join('')+'</div>';
   }
 
@@ -327,6 +328,14 @@
 
     document.querySelectorAll('.crm-tabs button').forEach(function(btn){
       btn.onclick = function(){ activeTab = btn.dataset.tab; render(); };
+    });
+
+    document.querySelectorAll('[data-open-tab]').forEach(function(card){
+      card.onclick = function(){
+        activeTab = card.dataset.openTab;
+        render();
+        document.querySelector('.crm-tabs').scrollIntoView({behavior:'smooth',block:'start'});
+      };
     });
 
     document.getElementById('leadStatus').onchange = async function(){
