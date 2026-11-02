@@ -38,14 +38,14 @@ test("rejects bad requests the way the Sierra function did", async () => {
 });
 
 test("create inserts the lead, assigns an agent, enrolls matching drips", async () => {
-  const { json } = await call({ firstName: "Pat", lastName: "Lee", email: "Pat@Test.com ", source: "Website Popup (partial - name+email)" });
+  const { json } = await call({ firstName: "Pat", lastName: "Lee", email: "Pat@Test.com ", source: "Website Registration Popup" });
   assert.equal(json.success, true);
   assert.equal(json.crm, "supabase");
 
   const lead = await leadByEmail("pat@test.com");
   assert.equal(json.leadId, lead.id);
   assert.equal(lead.source, "website");
-  assert.equal(lead.source_detail, "Website Popup (partial - name+email)");
+  assert.equal(lead.source_detail, "Website Registration Popup");
   assert.ok(lead.assigned_agent_id);
   assert.deepEqual(await activityTypes(lead.id), ["lead_created"]);
 
@@ -70,13 +70,18 @@ test("creating the same email twice keeps one lead and does not wipe fields", as
   assert.deepEqual(await activityTypes(lead.id), ["lead_created"]);
 });
 
-test("the three popup calls in order produce one complete lead", async () => {
-  await call({ firstName: "Sam", lastName: "Ray", source: "Website Popup (partial - name)" });
+test("partial sign-ups get no drips until they finish", async () => {
   await call({ firstName: "Sam", lastName: "Ray", email: "sam@test.com", source: "Website Popup (partial - name+email)" });
-  await call({ action: "update", email: "sam@test.com", phone: "480-555-0111", source: "Website Registration Popup" });
+  const partial = await leadByEmail("sam@test.com");
+  assert.ok(partial.assigned_agent_id);
+  const enrollments = () => rows("SELECT id FROM drip_enrollments WHERE lead_id = $1", [partial.id]);
+  assert.equal((await enrollments()).length, 0);
+
+  await call({ action: "update", email: "sam@test.com", phone: "480-555-0111", source: "Website Registration Popup", completeSignup: true });
   const lead = await leadByEmail("sam@test.com");
   assert.equal(lead.phone, "480-555-0111");
   assert.equal(lead.source_detail, "Website Registration Popup");
+  assert.equal((await enrollments()).length, 1);
 });
 
 test("property inquiry from an existing lead is still recorded", async () => {

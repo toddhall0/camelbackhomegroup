@@ -19,6 +19,7 @@
   <div class="crm-stats">
     <a class="crm-card crm-stat-link" href="leads.html?created=today"><div class="crm-stat-num" id="statNew">–</div><div class="crm-stat-label">New leads today</div></a>
     <a class="crm-card crm-stat-link" href="leads.html?status=new"><div class="crm-stat-num" id="statUncontacted">–</div><div class="crm-stat-label">Waiting for first contact</div></a>
+    <a class="crm-card crm-stat-link" href="leads.html?signup=partial&amp;status=active"><div class="crm-stat-num" id="statPartial">–</div><div class="crm-stat-label">Partial sign-ups</div></a>
     <a class="crm-card crm-stat-link" href="leads.html?agent=mine&amp;status=active"><div class="crm-stat-num" id="statMine">–</div><div class="crm-stat-label">My active leads</div></a>
     <a class="crm-card crm-stat-link" href="leads.html?agent=none"><div class="crm-stat-num" id="statUnassigned">–</div><div class="crm-stat-label">Unassigned leads</div></a>
     <a class="crm-card crm-stat-link" href="leads.html?status=active"><div class="crm-stat-num" id="statActive">–</div><div class="crm-stat-label">All active leads</div></a>
@@ -91,6 +92,7 @@
   }
   stat(leads().gte('created_at',dayStart.toISOString()),'statNew');
   stat(leads().eq('status','new'),'statUncontacted');
+  stat(leads().ilike('source_detail',CRM.PARTIAL_SOURCE+'%').not('status','in',CLOSED),'statPartial');
   stat(leads().eq('assigned_agent_id',agent.id).not('status','in',CLOSED),'statMine');
   stat(leads().is('assigned_agent_id',null).not('status','in',CLOSED),'statUnassigned');
   stat(leads().not('status','in',CLOSED),'statActive');

@@ -132,7 +132,7 @@
     return '<div class="crm-card crm-lead-head">'+
       '<div><h1>'+esc(CRM.leadName(lead))+'</h1>'+
         '<div class="crm-lead-contact">'+esc(contact)+'</div>'+
-        '<p>'+CRM.statusBadge(lead.status)+' '+CRM.scoreBadge(lead.score)+' <span class="crm-badge">'+esc(CRM.label(CRM.SOURCES,lead.source))+'</span></p>'+
+        '<p>'+CRM.statusBadge(lead.status)+' '+CRM.scoreBadge(lead.score)+' <span class="crm-badge">'+esc(CRM.label(CRM.SOURCES,lead.source))+'</span>'+CRM.partialBadge(lead)+'</p>'+
         (lead.email_opt_out?'<div class="crm-hint">Opted out of marketing email</div>':'')+
       '</div>'+
       '<div class="crm-lead-controls">'+

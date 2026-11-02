@@ -17,8 +17,8 @@
   window.addEventListener('load',function(){
     setTimeout(function(){checkThreshold()},800);
     // For registered users: record site visit + sync favorites from CRM (once per session)
+    if(knownEmail())pushToCRM({action:'siteVisit',email:knownEmail(),url:location.href});
     if(user&&user.email){
-      pushToCRM({action:'siteVisit',email:user.email,url:location.href});
       // Sync favorites from server once per session
       var synced=false;try{synced=sessionStorage.getItem('chg_favSynced')==='1'}catch(e){}
       if(!synced){
@@ -30,10 +30,15 @@
     }
   });
 
+  // A visitor who gave an email but never finished signing up is tracked, without being logged in
+  function knownEmail(){
+    return (user&&user.email)||gs('partialEmail','');
+  }
+
   // Sends to the CRM for known visitors. Anonymous browsing stays in this browser
   // and only reaches the CRM if the visitor later gives us their email.
   function trackEvent(ev){
-    if(user&&user.email){ev.email=user.email;pushToCRM(ev);return}
+    if(knownEmail()){ev.email=knownEmail();pushToCRM(ev);return}
     var pending=gs('pending',[]);
     ev.at=new Date().toISOString();
     pending.push(ev);
@@ -237,7 +242,7 @@
     .catch(function(e){console.warn('[CHG] error:',e)})
   };
   window.chgLogout=function(){
-    user=null;ss('user',null);
+    user=null;ss('user',null);ss('partialEmail','');
     favorites={};ss('favorites',{});
     try{sessionStorage.removeItem('chg_popupDismissed')}catch(e){}
     stats={pageViews:0,listingClicks:0,viewedListings:[],viewedPrices:[],viewedCities:{},lastVisit:null,sessions:0};ss('stats',stats);
@@ -441,21 +446,28 @@
       if(!name){document.getElementById('chgName').style.borderColor='#cc624c';return}
       var p=name.split(/\s+/);
       partialData.firstName=p[0]||'';partialData.lastName=p.slice(1).join(' ')||'';
-      partialData.source='Website Popup (partial - name)';
-      pushToCRM(partialData);
       spawnConfetti(confZone,15,false);
       showS(2);document.getElementById('chgEmail').focus();
     };
 
-    // Step 2 → 3
-    document.getElementById('chgN2').onclick=function(){
+    // Saves the lead as soon as a usable email is entered, once per address
+    function saveEmail(){
       var email=document.getElementById('chgEmail').value.trim();
-      if(!email||email.indexOf('@')===-1){document.getElementById('chgEmail').style.borderColor='#cc624c';return}
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return false;
+      if(email===partialData.email)return true;
       partialData.email=email;
       partialData.source='Website Popup (partial - name+email)';
       partialData.events=window.chgTakeBrowsing();
       pushToCRM(partialData);
       partialData.events=[];
+      ss('partialEmail',email);
+      return true;
+    }
+    document.getElementById('chgEmail').addEventListener('blur',saveEmail);
+
+    // Step 2 → 3
+    document.getElementById('chgN2').onclick=function(){
+      if(!saveEmail()){document.getElementById('chgEmail').style.borderColor='#cc624c';return}
       spawnConfetti(confZone,20,false);
       showS(3);document.getElementById('chgPhone').focus();
     };
@@ -471,7 +483,8 @@
         action:'update',
         email:partialData.email,
         phone:partialData.phone,
-        source:'Website Registration Popup'
+        source:'Website Registration Popup',
+        completeSignup:true
       });
       // Add browsing activity as a note on the lead's timeline
       var a=chgGetAnalytics();
@@ -487,7 +500,7 @@
         });
       }
       user={firstName:partialData.firstName,lastName:partialData.lastName,email:partialData.email,phone:partialData.phone,registeredAt:new Date().toISOString()};
-      ss('user',user);
+      ss('user',user);ss('partialEmail','');
       renderAccountNav();
       spawnConfetti(confZone,40,true);
       document.getElementById('chgDots').style.display='none';
@@ -511,7 +524,7 @@
       if(!email){return}
       // Set user immediately so UI updates
       user={email:email,firstName:'',lastName:'',phone:'',registeredAt:new Date().toISOString()};
-      ss('user',user);
+      ss('user',user);ss('partialEmail','');
       sendBrowsing(email);
       spawnConfetti(confZone,30,true);
       document.getElementById('chgLogin').style.display='none';

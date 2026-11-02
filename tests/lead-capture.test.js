@@ -21,11 +21,26 @@ function storage(initial = {}) {
 }
 
 // Loads the page and waits for the fire-and-forget CRM calls to finish
-async function openPage(local) {
+async function openPage(local, { runTimers = false } = {}) {
   const sent = [];
   const listeners = {};
   const pending = new Set();
-  const element = () => ({ style: {}, classList: { add() {}, remove() {} }, textContent: "", appendChild() {} });
+  const element = () => {
+    const handlers = {};
+    return {
+      style: {},
+      classList: { add() {}, remove() {} },
+      textContent: "",
+      value: "",
+      appendChild() {},
+      remove() {},
+      querySelectorAll: () => [],
+      focus() {},
+      addEventListener: (type, fn) => (handlers[type] = fn),
+      fire: (type) => handlers[type] && handlers[type](),
+    };
+  };
+  const elements = new Proxy({}, { get: (made, id) => (made[id] ||= element()) });
 
   const window = {
     addEventListener: (type, fn) => (listeners[type] = fn),
@@ -38,12 +53,16 @@ async function openPage(local) {
     sessionStorage: window.sessionStorage,
     location: { pathname: "/search.html", href: "https://chg.test/search.html", origin: "https://chg.test" },
     console: { log() {}, warn() {} },
-    setTimeout: () => 0,
+    setTimeout: (fn) => {
+      if (runTimers) fn();
+      return 0;
+    },
     document: {
       readyState: "complete",
       head: element(),
+      body: element(),
       createElement: element,
-      getElementById: () => null,
+      getElementById: (id) => (runTimers ? elements[id] : null),
       querySelectorAll: () => [],
       addEventListener() {},
     },
@@ -68,8 +87,17 @@ async function openPage(local) {
     }
   };
   await settle();
-  return { window, sent, settle, favorites: () => Object.keys(window.chgGetFavorites()).sort() };
+  return { window, sent, settle, elements, favorites: () => Object.keys(window.chgGetFavorites()).sort() };
 }
+
+// A returning visitor who hasn't signed up, so the popup opens
+const visitor = (extra = {}) => {
+  const items = { chg_stats: JSON.stringify({ pageViews: 5, listingClicks: 0, viewedListings: [], viewedPrices: [], viewedCities: {} }) };
+  for (const [k, v] of Object.entries(extra)) items[`chg_${k}`] = JSON.stringify(v);
+  return storage(items);
+};
+
+const popupLead = async (email) => (await db.query("SELECT * FROM leads WHERE email = $1", [email])).rows[0];
 
 const browser = (extra = {}) => {
   const items = { chg_user: JSON.stringify(USER) };
@@ -164,4 +192,77 @@ test("a failed lookup keeps the local favorites", async () => {
   } finally {
     handler = realHandler;
   }
+});
+
+test("popup: a name alone sends nothing", async () => {
+  const page = await openPage(visitor(), { runTimers: true });
+  page.sent.length = 0;
+  page.elements.chgName.value = "Nia Vale";
+  page.elements.chgN1.onclick();
+  await page.settle();
+  assert.deepEqual(page.sent, []);
+});
+
+test("popup: leaving the email field saves the lead once, with earlier browsing", async () => {
+  const device = visitor({ pending: [{ action: "search", query: "mesa", at: new Date().toISOString() }] });
+  const page = await openPage(device, { runTimers: true });
+  page.sent.length = 0;
+  page.elements.chgName.value = "Nia Vale";
+  page.elements.chgN1.onclick();
+
+  page.elements.chgEmail.value = "not-finished@";
+  page.elements.chgEmail.fire("blur");
+  await page.settle();
+  assert.deepEqual(page.sent, []);
+
+  page.elements.chgEmail.value = "nia@test.com";
+  page.elements.chgEmail.fire("blur");
+  page.elements.chgN2.onclick();
+  await page.settle();
+
+  assert.equal(page.sent.length, 1);
+  const lead = await popupLead("nia@test.com");
+  assert.equal(lead.first_name, "Nia");
+  assert.equal(lead.source_detail, "Website Popup (partial - name+email)");
+  const { rows } = await db.query("SELECT type FROM activities WHERE lead_id = $1 AND type = 'search'", [lead.id]);
+  assert.equal(rows.length, 1);
+});
+
+test("popup: a partial visitor keeps being tracked on later pages, without being logged in", async () => {
+  const device = visitor();
+  const page = await openPage(device, { runTimers: true });
+  page.elements.chgName.value = "Omar Reed";
+  page.elements.chgN1.onclick();
+  page.elements.chgEmail.value = "omar@test.com";
+  page.elements.chgN2.onclick();
+  await page.settle();
+
+  const later = await openPage(device);
+  later.sent.length = 0;
+  later.window.chgTrackSearch("gilbert pool", {});
+  await later.settle();
+
+  assert.equal(device.getItem("chg_user"), null);
+  assert.equal(later.sent[0].email, "omar@test.com");
+  const lead = await popupLead("omar@test.com");
+  const { rows } = await db.query("SELECT message FROM activities WHERE lead_id = $1 AND type = 'search'", [lead.id]);
+  assert.equal(rows.length, 1);
+});
+
+test("popup: finishing sign-up clears the partial state and marks the lead complete", async () => {
+  const device = visitor();
+  const page = await openPage(device, { runTimers: true });
+  page.elements.chgName.value = "Lena Fox";
+  page.elements.chgN1.onclick();
+  page.elements.chgEmail.value = "lena@test.com";
+  page.elements.chgN2.onclick();
+  page.elements.chgPhone.value = "480-555-0199";
+  page.elements.chgSubmit.onclick();
+  await page.settle();
+
+  const lead = await popupLead("lena@test.com");
+  assert.equal(lead.source_detail, "Website Registration Popup");
+  assert.equal(lead.phone, "480-555-0199");
+  assert.equal(JSON.parse(device.getItem("chg_user")).email, "lena@test.com");
+  assert.equal(JSON.parse(device.getItem("chg_partialEmail")), "");
 });

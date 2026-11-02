@@ -26,6 +26,10 @@
       <option value="week">Last 7 days</option>
       <option value="month">Last 30 days</option>
     </select>
+    <select id="filterSignup" aria-label="Sign-up">
+      <option value="">Any sign-up</option>
+      <option value="partial">Partial sign-ups</option>
+    </select>
   </div>
   <div class="crm-card crm-table-wrap">
     <table class="crm-table">
@@ -77,6 +81,7 @@
   if(params.get('status')) el('filterStatus').value = params.get('status');
   if(params.get('source')) el('filterSource').value = params.get('source');
   if(params.get('created')) el('filterCreated').value = params.get('created');
+  if(params.get('signup')) el('filterSignup').value = params.get('signup');
   if(params.get('agent')) el('filterAgent').value = params.get('agent')==='mine' ? agent.id : params.get('agent');
 
   function createdSince(){
@@ -95,6 +100,7 @@
     else if(el('filterStatus').value) query = query.eq('status',el('filterStatus').value);
     if(el('filterSource').value) query = query.eq('source',el('filterSource').value);
     if(createdSince()) query = query.gte('created_at',createdSince());
+    if(el('filterSignup').value==='partial') query = query.ilike('source_detail',CRM.PARTIAL_SOURCE+'%');
     if(el('filterAgent').value==='none') query = query.is('assigned_agent_id',null);
     else if(el('filterAgent').value) query = query.eq('assigned_agent_id',el('filterAgent').value);
 
@@ -113,7 +119,7 @@
     state.total = result.count || 0;
     rows.innerHTML = result.data.length ? result.data.map(function(l){
       return '<tr data-id="'+esc(l.id)+'">'+
-        '<td><a href="lead.html?id='+encodeURIComponent(l.id)+'">'+esc(CRM.leadName(l))+'</a></td>'+
+        '<td><a href="lead.html?id='+encodeURIComponent(l.id)+'">'+esc(CRM.leadName(l))+'</a>'+CRM.partialBadge(l)+'</td>'+
         '<td>'+esc(l.email||'—')+'</td><td>'+esc(l.phone||'—')+'</td>'+
         '<td>'+CRM.statusBadge(l.status)+'</td><td>'+CRM.scoreBadge(l.score)+'</td>'+
         '<td>'+esc(CRM.label(CRM.SOURCES,l.source))+'</td>'+
@@ -130,7 +136,7 @@
   function reload(){ state.page = 0; load(); }
   var searchTimer;
   el('search').addEventListener('input',function(){ clearTimeout(searchTimer); searchTimer = setTimeout(reload,250); });
-  ['filterStatus','filterSource','filterAgent','filterCreated'].forEach(function(id){ el(id).addEventListener('change',reload); });
+  ['filterStatus','filterSource','filterAgent','filterCreated','filterSignup'].forEach(function(id){ el(id).addEventListener('change',reload); });
   el('prevPage').onclick = function(){ state.page--; load(); };
   el('nextPage').onclick = function(){ state.page++; load(); };
   document.querySelectorAll('th[data-sort]').forEach(function(th){
