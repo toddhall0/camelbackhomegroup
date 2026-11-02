@@ -29,7 +29,19 @@ small{color:var(--text-light)}
 /* Components */
 .crm-card{background:var(--white);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:20px}
 .crm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-.crm-grid-2{display:grid;grid-template-columns:3fr 2fr;gap:14px;align-items:start}
+.crm-grid-2{display:grid;grid-template-columns:3fr 2fr;gap:14px;align-items:start;margin-bottom:18px}
+.crm-grid-even{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin-bottom:14px}
+.crm-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;margin-top:10px}
+.crm-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.crm-stat-link{display:block;text-decoration:none;border:2px solid transparent;transition:border-color 0.15s,box-shadow 0.15s}
+.crm-stat-link:hover{border-color:var(--gold-light);box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.crm-stats > *,.crm-grid-2 > *,.crm-grid-even > *,.crm-grid-3 > *{min-width:0}
+.crm-feed-head > span:first-child{min-width:0;overflow-wrap:anywhere}
+.crm-section-title{margin-top:8px}
+.crm-card h3{font-size:1.15rem;margin-bottom:6px}
+.crm-card > .crm-hint{margin:2px 0 8px}
+.crm-bar-link{color:inherit;text-decoration:none;border-radius:6px}
+.crm-bar-link:hover{background:var(--cream)}
 .crm-stat-num{font-family:var(--font-serif);font-size:2.3rem;font-weight:600;color:var(--charcoal);line-height:1.1}
 .crm-stat-label{color:var(--text-light);font-size:0.86rem}
 .crm-btn{font-family:var(--font-sans);font-size:0.82rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:10px;padding:11px 18px;background:var(--gold);color:#fff;cursor:pointer}
@@ -126,7 +138,8 @@ table.crm-table{width:100%;border-collapse:collapse;font-size:0.9rem}
 
 @media(max-width:1000px){
   .crm-grid{grid-template-columns:repeat(2,1fr)}
-  .crm-grid-2{grid-template-columns:1fr}
+  .crm-grid-2,.crm-grid-even,.crm-grid-3{grid-template-columns:1fr}
+  .crm-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 }
 @media(max-width:720px){
   .crm-nav{top:auto;right:0;width:auto;flex-direction:row;padding:6px 8px;align-items:center}

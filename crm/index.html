@@ -12,15 +12,31 @@
 <body>
 <main class="crm-main">
   <div class="crm-page-head">
-    <h1>Dashboard</h1>
+    <h1 id="greeting">Dashboard</h1>
     <button class="crm-btn" id="addLead">Add Lead</button>
   </div>
-  <div class="crm-grid">
-    <div class="crm-card"><div class="crm-stat-num" id="statNew">–</div><div class="crm-stat-label">New leads today</div></div>
-    <div class="crm-card"><div class="crm-stat-num" id="statActive">–</div><div class="crm-stat-label">Active leads</div></div>
-    <div class="crm-card"><div class="crm-stat-num" id="statTasks">–</div><div class="crm-stat-label">Tasks due today</div></div>
-    <div class="crm-card"><div class="crm-stat-num" id="statEmails">–</div><div class="crm-stat-label">Emails sent today</div></div>
+
+  <div class="crm-stats">
+    <a class="crm-card crm-stat-link" href="leads.html?created=today"><div class="crm-stat-num" id="statNew">–</div><div class="crm-stat-label">New leads today</div></a>
+    <a class="crm-card crm-stat-link" href="leads.html?status=new"><div class="crm-stat-num" id="statUncontacted">–</div><div class="crm-stat-label">Waiting for first contact</div></a>
+    <a class="crm-card crm-stat-link" href="leads.html?agent=mine&amp;status=active"><div class="crm-stat-num" id="statMine">–</div><div class="crm-stat-label">My active leads</div></a>
+    <a class="crm-card crm-stat-link" href="leads.html?agent=none"><div class="crm-stat-num" id="statUnassigned">–</div><div class="crm-stat-label">Unassigned leads</div></a>
+    <a class="crm-card crm-stat-link" href="leads.html?status=active"><div class="crm-stat-num" id="statActive">–</div><div class="crm-stat-label">All active leads</div></a>
   </div>
+
+  <div class="crm-grid-even">
+    <section class="crm-card">
+      <h2>Hottest Leads</h2>
+      <p class="crm-hint">Most engaged in the last 7 days</p>
+      <div id="hot"></div>
+    </section>
+    <section class="crm-card">
+      <h2>Needs First Contact</h2>
+      <p class="crm-hint">Longest waiting first</p>
+      <div id="followUp"></div>
+    </section>
+  </div>
+
   <div class="crm-grid-2">
     <section class="crm-card">
       <h2>Recent Activity</h2>
@@ -32,10 +48,19 @@
         <div id="pipeline"></div>
       </section>
       <section class="crm-card">
-        <h2>Upcoming Tasks</h2>
-        <div id="tasks"></div>
+        <h2>Lead Sources</h2>
+        <p class="crm-hint">Last 30 days</p>
+        <div id="sources"></div>
       </section>
     </div>
+  </div>
+
+  <h2 class="crm-section-title">What Buyers Are Looking At</h2>
+  <p class="crm-hint">Registered leads, last 30 days</p>
+  <div class="crm-grid-3">
+    <section class="crm-card"><h3>Most Viewed Listings</h3><div id="topListings"></div></section>
+    <section class="crm-card"><h3>Top Searches</h3><div id="topSearches"></div></section>
+    <section class="crm-card"><h3>Top Cities</h3><div id="topCities"></div></section>
   </div>
 </main>
 
@@ -47,48 +72,128 @@
   if(!agent) return;
   var db = await CRM.getClient();
   var esc = CRM.esc;
-  document.getElementById('addLead').onclick = CRM.openAddLead;
+  var el = function(id){ return document.getElementById(id); };
+  var DAY = 86400000;
+
+  el('addLead').onclick = CRM.openAddLead;
+  var hour = new Date().getHours();
+  el('greeting').textContent = (hour<12?'Good morning':hour<17?'Good afternoon':'Good evening')+', '+agent.first_name;
 
   var dayStart = new Date(); dayStart.setHours(0,0,0,0);
-  var dayEnd = new Date(dayStart.getTime()+86400000);
+  var since30 = new Date(Date.now()-30*DAY).toISOString();
+  var since7 = new Date(Date.now()-7*DAY).toISOString();
+  var CLOSED = '(closed_won,closed_lost)';
 
-  async function count(query, id){
+  function leads(){ return db.from('leads').select('id',{count:'exact',head:true}); }
+  async function stat(query, id){
     var result = await query;
-    document.getElementById(id).textContent = result.error ? '–' : (result.count || 0);
+    el(id).textContent = result.error ? '–' : (result.count || 0);
   }
-  count(db.from('leads').select('id',{count:'exact',head:true}).gte('created_at',dayStart.toISOString()),'statNew');
-  count(db.from('leads').select('id',{count:'exact',head:true}).not('status','in','(closed_won,closed_lost)'),'statActive');
-  count(db.from('tasks').select('id',{count:'exact',head:true}).eq('status','pending').gte('due_date',dayStart.toISOString()).lt('due_date',dayEnd.toISOString()),'statTasks');
-  count(db.from('email_log').select('id',{count:'exact',head:true}).gte('sent_at',dayStart.toISOString()),'statEmails');
+  stat(leads().gte('created_at',dayStart.toISOString()),'statNew');
+  stat(leads().eq('status','new'),'statUncontacted');
+  stat(leads().eq('assigned_agent_id',agent.id).not('status','in',CLOSED),'statMine');
+  stat(leads().is('assigned_agent_id',null).not('status','in',CLOSED),'statUnassigned');
+  stat(leads().not('status','in',CLOSED),'statActive');
+
+  function bars(rows, linkFor){
+    var max = Math.max.apply(null, rows.map(function(r){ return r[1]; }).concat([1]));
+    return rows.map(function(r){
+      var inner = '<span>'+esc(r[0])+'</span><div class="crm-bar"><div style="width:'+Math.round(r[1]/max*100)+'%"></div></div><span>'+esc(r[1])+'</span>';
+      return linkFor ? '<a class="crm-bar-row crm-bar-link" href="'+esc(linkFor(r))+'">'+inner+'</a>' : '<div class="crm-bar-row">'+inner+'</div>';
+    }).join('');
+  }
+  function ranked(counts, limit){
+    return Object.keys(counts).map(function(k){ return [k, counts[k]]; })
+      .sort(function(a,b){ return b[1]-a[1]; }).slice(0,limit);
+  }
+  function rankList(rows, render){
+    if(!rows.length) return '<div class="crm-empty">Nothing yet.</div>';
+    return '<ul class="crm-feed">'+rows.map(render).join('')+'</ul>';
+  }
+
+  // Pipeline: each row opens that stage in the lead list
+  var stages = await Promise.all(CRM.STATUSES.map(function(s){ return leads().eq('status',s[0]); }));
+  el('pipeline').innerHTML = bars(CRM.STATUSES.map(function(s,i){ return [s[1], stages[i].count||0, s[0]]; }), function(r){
+    return 'leads.html?status='+encodeURIComponent(r[2]);
+  });
+
+  var sources = await db.from('leads').select('source').gte('created_at',since30).limit(1000);
+  var sourceCounts = {};
+  (sources.data||[]).forEach(function(l){ sourceCounts[l.source] = (sourceCounts[l.source]||0)+1; });
+  var sourceRows = ranked(sourceCounts,6).map(function(r){ return [CRM.label(CRM.SOURCES,r[0]), r[1], r[0]]; });
+  el('sources').innerHTML = sourceRows.length ? bars(sourceRows,function(r){
+    return 'leads.html?created=month&source='+encodeURIComponent(r[2]);
+  }) : '<div class="crm-empty">No new leads.</div>';
+
+  var followUp = await db.from('leads').select('id,first_name,last_name,email,phone,source,created_at,agents(first_name,last_name)')
+    .eq('status','new').order('created_at',{ascending:true}).limit(6);
+  el('followUp').innerHTML = rankList(followUp.data||[], function(l){
+    return '<li><div class="crm-feed-head"><span><a href="lead.html?id='+encodeURIComponent(l.id)+'">'+esc(CRM.leadName(l))+'</a>'+
+      ' · '+esc(CRM.label(CRM.SOURCES,l.source))+'</span><span class="crm-feed-time">'+esc(CRM.timeAgo(l.created_at))+'</span></div>'+
+      '<small>'+esc(CRM.agentName(l.agents))+'</small></li>';
+  });
 
   var feed = await db.from('activities')
-    .select('id,type,message,lead_id,property_id,mls_number,property_address,created_at,leads(first_name,last_name,email,phone)')
-    .order('created_at',{ascending:false}).limit(20);
-  var feedEl = document.getElementById('feed');
-  if(feed.error) feedEl.innerHTML = '<li class="crm-error">'+esc(feed.error.message)+'</li>';
-  else if(!feed.data.length) feedEl.innerHTML = '<li class="crm-empty">No activity yet.</li>';
-  else feedEl.innerHTML = feed.data.map(function(a){
+    .select('id,type,message,metadata,lead_id,property_id,mls_number,property_address,created_at,leads(first_name,last_name,email,phone)')
+    .not('type','in','(site_visit,page_view)')
+    .order('created_at',{ascending:false}).limit(15);
+  if(feed.error) el('feed').innerHTML = '<li class="crm-error">'+esc(feed.error.message)+'</li>';
+  else if(!feed.data.length) el('feed').innerHTML = '<li class="crm-empty">No activity yet.</li>';
+  else el('feed').innerHTML = feed.data.map(function(a){
     return '<li><div class="crm-feed-head"><span><a href="lead.html?id='+encodeURIComponent(a.lead_id)+'">'+esc(CRM.leadName(a.leads))+'</a> · '+esc(CRM.describeActivity(a))+'</span>'+
       '<span class="crm-feed-time">'+esc(CRM.timeAgo(a.created_at))+'</span></div></li>';
   }).join('');
 
-  var pipelineEl = document.getElementById('pipeline');
-  var counts = await Promise.all(CRM.STATUSES.map(function(s){
-    return db.from('leads').select('id',{count:'exact',head:true}).eq('status',s[0]);
-  }));
-  var totals = counts.map(function(r){ return r.count || 0; });
-  var max = Math.max.apply(null, totals.concat([1]));
-  pipelineEl.innerHTML = CRM.STATUSES.map(function(s,i){
-    return '<div class="crm-bar-row"><span>'+esc(s[1])+'</span><div class="crm-bar"><div style="width:'+Math.round(totals[i]/max*100)+'%"></div></div><span>'+totals[i]+'</span></div>';
-  }).join('');
+  var recent = await db.from('activities')
+    .select('type,lead_id,message,property_id,mls_number,property_address,property_city,property_price,created_at,leads(first_name,last_name,email,phone,status)')
+    .in('type',['listing_view','search','favorite_add','chat_message','property_inquiry','form_submit'])
+    .gte('created_at',since30).order('created_at',{ascending:false}).limit(1000);
+  var rows = recent.data || [];
 
-  var tasks = await db.from('tasks').select('id,title,due_date,lead_id').eq('status','pending')
-    .order('due_date',{ascending:true}).limit(5);
-  var tasksEl = document.getElementById('tasks');
-  if(tasks.error || !tasks.data.length) tasksEl.innerHTML = '<div class="crm-empty">No upcoming tasks.</div>';
-  else tasksEl.innerHTML = '<ul class="crm-feed">'+tasks.data.map(function(t){
-    return '<li><div class="crm-feed-head"><span>'+esc(t.title)+'</span><span class="crm-feed-time">'+esc(CRM.formatDate(t.due_date))+'</span></div></li>';
-  }).join('')+'</ul>';
+  // Stronger signals count for more
+  var WEIGHT = { listing_view:1, search:1, chat_message:1, favorite_add:3, form_submit:5, property_inquiry:5 };
+  var hot = {};
+  rows.filter(function(a){ return a.created_at >= since7; }).forEach(function(a){
+    if(!a.leads || a.leads.status==='closed_won' || a.leads.status==='closed_lost') return;
+    var h = hot[a.lead_id] || (hot[a.lead_id] = { id:a.lead_id, lead:a.leads, points:0, views:0, favorites:0, searches:0, chats:0, last:a.created_at });
+    h.points += WEIGHT[a.type];
+    if(a.type==='listing_view') h.views++;
+    if(a.type==='favorite_add') h.favorites++;
+    if(a.type==='search') h.searches++;
+    if(a.type==='chat_message') h.chats++;
+  });
+  var hottest = Object.keys(hot).map(function(k){ return hot[k]; })
+    .sort(function(a,b){ return b.points-a.points; }).slice(0,6);
+  el('hot').innerHTML = rankList(hottest, function(h){
+    var parts = [];
+    if(h.views) parts.push(h.views+' viewed');
+    if(h.favorites) parts.push(h.favorites+' saved');
+    if(h.searches) parts.push(h.searches+' searched');
+    if(h.chats) parts.push(h.chats+' chat');
+    return '<li><div class="crm-feed-head"><span><a href="lead.html?id='+encodeURIComponent(h.id)+'">'+esc(CRM.leadName(h.lead))+'</a> '+CRM.statusBadge(h.lead.status)+'</span>'+
+      '<span class="crm-feed-time">'+esc(CRM.timeAgo(h.last))+'</span></div><small>'+esc(parts.join(' · ')||'Sent a form')+'</small></li>';
+  });
+
+  var listings = {}, searches = {}, cities = {};
+  rows.forEach(function(a){
+    if(a.type==='search' && a.message) searches[a.message] = (searches[a.message]||0)+1;
+    if(a.type!=='listing_view') return;
+    if(a.property_city) cities[a.property_city] = (cities[a.property_city]||0)+1;
+    var key = a.property_id || a.mls_number;
+    var item = listings[key] || (listings[key] = { id:a.property_id, title:a.property_address||(a.mls_number?'MLS# '+a.mls_number:'Listing '+key), price:a.property_price, count:0 });
+    item.count++;
+  });
+  var topListings = Object.keys(listings).map(function(k){ return listings[k]; })
+    .sort(function(a,b){ return b.count-a.count; }).slice(0,5);
+  el('topListings').innerHTML = rankList(topListings, function(l){
+    return '<li><div class="crm-feed-head"><span><a href="/property.html?id='+encodeURIComponent(l.id)+'" target="_blank" rel="noopener">'+esc(l.title)+'</a></span>'+
+      '<span class="crm-feed-time">'+esc(l.count)+(l.count===1?' view':' views')+'</span></div><small>'+esc(CRM.money(l.price))+'</small></li>';
+  });
+  el('topSearches').innerHTML = rankList(ranked(searches,5), function(r){
+    return '<li><div class="crm-feed-head"><span>'+esc(r[0])+'</span><span class="crm-feed-time">'+esc(r[1])+'</span></div></li>';
+  });
+  var cityRows = ranked(cities,5);
+  el('topCities').innerHTML = cityRows.length ? bars(cityRows) : '<div class="crm-empty">Nothing yet.</div>';
 })();
 </script>
 </body>
