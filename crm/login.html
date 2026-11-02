@@ -20,7 +20,7 @@
       <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
       <div class="crm-error" id="loginError"></div>
       <button class="crm-btn" type="submit">Sign In</button>
-      <button class="crm-link-btn" type="button" id="forgotBtn">Forgot password?</button>
+      <p class="crm-hint">Forgot your password? Ask your CRM admin to reset it.</p>
     </form>
 
     <form id="resetForm" class="crm-form" hidden>
@@ -74,14 +74,6 @@
     });
     if(result.error){ loginError.textContent = 'That email or password is not right.'; return; }
     location.href = 'index.html';
-  };
-
-  document.getElementById('forgotBtn').onclick = async function(){
-    var email = document.getElementById('email').value.trim();
-    if(!email){ loginError.textContent = 'Enter your email first.'; return; }
-    await db.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/crm/login.html' });
-    // Same message either way, so this form can't reveal who has an account
-    CRM.toast('If that email has an account, a reset link is on its way.');
   };
 
   resetForm.onsubmit = async function(e){
