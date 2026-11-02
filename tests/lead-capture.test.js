@@ -126,6 +126,34 @@ test("a removal on one device does not come back from another", async () => {
   assert.deepEqual(await serverFavorites(), []);
 });
 
+test("anonymous browsing stays in the browser until the visitor is known", async () => {
+  const local = storage();
+  const page = await openPage(local);
+  page.sent.length = 0;
+  page.window.chgTrackSearch("Gilbert", { minBeds: 3 });
+  page.window.chgTrackSearch("Gilbert", { minBeds: 3 });
+  page.window.chgTrackPropertyView({ id: 777, mlsNumber: "7100959", price: 500000, city: "Mesa", address: "1 Main St" });
+  page.window.chgTrackPropertyView({ id: 777, mlsNumber: "7100959", price: 500000, city: "Mesa", address: "1 Main St" });
+  await page.settle();
+  assert.equal(page.sent.length, 0);
+
+  const pending = page.window.chgTakeBrowsing();
+  assert.deepEqual(Array.from(pending, (e) => e.action), ["search", "propertyView"]);
+  assert.ok(pending[0].at);
+  assert.equal(page.window.chgTakeBrowsing().length, 0);
+});
+
+test("a known visitor's views and searches go straight to the CRM", async () => {
+  const page = await openPage(browser({ favMigrated: true }));
+  page.sent.length = 0;
+  page.window.chgTrackSearch("Tempe", {});
+  page.window.chgTrackPropertyView({ id: 888, mlsNumber: "1", price: 400000, city: "Tempe", address: "2 Oak" });
+  await page.settle();
+  assert.deepEqual(page.sent.map((d) => d.action), ["search", "propertyView", "update"]);
+  const views = await db.query("SELECT a.property_address FROM activities a JOIN leads l ON l.id = a.lead_id WHERE l.email = $1 AND a.type = 'listing_view'", [USER.email]);
+  assert.deepEqual(views.rows.map((r) => r.property_address), ["2 Oak"]);
+});
+
 test("a failed lookup keeps the local favorites", async () => {
   const realHandler = handler;
   const broken = async () => ({ statusCode: 200, body: JSON.stringify({ success: true, crm: "fallback" }) });

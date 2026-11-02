@@ -10,6 +10,8 @@
 //   addNote       — add to lead's activity timeline
 //   getLead       — lead name + favorites, for restoring a website session
 //   propertyView  — record a listing view
+//   search        — record a listing search
+//   trackBatch    — record listing views and searches from before the visitor logged in
 //   siteVisit     — record a site visit
 //   saveListing   — add a favorite
 //   removeListing — remove a favorite
@@ -18,6 +20,10 @@ const { createClient } = require("@supabase/supabase-js");
 const { unwrap, normalizeEmail, ensureLead, logActivity, saveContact } = require("../lib/crm");
 
 const MAX_INT = 2147483647;
+const MAX_BATCH = 50;
+const MAX_BATCH_AGE_MS = 90 * 24 * 3600000;
+const SEARCH_FILTERS = ["minPrice", "maxPrice", "minBeds", "minBaths", "minSqft", "maxSqft", "sort"];
+const LEAD_TYPES = ["buyer", "seller", "both", "investor"];
 
 // Older cached copies of lead-capture.js send favorites through `update`
 const LEGACY_FAVORITES_MARKER = "CHG_FAVORITES:";
@@ -32,6 +38,46 @@ function propertyIdFrom(body) {
   if (body.propertyId) return String(body.propertyId);
   const match = /[?&]id=(\w+)/.exec(body.partnerLink || "");
   return match ? match[1] : String(body.mlsNumber);
+}
+
+function listingViewFields(body) {
+  return {
+    property_id: propertyIdFrom(body),
+    mls_number: body.mlsNumber ? String(body.mlsNumber) : null,
+    property_address: body.address || null,
+    property_price: toInt(body.price),
+    property_city: body.city || null,
+    page_url: body.partnerLink || null,
+  };
+}
+
+function searchFields(body) {
+  const filters = {};
+  for (const key of SEARCH_FILTERS) {
+    if (body.filters && body.filters[key] != null && body.filters[key] !== "") filters[key] = body.filters[key];
+  }
+  return { message: String(body.query).slice(0, 200), metadata: { filters } };
+}
+
+// Keeps the time the visitor actually did it, within reason: the browser supplies this
+function pastTime(value) {
+  const time = new Date(value).getTime();
+  const now = Date.now();
+  return time && time <= now && now - time <= MAX_BATCH_AGE_MS ? new Date(time).toISOString() : undefined;
+}
+
+// Browsing a visitor did before we knew who they were, kept in their own browser until now
+async function recordEvents(db, leadId, events) {
+  if (!Array.isArray(events)) return;
+  for (const event of events.slice(-MAX_BATCH)) {
+    const createdAt = pastTime(event.at);
+    const timing = createdAt ? { created_at: createdAt } : {};
+    if (event.action === "propertyView" && (event.mlsNumber || event.propertyId)) {
+      await logActivity(db, leadId, "listing_view", { ...listingViewFields(event), ...timing });
+    } else if (event.action === "search" && event.query) {
+      await logActivity(db, leadId, "search", { ...searchFields(event), ...timing });
+    }
+  }
 }
 
 exports.handler = async (event) => {
@@ -102,16 +148,31 @@ exports.handler = async (event) => {
 
     // --- RECORD PROPERTY VIEW ---
     if (action === "propertyView") {
-      const { mlsNumber, partnerLink } = body;
-      if (!email || !mlsNumber) {
+      if (!email || !(body.mlsNumber || body.propertyId)) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and mlsNumber required for propertyView" }) };
       }
       const { lead } = await ensureLead(db, email);
-      await logActivity(db, lead.id, "listing_view", {
-        property_id: propertyIdFrom(body),
-        mls_number: String(mlsNumber),
-        page_url: partnerLink || null,
-      });
+      await logActivity(db, lead.id, "listing_view", listingViewFields(body));
+      return ok();
+    }
+
+    // --- RECORD SEARCH ---
+    if (action === "search") {
+      if (!email || !body.query) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and query required for search" }) };
+      }
+      const { lead } = await ensureLead(db, email);
+      await logActivity(db, lead.id, "search", searchFields(body));
+      return ok();
+    }
+
+    // --- RECORD BROWSING FROM BEFORE LOGIN ---
+    if (action === "trackBatch") {
+      if (!email || !Array.isArray(body.events)) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Email and events required for trackBatch" }) };
+      }
+      const { lead } = await ensureLead(db, email);
+      await recordEvents(db, lead.id, body.events);
       return ok();
     }
 
@@ -218,6 +279,7 @@ exports.handler = async (event) => {
       firstName,
       lastName,
       source,
+      leadType: LEAD_TYPES.includes(body.leadType) ? body.leadType : null,
       createdMessage: "Website lead registration",
     });
 
@@ -228,6 +290,8 @@ exports.handler = async (event) => {
         message: note || `Interested in: ${propertyAddress}${propertyMlsId ? " (MLS# " + propertyMlsId + ")" : ""}`,
       });
     }
+
+    await recordEvents(db, lead.id, body.events);
 
     return ok({ leadId: lead.id });
   } catch (err) {

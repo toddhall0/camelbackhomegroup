@@ -89,6 +89,10 @@ table.crm-table{width:100%;border-collapse:collapse;font-size:0.9rem}
 .crm-lead-contact{color:var(--text-mid);margin-top:4px;overflow-wrap:anywhere}
 .crm-lead-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:320px}
 .crm-lead-controls label{font-size:0.78rem;color:var(--text-light);display:flex;flex-direction:column;gap:3px}
+.crm-insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.crm-insights .crm-card{padding:13px 15px}
+.crm-insight-num{font-family:var(--font-serif);font-size:1.45rem;font-weight:600;color:var(--charcoal);line-height:1.2;overflow-wrap:anywhere}
+.crm-timeline-filter{max-width:200px;margin:14px 0 4px}
 .crm-tabs{display:flex;gap:4px;margin-bottom:14px;overflow-x:auto}
 .crm-tabs button{background:none;border:none;font-family:var(--font-sans);font-size:0.92rem;color:var(--text-light);padding:9px 14px;border-radius:20px;cursor:pointer;white-space:nowrap}
 .crm-tabs button.active{background:var(--charcoal);color:#fff}

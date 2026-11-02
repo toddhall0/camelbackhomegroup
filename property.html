@@ -642,6 +642,7 @@ Sending as <strong id="leadUserName"></strong>
 
     /* FAVORITE BUTTON */
     window._propListing = { id: listing.mlsId || mlsId, mlsNumber: listing.mlsNumber || '', price: listing.price, city: listing.city || '', address: listing.address || '' };
+    if(typeof window.chgTrackPropertyView === 'function') window.chgTrackPropertyView(window._propListing);
     var favBtn = document.getElementById('propFavBtn');
     if(typeof window.chgIsFavorite === 'function' && window.chgIsFavorite(window._propListing.id)){
       favBtn.innerHTML = '&#9829; Saved';
@@ -794,7 +795,8 @@ Sending as <strong id="leadUserName"></strong>
       source: 'Property Inquiry',
       note: 'Requested info on: ' + (document.getElementById('leadPropertyAddress').value || 'property') +
         (propListing.mlsNumber ? ' (MLS# ' + propListing.mlsNumber + ')' : '') +
-        (msg ? '\n\nMessage: ' + msg : '')
+        (msg ? '\n\nMessage: ' + msg : ''),
+      events: typeof window.chgTakeBrowsing === 'function' ? window.chgTakeBrowsing() : []
     };
 
     // Submit to Netlify Forms as backup

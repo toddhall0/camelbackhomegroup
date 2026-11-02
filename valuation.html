@@ -286,6 +286,23 @@ justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
       body: new URLSearchParams(formData).toString()
     }).catch(function(){});
 
+    // Add to the CRM as a seller lead
+    fetch('/.netlify/functions/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: formData.get('firstName'),
+        lastName: formData.get('lastName'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        source: 'Home Valuation Request',
+        leadType: 'seller',
+        propertyAddress: address,
+        note: 'Requested a home value for: ' + address,
+        events: typeof window.chgTakeBrowsing === 'function' ? window.chgTakeBrowsing() : []
+      })
+    }).catch(function(){});
+
     // Call valuation function
     fetch('/.netlify/functions/valuation', {
       method: 'POST',

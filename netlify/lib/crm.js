@@ -81,7 +81,7 @@ async function onLeadCreated(db, lead, hasEmail) {
 
 // Finds or creates a lead from contact details. A repeat contact only fills in
 // what arrived, so a partial form never wipes existing fields.
-async function saveContact(db, { email, phone, firstName, lastName, source, createdMessage }) {
+async function saveContact(db, { email, phone, firstName, lastName, source, leadType, createdMessage }) {
   const leadData = {
     first_name: firstName || null,
     last_name: lastName || null,
@@ -89,6 +89,7 @@ async function saveContact(db, { email, phone, firstName, lastName, source, crea
     source: leadSource(source),
     source_detail: source || "Camelback Home Group Website",
   };
+  if (leadType) leadData.lead_type = leadType;
 
   const { lead, created } = email ? await ensureLead(db, email, leadData) : await ensureLeadByPhone(db, phone, leadData);
 
