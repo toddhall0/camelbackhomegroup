@@ -122,8 +122,10 @@ window.CRM = (function(){
     nav.className = 'crm-nav';
     nav.innerHTML = '<div class="crm-brand">Camelback<small>CRM</small></div><div class="crm-nav-links">'+links+'</div>'+
       '<div class="crm-nav-user"><div>'+esc(agentName(agent))+'<small>'+esc(agent.role)+'</small></div>'+
+      '<button class="crm-link-btn" id="crmChangePassword">Change password</button>'+
       '<button class="crm-link-btn" id="crmSignOut">Sign out</button></div>';
     document.body.insertBefore(nav, document.body.firstChild);
+    document.getElementById('crmChangePassword').onclick = openChangePassword;
     document.getElementById('crmSignOut').onclick = signOut;
   }
 
@@ -164,6 +166,36 @@ window.CRM = (function(){
     document.body.appendChild(el);
     document.getElementById('crmModalClose').onclick = closeModal;
     el.addEventListener('click', function(e){ if(e.target===el) closeModal(); });
+  }
+
+  function openChangePassword(){
+    openModal('Change Password',
+      '<form id="crmPasswordForm" class="crm-form">'+
+        '<label>Current password<input name="current" type="password" autocomplete="current-password" required></label>'+
+        '<label>New password<input name="next" type="password" autocomplete="new-password" minlength="8" required></label>'+
+        '<label>Confirm new password<input name="confirm" type="password" autocomplete="new-password" minlength="8" required></label>'+
+        '<div class="crm-error" id="crmPasswordError"></div>'+
+        '<button class="crm-btn" type="submit">Save Password</button>'+
+      '</form>');
+    document.getElementById('crmPasswordForm').onsubmit = async function(e){
+      e.preventDefault();
+      var f = e.target;
+      var error = document.getElementById('crmPasswordError');
+      error.textContent = '';
+      if(f.next.value.length < 8){ error.textContent = 'Use at least 8 characters.'; return; }
+      if(f.next.value !== f.confirm.value){ error.textContent = 'The new passwords do not match.'; return; }
+      if(f.next.value === f.current.value){ error.textContent = 'Choose a password different from your current one.'; return; }
+
+      // An unattended, logged-in browser shouldn't be enough to change the password
+      var session = (await db.auth.getSession()).data.session;
+      var check = await db.auth.signInWithPassword({ email: session.user.email, password: f.current.value });
+      if(check.error){ error.textContent = 'Your current password is not right.'; return; }
+
+      var result = await db.auth.updateUser({ password: f.next.value });
+      if(result.error){ error.textContent = result.error.message; return; }
+      closeModal();
+      toast('Password changed.');
+    };
   }
 
   function openAddLead(){
