@@ -35,20 +35,20 @@ async function graph(token, path, { method = "GET", body, headers } = {}) {
   return json;
 }
 
-// A draft first, because sendMail returns nothing we could use to recognise the message later.
-// Sending this way also leaves a copy in the agent's Sent Items.
+// sendMail needs only Mail.Send; creating a draft first would also need Mail.ReadWrite.
+// A copy still lands in the agent's Sent Items.
 async function sendMail(token, { mailbox, to, subject, body }) {
-  const user = encodeURIComponent(mailbox);
-  const draft = await graph(token, `/users/${user}/messages`, {
+  await graph(token, `/users/${encodeURIComponent(mailbox)}/sendMail`, {
     method: "POST",
     body: {
-      subject,
-      body: { contentType: "Text", content: body },
-      toRecipients: [{ emailAddress: { address: to } }],
+      message: {
+        subject,
+        body: { contentType: "Text", content: body },
+        toRecipients: [{ emailAddress: { address: to } }],
+      },
+      saveToSentItems: true,
     },
   });
-  await graph(token, `/users/${user}/messages/${encodeURIComponent(draft.id)}/send`, { method: "POST" });
-  return draft.internetMessageId;
 }
 
 async function listInbox(token, mailbox, since) {
