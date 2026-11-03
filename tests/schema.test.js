@@ -47,7 +47,7 @@ test("every public table has RLS enabled", async () => {
     WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity`);
   assert.deepEqual(rows, []);
   const { rows: count } = await db.query(`SELECT count(*)::int AS n FROM pg_tables WHERE schemaname = 'public'`);
-  assert.equal(count[0].n, 15);
+  assert.equal(count[0].n, 16);
 });
 
 test("API roles have table access without relying on Supabase defaults", async () => {
@@ -102,6 +102,21 @@ test("anon cannot read or write anything", async () => {
     assert.equal((await asUser("anon", null, `SELECT 1 FROM ${table}`)).rows.length, 0, table);
   }
   await assert.rejects(asUser("anon", null, "SELECT assign_lead_round_robin(gen_random_uuid())"), /permission denied/);
+});
+
+test("agents read messages and can only mark them read", async () => {
+  const { rows } = await db.query(
+    "INSERT INTO messages (lead_id, direction, status, body) VALUES ($1, 'inbound', 'received', 'hi') RETURNING id",
+    [ownLead]
+  );
+  assert.equal((await asUser("authenticated", OTHER_AUTH, "SELECT id FROM messages")).rows.length, 1);
+  assert.equal((await asUser("authenticated", FORMER_AUTH, "SELECT id FROM messages")).rows.length, 0);
+  assert.equal((await asUser("anon", null, "SELECT id FROM messages").catch(() => ({ rows: [] }))).rows.length, 0);
+  assert.equal((await asUser("authenticated", AGENT_AUTH, "UPDATE messages SET read_at = now() WHERE id = $1 RETURNING id", [rows[0].id])).rows.length, 1);
+  await assert.rejects(asUser("authenticated", AGENT_AUTH, "UPDATE messages SET body = 'x'"), /permission denied/);
+  await assert.rejects(asUser("authenticated", AGENT_AUTH, "INSERT INTO messages (lead_id, direction, status, body) VALUES ($1, 'outbound', 'sent', 'x')", [ownLead]), /permission denied/);
+  await assert.rejects(asUser("authenticated", ADMIN_AUTH, "DELETE FROM messages"), /permission denied/);
+  await db.query("DELETE FROM messages");
 });
 
 test("logged-in user who is not an active agent sees nothing", async () => {

@@ -23,9 +23,10 @@
   if(!agent) return;
   var db = await CRM.getClient();
   var esc = CRM.esc;
-  var leadId = new URLSearchParams(location.search).get('id');
+  var pageParams = new URLSearchParams(location.search);
+  var leadId = pageParams.get('id');
   var content = document.getElementById('content');
-  var lead, agents = [], activeTab = 'timeline', timelineFilter = '';
+  var lead, agents = [], activeTab = pageParams.get('tab') || 'timeline', timelineFilter = '';
   var insights = { views:[], searches:[], chats:0 };
 
   var TIMELINE_FILTERS = [
@@ -34,6 +35,7 @@
     ['search','Searches'],
     ['favorite_add,favorite_remove','Favorites'],
     ['chat_message','Kathy chats'],
+    ['email_sent,email_received','Email'],
     ['property_inquiry,form_submit','Forms and inquiries'],
     ['site_visit,page_view','Site visits'],
     ['note,status_change,agent_assigned','Agent activity']
@@ -143,7 +145,7 @@
   }
 
   function renderTabs(){
-    return '<div class="crm-tabs">'+[['timeline','Activity'],['viewed','Viewed'],['searches','Searches'],['favorites','Favorites'],['chats','Chats'],['details','Details']].map(function(t){
+    return '<div class="crm-tabs">'+[['timeline','Activity'],['messages','Messages'],['viewed','Viewed'],['searches','Searches'],['favorites','Favorites'],['chats','Chats'],['details','Details']].map(function(t){
       return '<button data-tab="'+t[0]+'" class="'+(t[0]===activeTab?'active':'')+'">'+t[1]+'</button>';
     }).join('')+'</div><div class="crm-card" id="tabBody"></div>';
   }
@@ -259,6 +261,85 @@
     }).join('');
   }
 
+  function composeBlocker(){
+    if(!canEdit()) return 'Only the assigned agent or an admin can email this lead.';
+    if(!lead.email) return 'This lead has no email address.';
+    if(lead.email_opt_out) return 'This lead has opted out of email.';
+    return '';
+  }
+
+  async function sendEmail(subject, text){
+    var session = await db.auth.getSession();
+    var response = await fetch('/.netlify/functions/crm-email',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.data.session.access_token},
+      body:JSON.stringify({leadId:leadId,subject:subject,body:text})
+    });
+    var result = await response.json().catch(function(){ return {}; });
+    if(!response.ok) throw new Error(result.error || 'The email did not send.');
+    return result;
+  }
+
+  async function renderMessages(body){
+    var blocker = composeBlocker();
+    body.innerHTML = (blocker ? '<p class="crm-hint">'+esc(blocker)+'</p>' :
+      '<form id="emailForm" class="crm-form">'+
+        '<label>To<input value="'+esc(lead.email)+'" disabled></label>'+
+        '<label>Subject<input id="emailSubject" maxlength="200" required></label>'+
+        '<label>Message<textarea id="emailBody" rows="6" required></textarea></label>'+
+        '<div><button class="crm-btn" type="submit">Send Email</button></div>'+
+      '</form>')+
+      '<div id="messageList"></div>';
+
+    var form = document.getElementById('emailForm');
+    if(form) form.onsubmit = async function(e){
+      e.preventDefault();
+      var button = form.querySelector('button');
+      button.disabled = true;
+      try{
+        var sent = await sendEmail(document.getElementById('emailSubject').value.trim(), document.getElementById('emailBody').value.trim());
+        CRM.toast(sent.recorded ? 'Email sent.' : 'Email sent, but it could not be saved to this lead.', !sent.recorded);
+        renderTab();
+      }catch(err){
+        CRM.toast(err.message, true);
+        button.disabled = false;
+        loadMessages();
+      }
+    };
+    await loadMessages();
+  }
+
+  async function loadMessages(){
+    var list = document.getElementById('messageList');
+    var result = await db.from('messages').select('id,direction,status,from_address,to_address,subject,body,error,read_at,created_at,agents(first_name,last_name)')
+      .eq('lead_id',leadId).order('created_at',{ascending:false}).limit(200);
+    if(result.error){ list.innerHTML = '<div class="crm-error">'+esc(result.error.message)+'</div>'; return; }
+    if(!result.data.length){ list.innerHTML = '<div class="crm-empty">No messages yet.</div>'; return; }
+
+    list.innerHTML = result.data.map(function(m){
+      var inbound = m.direction==='inbound';
+      var who = inbound ? CRM.leadName(lead) : m.agents ? CRM.agentName(m.agents) : (m.from_address||'');
+      return '<div class="crm-msg '+(inbound?'inbound':'')+(m.status==='failed'?' failed':'')+'">'+
+        '<div class="crm-feed-head"><span><strong>'+esc(m.subject||'')+'</strong></span><span class="crm-feed-time">'+esc(CRM.formatDateTime(m.created_at))+'</span></div>'+
+        '<small>'+esc(inbound?'From ':'Sent by ')+esc(who)+(m.status==='failed'?' · Not sent: '+esc(m.error||'unknown error'):'')+
+        (inbound&&!composeBlocker()?' · <button class="crm-link-btn" data-reply="'+esc(m.subject||'')+'">Reply</button>':'')+'</small>'+
+        '<div class="crm-msg-body">'+esc(m.body)+'</div></div>';
+    }).join('');
+
+    list.querySelectorAll('[data-reply]').forEach(function(btn){
+      btn.onclick = function(){
+        var subject = btn.dataset.reply;
+        document.getElementById('emailSubject').value = /^re:/i.test(subject) ? subject : 'Re: '+subject;
+        document.getElementById('emailBody').focus();
+      };
+    });
+
+    // A teammate looking in shouldn't clear the assigned agent's new replies
+    if(canEdit() && result.data.some(function(m){ return m.direction==='inbound' && !m.read_at; })){
+      await db.from('messages').update({read_at:new Date().toISOString()}).eq('lead_id',leadId).eq('direction','inbound').is('read_at',null);
+    }
+  }
+
   function renderDetails(body){
     var locked = canEdit() ? '' : ' disabled';
     body.innerHTML =
@@ -310,6 +391,7 @@
   async function renderTab(){
     var body = document.getElementById('tabBody');
     if(activeTab==='timeline') await renderTimeline(body);
+    else if(activeTab==='messages') await renderMessages(body);
     else if(activeTab==='viewed') renderViewed(body);
     else if(activeTab==='searches') renderSearches(body);
     else if(activeTab==='favorites') await renderFavorites(body);

@@ -52,6 +52,11 @@ small{color:var(--text-light)}
 .crm-link-btn{background:none;border:none;font-family:var(--font-sans);color:var(--gold);cursor:pointer;font-size:0.88rem;padding:2px 4px}
 .crm-badge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:0.76rem;font-weight:500;white-space:nowrap;background:var(--cream);color:var(--text-mid)}
 .crm-partial{background:#f2ddd7;color:#9c4331}
+.crm-section-gap{margin-bottom:14px}
+.crm-msg{border:1px solid var(--cream);border-radius:10px;padding:12px 14px;margin-top:12px;min-width:0;overflow-wrap:anywhere}
+.crm-msg.inbound{background:var(--cream)}
+.crm-msg.failed{border-color:#cc624c}
+.crm-msg-body{white-space:pre-wrap;margin-top:6px}
 .crm-score-cold{background:#e8ebed;color:#5b6b75}
 .crm-score-warm{background:#dcebf5;color:#22618c}
 .crm-score-hot{background:#fbe6cf;color:#a85e12}

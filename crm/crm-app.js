@@ -96,6 +96,8 @@ window.CRM = (function(){
       case 'property_inquiry': return 'Asked about '+where;
       case 'form_submit': return 'Submitted a form';
       case 'chat_message': return 'Chatted with Kathy';
+      case 'email_sent': return 'Email sent';
+      case 'email_received': return 'Email received';
       case 'note': return 'Note';
       case 'status_change': return 'Status changed';
       case 'agent_assigned': return 'Agent assigned';
