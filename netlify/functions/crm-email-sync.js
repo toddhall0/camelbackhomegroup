@@ -11,7 +11,10 @@ const LOOKBACK_MS = 3 * 24 * 3600000;
 async function syncMailbox(db, token, agent, since) {
   const emails = await listInbox(token, agent.email, since);
   const senders = [...new Set(emails.map((m) => normalizeEmail(m.from && m.from.emailAddress && m.from.emailAddress.address)).filter(Boolean))];
-  if (!senders.length) return 0;
+  if (!senders.length) {
+    console.log(`agent ${agent.id}: ${emails.length} inbox emails, no senders`);
+    return 0;
+  }
 
   const leads = unwrap(await db.from("leads").select("id, email").in("email", senders));
   const leadByEmail = new Map(leads.map((l) => [l.email, l]));
@@ -49,6 +52,8 @@ async function syncMailbox(db, token, agent, since) {
     unwrap(await db.from("leads").update({ last_active_at: email.receivedDateTime }).eq("id", lead.id));
     saved++;
   }
+  // Counts only, so the log never holds anyone's address or mail
+  console.log(`agent ${agent.id}: ${emails.length} inbox emails, ${senders.length} senders, ${leads.length} from leads, ${saved} saved`);
   return saved;
 }
 
