@@ -59,9 +59,8 @@ exports.handler = async (event) => {
     const body = `${text}\n\n--\n${signature}`;
     const message = { lead_id: lead.id, agent_id: agent.id, channel: "email", direction: "outbound", from_address: agent.email, to_address: lead.email, subject, body };
 
-    let providerId;
     try {
-      providerId = await sendMail(await getToken(), { mailbox: agent.email, to: lead.email, subject, body });
+      await sendMail(await getToken(), { mailbox: agent.email, to: lead.email, subject, body });
     } catch (err) {
       console.error("email send failed:", err.message);
       unwrap(await db.from("messages").insert({ ...message, status: "failed", error: err.message }));
@@ -70,7 +69,7 @@ exports.handler = async (event) => {
 
     // The email has gone out, so a failure from here on must not read as a failed send
     try {
-      unwrap(await db.from("messages").insert({ ...message, status: "sent", provider_id: providerId }));
+      unwrap(await db.from("messages").insert({ ...message, status: "sent" }));
       await logActivity(db, lead.id, "email_sent", { message: subject, created_by: agent.id });
     } catch (err) {
       console.error("email sent but not recorded:", err.message);

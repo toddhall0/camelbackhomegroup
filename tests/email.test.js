@@ -54,8 +54,8 @@ beforeEach(async () => {
       return json({ value: inbox[mailbox] || [] });
     }
     if (failSend) return json({ error: { message: "Access denied" } }, 403);
-    if (url.endsWith("/send")) return new Response(null, { status: 202 });
-    return json({ id: "draft1", internetMessageId: "<sent1@chg.test>" });
+    if (url.endsWith("/sendMail")) return new Response(null, { status: 202 });
+    return json({ error: { message: "Access is denied. Check credentials and try again." } }, 403);
   };
 });
 
@@ -68,14 +68,15 @@ test("an agent's email goes from their own mailbox and is recorded", async () =>
   assert.equal(status, 200);
   assert.equal(result.recorded, true);
 
-  assert.match(graphCalls[0].url, /users\/ana%40chg\.test\/messages$/);
-  assert.equal(graphCalls[0].body.toRecipients[0].emailAddress.address, "buyer@test.com");
-  assert.equal(graphCalls[0].body.body.contentType, "Text");
-  assert.match(graphCalls[1].url, /messages\/draft1\/send$/);
+  // One sendMail call, which Mail.Send alone allows; a draft would need Mail.ReadWrite
+  assert.equal(graphCalls.length, 1);
+  assert.match(graphCalls[0].url, /users\/ana%40chg\.test\/sendMail$/);
+  assert.equal(graphCalls[0].body.message.toRecipients[0].emailAddress.address, "buyer@test.com");
+  assert.equal(graphCalls[0].body.message.body.contentType, "Text");
+  assert.equal(graphCalls[0].body.saveToSentItems, true);
 
   const [saved] = await messages();
   assert.equal(saved.status, "sent");
-  assert.equal(saved.provider_id, "<sent1@chg.test>");
   assert.match(saved.body, /About that house\n\n--\nAna Agent\nCamelback Home Group\n480-555-0001/);
   const { rows } = await db.query("SELECT type, message, created_by FROM activities WHERE lead_id = $1", [leadId]);
   assert.equal(rows[0].type, "email_sent");
