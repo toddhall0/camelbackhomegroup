@@ -56,6 +56,10 @@ class Query {
     this.filters.push([column, value]);
     return this;
   }
+  in(column, values) {
+    this.filters.push([column, values]);
+    return this;
+  }
   order(column) {
     this.tail += ` ORDER BY ${column}`;
     return this;
@@ -74,7 +78,9 @@ class Query {
     const params = [];
     const bind = (value) => `$${params.push(value)}`;
     const where = () =>
-      this.filters.length ? ` WHERE ${this.filters.map(([c, v]) => `${c} = ${bind(v)}`).join(" AND ")}` : "";
+      this.filters.length
+        ? ` WHERE ${this.filters.map(([c, v]) => (Array.isArray(v) ? `${c} = ANY(${bind(v)})` : `${c} = ${bind(v)}`)).join(" AND ")}`
+        : "";
     const returning = this.returning ? ` RETURNING ${this.returning}` : "";
 
     if (this.op === "select") return [`SELECT ${this.columns} FROM ${this.table}${where()}${this.tail}`, params];
@@ -113,6 +119,8 @@ function loadHandler(pg, name) {
   const fake = {
     createClient: () => ({
       from: (table) => new Query(pg, table),
+      // A test's bearer token is the auth user's id
+      auth: { getUser: async (token) => ({ data: { user: token === "expired" ? null : { id: token } } }) },
       rpc: async (name, args) => {
         try {
           const { rows } = await pg.query(`SELECT ${name}($1) AS result`, Object.values(args));

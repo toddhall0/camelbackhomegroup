@@ -25,6 +25,11 @@
     <a class="crm-card crm-stat-link" href="leads.html?status=active"><div class="crm-stat-num" id="statActive">–</div><div class="crm-stat-label">All active leads</div></a>
   </div>
 
+  <section class="crm-card crm-section-gap" id="repliesCard" hidden>
+    <h2>New Email Replies</h2>
+    <div id="replies"></div>
+  </section>
+
   <div class="crm-grid-even">
     <section class="crm-card">
       <h2>Hottest Leads</h2>
@@ -113,6 +118,16 @@
     return '<ul class="crm-feed">'+rows.map(render).join('')+'</ul>';
   }
 
+  var replies = await db.from('messages').select('lead_id,subject,created_at,leads(first_name,last_name,email,phone)')
+    .eq('direction','inbound').is('read_at',null).order('created_at',{ascending:false}).limit(6);
+  if((replies.data||[]).length){
+    el('repliesCard').hidden = false;
+    el('replies').innerHTML = rankList(replies.data, function(m){
+      return '<li><div class="crm-feed-head"><span><a href="lead.html?id='+encodeURIComponent(m.lead_id)+'&amp;tab=messages">'+esc(CRM.leadName(m.leads))+'</a> · '+esc(m.subject)+'</span>'+
+        '<span class="crm-feed-time">'+esc(CRM.timeAgo(m.created_at))+'</span></div></li>';
+    });
+  }
+
   // Pipeline: each row opens that stage in the lead list
   var stages = await Promise.all(CRM.STATUSES.map(function(s){ return leads().eq('status',s[0]); }));
   el('pipeline').innerHTML = bars(CRM.STATUSES.map(function(s,i){ return [s[1], stages[i].count||0, s[0]]; }), function(r){
@@ -148,21 +163,22 @@
 
   var recent = await db.from('activities')
     .select('type,lead_id,message,property_id,mls_number,property_address,property_city,property_price,created_at,leads(first_name,last_name,email,phone,status)')
-    .in('type',['listing_view','search','favorite_add','chat_message','property_inquiry','form_submit'])
+    .in('type',['listing_view','search','favorite_add','chat_message','property_inquiry','form_submit','email_received'])
     .gte('created_at',since30).order('created_at',{ascending:false}).limit(1000);
   var rows = recent.data || [];
 
   // Stronger signals count for more
-  var WEIGHT = { listing_view:1, search:1, chat_message:1, favorite_add:3, form_submit:5, property_inquiry:5 };
+  var WEIGHT = { listing_view:1, search:1, chat_message:1, favorite_add:3, form_submit:5, property_inquiry:5, email_received:5 };
   var hot = {};
   rows.filter(function(a){ return a.created_at >= since7; }).forEach(function(a){
     if(!a.leads || a.leads.status==='closed_won' || a.leads.status==='closed_lost') return;
-    var h = hot[a.lead_id] || (hot[a.lead_id] = { id:a.lead_id, lead:a.leads, points:0, views:0, favorites:0, searches:0, chats:0, last:a.created_at });
+    var h = hot[a.lead_id] || (hot[a.lead_id] = { id:a.lead_id, lead:a.leads, points:0, views:0, favorites:0, searches:0, chats:0, emails:0, last:a.created_at });
     h.points += WEIGHT[a.type];
     if(a.type==='listing_view') h.views++;
     if(a.type==='favorite_add') h.favorites++;
     if(a.type==='search') h.searches++;
     if(a.type==='chat_message') h.chats++;
+    if(a.type==='email_received') h.emails++;
   });
   var hottest = Object.keys(hot).map(function(k){ return hot[k]; })
     .sort(function(a,b){ return b.points-a.points; }).slice(0,6);
@@ -172,6 +188,7 @@
     if(h.favorites) parts.push(h.favorites+' saved');
     if(h.searches) parts.push(h.searches+' searched');
     if(h.chats) parts.push(h.chats+' chat');
+    if(h.emails) parts.push(h.emails+' emailed');
     return '<li><div class="crm-feed-head"><span><a href="lead.html?id='+encodeURIComponent(h.id)+'">'+esc(CRM.leadName(h.lead))+'</a> '+CRM.statusBadge(h.lead.status)+'</span>'+
       '<span class="crm-feed-time">'+esc(CRM.timeAgo(h.last))+'</span></div><small>'+esc(parts.join(' · ')||'Sent a form')+'</small></li>';
   });

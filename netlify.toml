@@ -2,6 +2,9 @@
   publish = "."
   functions = "netlify/functions"
 
+[functions."crm-email-sync"]
+  schedule = "*/5 * * * *"
+
 [[headers]]
   for = "/*"
   [headers.values]
