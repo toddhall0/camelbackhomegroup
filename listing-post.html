@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Property Spotlight — Camelback Home Group</title>
+<meta name="description" id="pageMeta" content="Explore this Phoenix-area home for sale with detailed neighborhood insights from Camelback Home Group.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--charcoal:#1f4e60;--charcoal-mid:#275d72;--gold:#cc624c;--gold-light:#d97965;
+--gold-pale:#f2ddd7;--cream:#f2f0ec;--cream-dark:#e6e1da;--sand:#c4b8a8;
+--terracotta:#cc624c;--teal:#1f4e60;--teal-dark:#163a49;--teal-light:#2d6b80;
+--text-dark:#162d38;--text-mid:#3d5a68;--text-light:#6a8290;
+--white:#FFFFFF;--font-serif:'Cormorant Garamond',Georgia,serif;
+--font-sans:'Jost',Helvetica,Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);color:var(--text-dark);line-height:1.6;
+font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden;background:var(--cream)}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+h1,h2,h3,h4{font-family:var(--font-serif);font-weight:400;line-height:1.2}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-brand-text{display:flex;flex-direction:column}
+.nav-brand-name{font-family:var(--font-serif);font-size:1.1rem;color:var(--white);font-weight:500;line-height:1.2}
+.nav-brand-sub{font-size:0.75rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);line-height:1}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{font-size:0.92rem;font-weight:400;letter-spacing:0.04em;color:rgba(255,255,255,0.75);transition:color 0.3s}
+.nav-link:hover{color:var(--white)}
+.nav-cta{font-size:0.88rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;border-radius:20px;color:var(--gold);border:1px solid var(--gold);padding:9px 22px;transition:all 0.3s}
+.nav-cta:hover{background:var(--gold);color:var(--white)}
+.nav-mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.nav-mobile-toggle span{display:block;width:24px;height:2px;background:var(--white);margin:5px 0}
+
+/* HERO */
+.lp-hero{position:relative;height:420px;background:var(--charcoal);overflow:hidden}
+.lp-hero img{width:100%;height:100%;object-fit:cover;opacity:0.6}
+.lp-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(22,45,56,0.3) 0%,rgba(22,45,56,0.85) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:0 24px 48px}
+.lp-hero-inner{max-width:900px;margin:0 auto;width:100%}
+.lp-price{font-family:var(--font-serif);font-size:clamp(2rem,5vw,3.2rem);color:var(--white);margin-bottom:8px}
+.lp-address{font-size:1.1rem;color:rgba(255,255,255,0.8);margin-bottom:16px}
+.lp-stats{display:flex;gap:24px;flex-wrap:wrap}
+.lp-stat{font-size:0.95rem;color:rgba(255,255,255,0.65)}
+.lp-stat strong{color:var(--white);font-weight:500}
+
+/* BODY */
+.lp-body{max-width:900px;margin:0 auto;padding:48px 24px 64px}
+.lp-body h2{font-size:1.6rem;color:var(--text-dark);margin:40px 0 16px;line-height:1.25}
+.lp-body h2:first-child{margin-top:0}
+.lp-body p{font-size:1rem;font-weight:300;color:var(--text-mid);line-height:1.8;margin-bottom:20px}
+.lp-body ul,.lp-body ol{margin:0 0 20px 24px;list-style:disc}
+.lp-body ol{list-style:decimal}
+.lp-body li{font-size:1rem;font-weight:300;color:var(--text-mid);line-height:1.8;margin-bottom:8px}
+.lp-body li strong,.lp-body strong{font-weight:500;color:var(--text-dark)}
+.lp-body a{color:var(--gold);text-decoration:underline}
+
+/* DETAILS TABLE */
+.lp-details{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0;border:1px solid var(--cream-dark);border-radius:12px;overflow:hidden;background:var(--white)}
+.lp-detail-row{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--cream-dark);font-size:0.92rem}
+.lp-detail-row:last-child{border-bottom:none}
+.lp-detail-label{color:var(--text-light)}
+.lp-detail-value{color:var(--text-dark);font-weight:500;text-align:right}
+
+/* CTA */
+.lp-cta{background:var(--charcoal);padding:64px 24px;text-align:center}
+.lp-cta h2{font-size:clamp(1.6rem,3vw,2.2rem);color:var(--white);margin-bottom:12px}
+.lp-cta p{font-size:1rem;font-weight:300;color:rgba(255,255,255,0.6);margin-bottom:24px;max-width:560px;margin-left:auto;margin-right:auto}
+.lp-cta .btn{display:inline-block;font-family:var(--font-sans);font-size:0.95rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);border-radius:10px;background:var(--gold);color:var(--white);cursor:pointer;transition:all 0.3s}
+.lp-cta .btn:hover{background:var(--gold-light)}
+.lp-cta-phone{font-family:var(--font-serif);font-size:1.4rem;color:var(--gold);display:block;margin-bottom:20px}
+
+/* FOOTER */
+.footer{background:#0f2530;padding:64px 24px 0}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:auto 1.2fr 1fr 1fr 1fr 1fr;gap:32px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.footer-logo-col{display:flex;align-items:flex-start}
+.footer-brand-name{font-family:var(--font-serif);font-size:1rem;color:var(--white);margin-bottom:2px}
+.footer-brand-tag{font-size:0.8rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.footer-brand-desc{font-size:0.9rem;font-weight:300;color:rgba(255,255,255,0.4);line-height:1.6}
+.footer-col h4{font-size:0.85rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col a{display:block;font-size:0.95rem;color:rgba(255,255,255,0.5);margin-bottom:12px;transition:color 0.3s}
+.footer-col a:hover{color:var(--white)}
+.footer-col p{font-size:0.92rem;color:rgba(255,255,255,0.5);line-height:1.6}
+.footer-bottom{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:24px 0;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:0.85rem;color:rgba(255,255,255,0.35)}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:0.85rem;color:rgba(255,255,255,0.35);transition:color 0.3s}
+.footer-legal a:hover{color:var(--white)}
+
+.post-not-found{text-align:center;padding:160px 24px 80px;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.post-not-found h1{font-size:2rem;color:var(--text-dark);margin-bottom:12px}
+.post-not-found p{font-size:1rem;color:var(--text-light);margin-bottom:32px}
+
+@media(max-width:960px){.footer-grid{grid-template-columns:repeat(2,1fr)}.lp-details{grid-template-columns:1fr}}
+@media(max-width:640px){
+.nav-links{position:fixed;top:0;right:-100%;width:280px;height:100vh;background:var(--charcoal);flex-direction:column;padding:80px 32px 32px;gap:24px;transition:right 0.3s}
+.nav-links.open{right:0}
+.nav-mobile-toggle{display:block}
+.lp-hero{height:320px}
+.footer-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="nav-inner">
+<a href="/" class="nav-brand">
+<div class="nav-brand-text">
+<span class="nav-brand-name">Camelback Home Group</span>
+<span class="nav-brand-sub">Licensed Real Estate Brokerage</span>
+</div>
+</a>
+<div class="nav-links" id="navLinks">
+<a href="/search.html" class="nav-link">Search Homes</a>
+<a href="/neighborhoods.html" class="nav-link">Map</a>
+<a href="/blog.html" class="nav-link">Blog</a>
+<a href="/agents.html" class="nav-link">Join Our Team</a>
+<a href="/#contact" class="nav-cta">Get In Touch</a>
+</div>
+<button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">
+<span></span><span></span><span></span>
+</button>
+</div>
+</nav>
+
+<div id="postContent">
+<!-- Filled by JS -->
+</div>
+
+<div id="notFound" style="display:none">
+<div class="post-not-found">
+<h1>Property Not Found</h1>
+<p>This listing may no longer be available.</p>
+<a href="/neighborhoods.html" class="btn" style="display:inline-block;font-family:var(--font-sans);font-size:0.92rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 28px;border:1px solid var(--gold);border-radius:10px;background:var(--gold);color:var(--white)">Search All Homes</a>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer" id="siteFooter">
+<div class="footer-grid">
+<div class="footer-logo-col">
+<img src="/assets/logo/logo.png" alt="Camelback Home Group" style="height:180px;width:auto">
+</div>
+<div>
+<div class="footer-brand-name">Camelback Home Group</div>
+<div class="footer-brand-tag">Real Estate Brokerage</div>
+<p class="footer-brand-desc">Phoenix's only brokerage with licensed real estate attorneys and paralegals embedded in every transaction — at no additional cost to you.</p>
+<img src="/assets/logo/mls-logo.png" alt="REALTOR - MLS - Equal Housing Opportunity" style="height:70px;width:auto;margin-top:16px">
+</div>
+<div class="footer-col"><h4>Search</h4>
+<a href="/neighborhoods.html">Map Search</a>
+<a href="/search.html">Search Homes</a>
+<a href="/valuation.html">Home Valuation</a>
+</div>
+<div class="footer-col"><h4>Company</h4>
+<a href="/#services">Services</a>
+<a href="/agents.html">Join Our Team</a>
+<a href="/blog.html">Blog</a>
+</div>
+<div class="footer-col"><h4>Contact</h4>
+<p>(480) 203-3039</p>
+<p style="margin-top:8px">info@camelbackhomegroup.com</p>
+</div>
+<div class="footer-col"><h4>Cities</h4>
+<a href="/city.html?city=Scottsdale">Scottsdale</a>
+<a href="/city.html?city=Gilbert">Gilbert</a>
+<a href="/city.html?city=Mesa">Mesa</a>
+<a href="/city.html?city=Chandler">Chandler</a>
+<a href="/city.html?city=Tempe">Tempe</a>
+</div>
+</div>
+<div class="footer-bottom">
+<div class="footer-copy">&copy; 2026 Camelback Home Group. All rights reserved.</div>
+<div class="footer-legal">
+<a href="#">Privacy Policy</a>
+<a href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+
+<script src="/listing-posts-data.js"></script>
+<script>
+(function(){
+  // Get slug from URL path: /homes/123-e-main-st-scottsdale-az-85251
+  var path = window.location.pathname.replace(/\/$/, '');
+  var slug = path.split('/').pop();
+
+  var post = null;
+  for(var i = 0; i < LISTING_POSTS.length; i++){
+    if(LISTING_POSTS[i].slug === slug){ post = LISTING_POSTS[i]; break; }
+  }
+
+  if(!post){
+    document.getElementById('notFound').style.display = '';
+    document.getElementById('siteFooter').style.display = 'none';
+    return;
+  }
+
+  // Set page meta
+  document.getElementById('pageTitle').textContent = post.title + ' — Camelback Home Group';
+  document.getElementById('pageMeta').setAttribute('content', post.metaDescription || post.excerpt);
+
+  // Add canonical and OG tags
+  var canonical = document.createElement('link');
+  canonical.rel = 'canonical';
+  canonical.href = 'https://camelbackhomegroup.netlify.app/homes/' + post.slug;
+  document.head.appendChild(canonical);
+
+  var ogTitle = document.createElement('meta');
+  ogTitle.setAttribute('property', 'og:title');
+  ogTitle.content = post.title;
+  document.head.appendChild(ogTitle);
+
+  var ogDesc = document.createElement('meta');
+  ogDesc.setAttribute('property', 'og:description');
+  ogDesc.content = post.metaDescription || post.excerpt;
+  document.head.appendChild(ogDesc);
+
+  if(post.image){
+    var ogImage = document.createElement('meta');
+    ogImage.setAttribute('property', 'og:image');
+    ogImage.content = post.image;
+    document.head.appendChild(ogImage);
+  }
+
+  // Add structured data
+  var schema = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    "name": post.title,
+    "description": post.metaDescription || post.excerpt,
+    "url": "https://camelbackhomegroup.netlify.app/homes/" + post.slug,
+    "datePosted": post.date,
+    "image": post.image || "",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": post.address || "",
+      "addressLocality": post.city || "",
+      "addressRegion": post.state || "AZ",
+      "postalCode": post.zip || ""
+    }
+  };
+  if(post.price){
+    schema.offers = {"@type": "Offer", "price": post.price, "priceCurrency": "USD"};
+  }
+  var scriptTag = document.createElement('script');
+  scriptTag.type = 'application/ld+json';
+  scriptTag.textContent = JSON.stringify(schema);
+  document.head.appendChild(scriptTag);
+
+  // Format price
+  function formatPrice(n){
+    if(!n) return '';
+    return '$' + n.toLocaleString();
+  }
+
+  // Build detail rows
+  var details = [];
+  if(post.beds) details.push({l:'Bedrooms',v:post.beds});
+  if(post.baths) details.push({l:'Bathrooms',v:post.baths});
+  if(post.sqft) details.push({l:'Square Feet',v:post.sqft.toLocaleString()});
+  if(post.lotSize) details.push({l:'Lot Size',v:post.lotSize});
+  if(post.yearBuilt) details.push({l:'Year Built',v:post.yearBuilt});
+  if(post.propertyType) details.push({l:'Property Type',v:post.propertyType});
+  if(post.subdivision) details.push({l:'Subdivision',v:post.subdivision});
+  if(post.garage) details.push({l:'Garage',v:post.garage});
+  if(post.pool) details.push({l:'Pool',v:post.pool});
+  if(post.mlsNumber) details.push({l:'MLS #',v:post.mlsNumber});
+  if(post.status) details.push({l:'Status',v:post.status});
+  if(post.daysOnMarket) details.push({l:'Days on Market',v:post.daysOnMarket});
+
+  var detailsHtml = '';
+  if(details.length){
+    detailsHtml = '<div class="lp-details">';
+    details.forEach(function(d){
+      detailsHtml += '<div class="lp-detail-row"><span class="lp-detail-label">'+d.l+'</span><span class="lp-detail-value">'+d.v+'</span></div>';
+    });
+    detailsHtml += '</div>';
+  }
+
+  // Stats line
+  var stats = [];
+  if(post.beds) stats.push('<strong>'+post.beds+'</strong> Beds');
+  if(post.baths) stats.push('<strong>'+post.baths+'</strong> Baths');
+  if(post.sqft) stats.push('<strong>'+post.sqft.toLocaleString()+'</strong> Sqft');
+  if(post.yearBuilt) stats.push('Built <strong>'+post.yearBuilt+'</strong>');
+
+  var propertyLink = post.propertyId ? '/property.html?id='+post.propertyId : '';
+
+  var html = '';
+
+  // Hero
+  html += '<div class="lp-hero">';
+  if(post.image) html += '<img src="'+post.image+'" alt="'+post.title+'">';
+  html += '<div class="lp-hero-overlay"><div class="lp-hero-inner">';
+  html += '<div class="lp-price">'+formatPrice(post.price)+'</div>';
+  html += '<div class="lp-address">'+post.title+'</div>';
+  if(stats.length) html += '<div class="lp-stats">'+stats.map(function(s){return '<span class="lp-stat">'+s+'</span>'}).join('')+'</div>';
+  html += '</div></div></div>';
+
+  // Body
+  html += '<div class="lp-body">';
+  html += post.content;
+  html += detailsHtml;
+  if(propertyLink){
+    html += '<p style="margin-top:32px;text-align:center"><a href="'+propertyLink+'" style="display:inline-block;font-family:var(--font-sans);font-size:0.95rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);border-radius:10px;background:var(--gold);color:var(--white)">View Full Listing &amp; Photos</a></p>';
+  }
+  html += '</div>';
+
+  // CTA
+  html += '<div class="lp-cta">';
+  html += '<h2>Interested in This Property?</h2>';
+  html += '<p>Our team of agents and attorneys will guide you through every step — from your first showing to a legally protected closing.</p>';
+  html += '<a href="tel:4802033039" class="lp-cta-phone">(480) 203-3039</a>';
+  html += '<a href="/#contact" class="btn">Get In Touch</a>';
+  html += '</div>';
+
+  document.getElementById('postContent').innerHTML = html;
+
+  // Mobile nav toggle
+  document.getElementById('navToggle').addEventListener('click',function(){
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+})();
+</script>
+<script src="/lead-capture.js"></script>
+<script src="/chat-widget.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+var LISTING_POSTS = [
+];
