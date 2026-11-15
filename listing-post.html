@@ -291,6 +291,9 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
       detailsHtml += '<div class="lp-detail-row"><span class="lp-detail-label">'+d.l+'</span><span class="lp-detail-value">'+d.v+'</span></div>';
     });
     detailsHtml += '</div>';
+    if(post.listingOffice){
+      detailsHtml += '<p style="font-size:0.8rem;color:var(--text-light);margin-top:8px;font-style:italic;text-align:center">Listing courtesy of '+post.listingOffice+'</p>';
+    }
   }
 
   // Stats line
