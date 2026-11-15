@@ -1,6 +1,9 @@
 /* Kathy — AI Chat Widget for Camelback Home Group */
 (function(){
   var isTyping = false;
+  var isListingPage = location.pathname.indexOf('/homes/') !== -1;
+  var listingLeadCaptured = false;
+  var listingIntent = '';
 
   // Restore chat state from sessionStorage
   var chatOpen = false;
@@ -181,9 +184,7 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
-  var isListingPage = location.pathname.indexOf('/homes/') !== -1;
-  var listingLeadCaptured = false;
-  var listingIntent = ''; // 'contact' or 'question'
+  // isListingPage, listingLeadCaptured, listingIntent declared at top of IIFE
 
   function getGreeting(){
     var page = document.title || '';
