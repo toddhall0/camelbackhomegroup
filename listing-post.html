@@ -324,10 +324,19 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
     galleryHtml += '</div>';
   }
 
-  // Body
+  // Body — insert photo gallery after the first section (first </h2>...next <h2>)
+  var bodyContent = post.content;
+  if(galleryHtml){
+    var firstH2End = bodyContent.indexOf('<h2', 1);
+    if(firstH2End > 0){
+      bodyContent = bodyContent.substring(0, firstH2End) + galleryHtml + bodyContent.substring(firstH2End);
+    } else {
+      bodyContent = bodyContent + galleryHtml;
+    }
+  }
+
   html += '<div class="lp-body">';
-  if(galleryHtml) html += galleryHtml;
-  html += post.content;
+  html += bodyContent;
   html += detailsHtml;
   if(propertyLink){
     html += '<p style="margin-top:32px;text-align:center"><a href="'+propertyLink+'" style="display:inline-block;font-family:var(--font-sans);font-size:0.95rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;border:1px solid var(--gold);border-radius:10px;background:var(--gold);color:var(--white)">View Full Listing &amp; Photos</a></p>';
