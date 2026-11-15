@@ -21,7 +21,7 @@ var LISTING_POSTS = [
     status: "Active",
     daysOnMarket: null,
     mlsNumber: "7106603",
-    listingOffice: "Lisa Roberts, Listing Agent",
+    listingOffice: "Russ Lyon Sotheby's International Realty",
     propertyId: 249636327,
     image: "https://cdn.photos.sparkplatform.com/az/20261115152947116278000000-o.jpg",
     photos: [
