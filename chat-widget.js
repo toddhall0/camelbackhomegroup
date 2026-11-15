@@ -119,14 +119,20 @@
   // Restore previous messages into the DOM
   if(messages.length > 0){
     messages.forEach(function(m){
+      if(m.content === 'LISTING_INTRO') return; // skip placeholder
       renderMessage(m.content, m.role === 'assistant' ? 'bot' : 'user');
     });
+    // If on listing page and lead was already captured in this session, re-enable chat
+    if(isListingPage && messages.length > 2) listingLeadCaptured = true;
   }
 
   // Restore open state
   if(chatOpen){
     chatWindow.classList.add('open');
-    if(messages.length === 0) addBotMessage(getGreeting());
+    if(messages.length === 0){
+      if(isListingPage) renderListingIntro();
+      else addBotMessage(getGreeting());
+    }
   }
 
   // Toggle chat
@@ -136,7 +142,8 @@
     saveChat();
     badge.style.display = 'none';
     if(chatOpen && messages.length === 0){
-      addBotMessage(getGreeting());
+      if(isListingPage) renderListingIntro();
+      else addBotMessage(getGreeting());
     }
     if(chatOpen) inputEl.focus();
   });
@@ -163,11 +170,18 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
+  var isListingPage = location.pathname.indexOf('/homes/') !== -1;
+  var listingLeadCaptured = false;
+  var listingIntent = ''; // 'contact' or 'question'
+
   function getGreeting(){
     var page = document.title || '';
     var hour = new Date().getHours();
     var timeGreet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
+    if(isListingPage){
+      return 'LISTING_INTRO';
+    }
     if(location.pathname.indexOf('property.html') !== -1){
       return timeGreet + "! I'm Kathy. I see you're looking at a property — do you have any questions about it, or would you like to see similar homes?";
     }
@@ -178,6 +192,128 @@
       return timeGreet + "! I'm Kathy. Want to know more about this area, or are you looking for homes here? I'd love to help!";
     }
     return timeGreet + "! I'm Kathy, your real estate assistant at Camelback Home Group. Whether you're buying, selling, or just exploring — I'm here to help. What can I do for you?";
+  }
+
+  function renderListingIntro(){
+    var addr = document.querySelector('.lp-address,.lp-hero-inner .lp-address');
+    var addrText = addr ? addr.textContent : 'this property';
+    var propTitle = document.getElementById('pageTitle');
+    var titleText = propTitle ? propTitle.textContent.replace(' — Camelback Home Group','') : addrText;
+
+    var introDiv = document.createElement('div');
+    introDiv.className = 'kathy-msg kathy-msg-bot';
+    introDiv.innerHTML = "Hi! I'm Kathy from Camelback Home Group. I see you're interested in <strong>" + titleText + "</strong>. How can I help?";
+    messagesEl.insertBefore(introDiv, typingEl);
+
+    var btnsDiv = document.createElement('div');
+    btnsDiv.id = 'kathyListingBtns';
+    btnsDiv.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-self:flex-start;margin-top:4px';
+    btnsDiv.innerHTML =
+      '<button class="kathy-listing-btn" data-intent="contact" style="background:var(--gold,#cc624c);color:#fff;border:none;border-radius:10px;padding:12px 18px;font-family:Jost,sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;text-align:left;transition:background 0.2s">&#128222; Connect me with an agent about this home</button>' +
+      '<button class="kathy-listing-btn" data-intent="question" style="background:var(--charcoal,#1f4e60);color:#fff;border:none;border-radius:10px;padding:12px 18px;font-family:Jost,sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;text-align:left;transition:background 0.2s">&#128172; I have a question about this property</button>';
+    messagesEl.insertBefore(btnsDiv, typingEl);
+    scrollToBottom();
+
+    btnsDiv.querySelectorAll('.kathy-listing-btn').forEach(function(btn){
+      btn.addEventListener('mouseenter',function(){btn.style.opacity='0.85'});
+      btn.addEventListener('mouseleave',function(){btn.style.opacity='1'});
+      btn.addEventListener('click',function(){
+        listingIntent = btn.dataset.intent;
+        var label = listingIntent === 'contact' ? 'Connect me with an agent about this home' : 'I have a question about this property';
+        btnsDiv.remove();
+        addUserMessage(label);
+        messages.push({role:'assistant',content:'LISTING_INTRO'});
+        saveChat();
+        showListingContactForm();
+      });
+    });
+  }
+
+  function showListingContactForm(){
+    var existing = typeof window.chgGetUser === 'function' ? window.chgGetUser() : null;
+    if(existing && existing.email && existing.firstName){
+      listingLeadCaptured = true;
+      if(listingIntent === 'contact'){
+        addBotMessage("Thanks, " + existing.firstName + "! I'll have one of our agents reach out to you about this property shortly. They'll be in touch at " + existing.email + ". Is there anything specific you'd like them to know?");
+        pushListingLead(existing, 'Agent request for listing page property');
+      } else {
+        addBotMessage("Great, " + existing.firstName + "! What would you like to know about this property? I can look up details, neighborhood info, pricing context — anything you're curious about.");
+      }
+      inputEl.disabled = false;
+      inputEl.placeholder = 'Type your message...';
+      return;
+    }
+
+    // Show inline contact form
+    inputEl.disabled = true;
+    inputEl.placeholder = 'Please fill out the form above...';
+
+    var formDiv = document.createElement('div');
+    formDiv.className = 'kathy-msg kathy-msg-bot';
+    formDiv.id = 'kathyContactForm';
+    formDiv.innerHTML =
+      '<div style="margin-bottom:10px">' + (listingIntent === 'contact' ? "I'd love to connect you with one of our agents. Just need a few quick details:" : "Happy to help! Just need your info so I can assist you:") + '</div>' +
+      '<input id="kathyLFName" type="text" placeholder="First name" style="width:100%;padding:9px 12px;border:1px solid #e0d8cc;border-radius:8px;font-family:Jost,sans-serif;font-size:0.88rem;margin-bottom:8px;background:#faf8f5;color:#162d38;outline:none">' +
+      '<input id="kathyLLName" type="text" placeholder="Last name" style="width:100%;padding:9px 12px;border:1px solid #e0d8cc;border-radius:8px;font-family:Jost,sans-serif;font-size:0.88rem;margin-bottom:8px;background:#faf8f5;color:#162d38;outline:none">' +
+      '<input id="kathyLEmail" type="email" placeholder="Email" style="width:100%;padding:9px 12px;border:1px solid #e0d8cc;border-radius:8px;font-family:Jost,sans-serif;font-size:0.88rem;margin-bottom:8px;background:#faf8f5;color:#162d38;outline:none">' +
+      '<input id="kathyLPhone" type="tel" placeholder="Phone" style="width:100%;padding:9px 12px;border:1px solid #e0d8cc;border-radius:8px;font-family:Jost,sans-serif;font-size:0.88rem;margin-bottom:10px;background:#faf8f5;color:#162d38;outline:none">' +
+      '<button id="kathyLSubmit" style="width:100%;padding:11px;background:var(--gold,#cc624c);color:#fff;border:none;border-radius:8px;font-family:Jost,sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:background 0.2s">Continue</button>';
+    messagesEl.insertBefore(formDiv, typingEl);
+    scrollToBottom();
+    document.getElementById('kathyLFName').focus();
+
+    // Enter key moves through fields or submits
+    ['kathyLFName','kathyLLName','kathyLEmail','kathyLPhone'].forEach(function(id,i,arr){
+      document.getElementById(id).addEventListener('keydown',function(e){
+        if(e.key==='Enter'){e.preventDefault();
+          if(i<arr.length-1) document.getElementById(arr[i+1]).focus();
+          else document.getElementById('kathyLSubmit').click();
+        }
+      });
+    });
+
+    document.getElementById('kathyLSubmit').addEventListener('click', function(){
+      var fn = document.getElementById('kathyLFName').value.trim();
+      var ln = document.getElementById('kathyLLName').value.trim();
+      var em = document.getElementById('kathyLEmail').value.trim();
+      var ph = document.getElementById('kathyLPhone').value.trim();
+
+      if(!fn){document.getElementById('kathyLFName').style.borderColor='#cc624c';return}
+      if(!em || em.indexOf('@')===-1){document.getElementById('kathyLEmail').style.borderColor='#cc624c';return}
+      if(!ph){document.getElementById('kathyLPhone').style.borderColor='#cc624c';return}
+
+      formDiv.remove();
+      listingLeadCaptured = true;
+      inputEl.disabled = false;
+      inputEl.placeholder = 'Type your message...';
+
+      var userData = {firstName:fn,lastName:ln,email:em,phone:ph};
+      pushListingLead(userData, listingIntent === 'contact' ? 'Agent request from listing spotlight' : 'Question about listing spotlight');
+
+      if(listingIntent === 'contact'){
+        addBotMessage("Thank you, " + fn + "! One of our agents will reach out to you shortly about this property. They'll contact you at " + em + " or " + ph + ". In the meantime, is there anything specific you'd like them to know about what you're looking for?");
+      } else {
+        addBotMessage("Thanks, " + fn + "! Now, what would you like to know about this property? I can look up details, neighborhood info, market context — ask me anything.");
+        inputEl.focus();
+      }
+    });
+  }
+
+  function pushListingLead(user, note){
+    var title = document.getElementById('pageTitle');
+    var titleText = title ? title.textContent.replace(' — Camelback Home Group','') : location.pathname;
+    fetch('/.netlify/functions/lead',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        firstName:user.firstName,
+        lastName:user.lastName,
+        email:user.email,
+        phone:user.phone,
+        source:'Listing Spotlight Chat',
+        note: note + ': ' + titleText + ' (' + location.href + ')'
+      })
+    }).catch(function(){});
   }
 
   function addBotMessage(text){
@@ -234,6 +370,7 @@
   function sendMessage(){
     var text = inputEl.value.trim();
     if(!text || isTyping) return;
+    if(isListingPage && !listingLeadCaptured) return;
 
     addUserMessage(text);
     inputEl.value = '';
