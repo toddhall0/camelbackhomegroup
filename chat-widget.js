@@ -29,8 +29,8 @@
   // Inject styles
   var style = document.createElement('style');
   style.textContent = `
-.kathy-tooltip{position:fixed;bottom:90px;right:24px;z-index:9000;background:#fff;color:#162d38;font-family:Jost,sans-serif;font-size:0.88rem;font-weight:500;padding:8px 16px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.15);display:none;white-space:nowrap;animation:kathyTooltipBounce 2s ease-in-out infinite}
-.kathy-tooltip::after{content:'';position:absolute;bottom:-6px;right:24px;width:12px;height:12px;background:#fff;transform:rotate(45deg);box-shadow:2px 2px 4px rgba(0,0,0,0.05)}
+.kathy-tooltip{position:fixed;bottom:90px;right:24px;z-index:9000;background:var(--charcoal,#1f4e60);color:#fff;font-family:Jost,sans-serif;font-size:0.88rem;font-weight:500;padding:10px 18px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.25);display:none;white-space:nowrap;animation:kathyTooltipBounce 2s ease-in-out infinite}
+.kathy-tooltip::after{content:'';position:absolute;bottom:-6px;right:24px;width:12px;height:12px;background:var(--charcoal,#1f4e60);transform:rotate(45deg)}
 @keyframes kathyTooltipBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 .kathy-toggle{position:fixed;bottom:24px;right:24px;z-index:9000;width:60px;height:60px;border-radius:50%;background:var(--gold,#cc624c);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(204,98,76,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:1.5rem}
 .kathy-toggle:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(204,98,76,0.5)}
