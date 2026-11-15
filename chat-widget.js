@@ -29,6 +29,9 @@
   // Inject styles
   var style = document.createElement('style');
   style.textContent = `
+.kathy-tooltip{position:fixed;bottom:90px;right:24px;z-index:9000;background:#fff;color:#162d38;font-family:Jost,sans-serif;font-size:0.88rem;font-weight:500;padding:8px 16px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.15);display:none;white-space:nowrap;animation:kathyTooltipBounce 2s ease-in-out infinite}
+.kathy-tooltip::after{content:'';position:absolute;bottom:-6px;right:24px;width:12px;height:12px;background:#fff;transform:rotate(45deg);box-shadow:2px 2px 4px rgba(0,0,0,0.05)}
+@keyframes kathyTooltipBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 .kathy-toggle{position:fixed;bottom:24px;right:24px;z-index:9000;width:60px;height:60px;border-radius:50%;background:var(--gold,#cc624c);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(204,98,76,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.3s;font-size:1.5rem}
 .kathy-toggle:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(204,98,76,0.5)}
 .kathy-toggle svg{width:28px;height:28px}
@@ -78,6 +81,7 @@
   var widget = document.createElement('div');
   widget.id = 'kathyChat';
   widget.innerHTML = `
+<div id="kathyTooltip" class="kathy-tooltip">Find out more!</div>
 <button class="kathy-toggle" id="kathyToggle" aria-label="Chat with Kathy">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   <div class="kathy-badge" id="kathyBadge"></div>
@@ -115,6 +119,12 @@
   var inputEl = document.getElementById('kathyInput');
   var sendBtn = document.getElementById('kathySend');
   var badge = document.getElementById('kathyBadge');
+  var tooltip = document.getElementById('kathyTooltip');
+
+  // Show tooltip on /homes/ pages after a short delay
+  if(isListingPage && !chatOpen){
+    setTimeout(function(){ if(!chatOpen) tooltip.style.display = 'block'; }, 1500);
+  }
 
   // Restore previous messages into the DOM
   if(messages.length > 0){
@@ -141,6 +151,7 @@
     chatWindow.classList.toggle('open', chatOpen);
     saveChat();
     badge.style.display = 'none';
+    tooltip.style.display = 'none';
     if(chatOpen && messages.length === 0){
       if(isListingPage) renderListingIntro();
       else addBotMessage(getGreeting());
