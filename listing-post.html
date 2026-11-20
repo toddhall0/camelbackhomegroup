@@ -101,6 +101,49 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
 .lp-photos img:hover{opacity:0.85}
 @media(max-width:640px){.lp-photos{grid-template-columns:repeat(2,1fr)}.lp-photos img{height:140px}}
 
+/* ACTION BAR (Find Out More / Save) */
+.lp-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.lp-actions.center{justify-content:center}
+.lp-actions-box{background:var(--white);border:1px solid var(--cream-dark);border-radius:12px;padding:20px 24px;margin:32px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.lp-actions-box-text{font-family:var(--font-serif);font-size:1.25rem;color:var(--text-dark);line-height:1.3}
+.lp-actions-box-text span{display:block;font-family:var(--font-sans);font-size:0.88rem;color:var(--text-light);font-weight:300;margin-top:2px}
+.lp-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-sans);font-size:0.9rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:13px 26px;border-radius:10px;cursor:pointer;transition:all 0.3s;border:1px solid var(--gold);line-height:1.2}
+.lp-btn-more{background:var(--gold);color:var(--white)}
+.lp-btn-more:hover{background:var(--gold-light);border-color:var(--gold-light)}
+.lp-btn-save{background:rgba(204,98,76,0.08);color:var(--gold)}
+.lp-btn-save:hover{background:rgba(204,98,76,0.16)}
+.lp-btn-save.is-saved{background:var(--gold);color:var(--white)}
+.lp-hero .lp-actions{margin-top:20px}
+.lp-hero .lp-btn-save{background:rgba(255,255,255,0.12);color:var(--white);border-color:rgba(255,255,255,0.6)}
+.lp-hero .lp-btn-save:hover{background:rgba(255,255,255,0.22)}
+.lp-hero .lp-btn-save.is-saved{background:var(--gold);border-color:var(--gold)}
+.lp-cta .lp-actions{margin-top:4px}
+.lp-cta .lp-btn-save{background:transparent;color:var(--gold)}
+.lp-cta .lp-btn-save:hover{background:rgba(204,98,76,0.15)}
+.lp-cta .lp-btn-save.is-saved{background:var(--gold);color:var(--white)}
+@media(max-width:640px){.lp-actions-box{flex-direction:column;align-items:stretch;text-align:center}.lp-actions{justify-content:center}.lp-btn{flex:1 1 auto}}
+
+/* LEAD MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--white);width:100%;max-width:440px;max-height:calc(100vh - 32px);overflow-y:auto;padding:40px 36px;position:relative;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.3)}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;color:var(--text-light);cursor:pointer;padding:4px 8px}
+.modal-close:hover{color:var(--text-dark)}
+.modal h3{font-family:var(--font-serif);font-size:1.5rem;color:var(--text-dark);margin-bottom:16px}
+.modal .form-group{margin-bottom:16px}
+.modal .form-group label{display:block;font-size:0.8rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-light);margin-bottom:5px}
+.modal .form-group input,.modal .form-group textarea{width:100%;font-family:var(--font-sans);font-size:0.95rem;padding:12px 14px;border:1px solid var(--sand);border-radius:8px;background:var(--cream);color:var(--text-dark);outline:none;transition:border-color 0.3s;resize:vertical}
+.modal .form-group input:focus,.modal .form-group textarea:focus{border-color:var(--gold)}
+.modal-submit{width:100%;padding:14px;font-family:var(--font-sans);font-size:0.95rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);border-radius:10px;color:var(--white);border:none;cursor:pointer;transition:background 0.3s;margin-top:8px}
+.modal-submit:hover{background:var(--gold-light)}
+.modal-submit:disabled{opacity:0.6;cursor:not-allowed}
+.modal-disclaimer{font-size:0.75rem;color:var(--text-light);margin-top:12px;line-height:1.4;text-align:center}
+.modal-success{text-align:center;padding:20px 0}
+.modal-success-icon{font-size:2.5rem;color:var(--gold);margin-bottom:12px}
+.modal-success h4{font-family:var(--font-serif);font-size:1.3rem;color:var(--text-dark);margin-bottom:8px}
+.modal-success p{font-size:0.9rem;color:var(--text-light)}
+@media(max-width:480px){.modal{padding:28px 20px}}
+
 .post-not-found{text-align:center;padding:160px 24px 80px;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .post-not-found h1{font-size:2rem;color:var(--text-dark);margin-bottom:12px}
 .post-not-found p{font-size:1rem;color:var(--text-light);margin-bottom:32px}
@@ -147,6 +190,47 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
 <h1>Property Not Found</h1>
 <p>This listing may no longer be available.</p>
 <a href="/neighborhoods.html" class="btn" style="display:inline-block;font-family:var(--font-sans);font-size:0.92rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:14px 28px;border:1px solid var(--gold);border-radius:10px;background:var(--gold);color:var(--white)">Search All Homes</a>
+</div>
+</div>
+
+<!-- FIND OUT MORE MODAL -->
+<div class="modal-overlay" id="leadModal" role="dialog" aria-modal="true" aria-labelledby="leadModalTitle">
+<div class="modal">
+<button class="modal-close" id="closeLeadModal" aria-label="Close">&times;</button>
+<div id="leadFormState">
+<h3 id="leadModalTitle">Find Out More</h3>
+<div style="background:var(--cream);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;gap:14px;align-items:center">
+<div id="modalPropertyPhoto" style="width:80px;height:60px;border-radius:8px;background:var(--cream-dark);overflow:hidden;flex-shrink:0"></div>
+<div>
+<div id="modalPropertyAddr" style="font-size:0.9rem;font-weight:500;color:var(--text-dark)"></div>
+<div id="modalPropertyPrice" style="font-size:0.85rem;color:var(--gold);font-weight:500;margin-top:2px"></div>
+</div>
+</div>
+<form id="leadForm" name="property-lead" method="POST" data-netlify="true">
+<input type="hidden" name="form-name" value="property-lead">
+<input type="hidden" name="propertyId" id="leadPropertyId">
+<input type="hidden" name="propertyAddress" id="leadPropertyAddress">
+<div id="leadUserGreeting" style="display:none;padding:12px 16px;background:var(--cream);border-radius:10px;margin-bottom:16px;font-size:0.9rem;color:var(--text-mid)">Sending as <strong id="leadUserName"></strong></div>
+<div id="leadContactFields">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div class="form-group"><label for="leadFirstName">First Name</label><input type="text" id="leadFirstName" name="firstName" required></div>
+<div class="form-group"><label for="leadLastName">Last Name</label><input type="text" id="leadLastName" name="lastName" required></div>
+</div>
+<div class="form-group"><label for="leadEmail">Email</label><input type="email" id="leadEmail" name="email" required></div>
+<div class="form-group"><label for="leadPhone">Phone</label><input type="tel" id="leadPhone" name="phone"></div>
+</div>
+<div class="form-group"><label for="leadMessage">Message <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label><textarea id="leadMessage" name="message" rows="3" placeholder="I'd like to know more about this property or schedule a showing..."></textarea></div>
+<button type="submit" class="modal-submit" id="leadSubmitBtn">Send Request</button>
+</form>
+<p class="modal-disclaimer">Your information is confidential. By submitting, you agree to be contacted by Camelback Home Group.</p>
+</div>
+<div id="leadSuccessState" style="display:none">
+<div class="modal-success">
+<div class="modal-success-icon">&#10003;</div>
+<h4>Request Sent!</h4>
+<p>A member of our team will reach out shortly with details about this property. Prefer to talk now? Call (480) 203-3039.</p>
+</div>
+</div>
 </div>
 </div>
 
@@ -305,6 +389,16 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
 
   var propertyLink = post.propertyId ? '/property.html?id='+post.propertyId : '';
 
+  // Find Out More + Save buttons (repeated in hero, mid-article and bottom CTA)
+  var favId = post.propertyId || post.mlsNumber || post.slug;
+  function actionButtons(extraClass){
+    return '<div class="lp-actions'+(extraClass?' '+extraClass:'')+'">'+
+      '<button type="button" class="lp-btn lp-btn-more" data-action="more">Find Out More</button>'+
+      '<button type="button" class="lp-btn lp-btn-save" data-action="save" data-fav-id="'+favId+'" aria-pressed="false">&#9825; Save</button>'+
+      '</div>';
+  }
+  var midActionsHtml = '<div class="lp-actions-box"><div class="lp-actions-box-text">Like what you see?<span>Get details, schedule a showing, or save this home for later.</span></div>'+actionButtons()+'</div>';
+
   var html = '';
 
   // Hero
@@ -314,6 +408,7 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
   html += '<div class="lp-price">'+formatPrice(post.price)+'</div>';
   html += '<div class="lp-address">'+post.title+'</div>';
   if(stats.length) html += '<div class="lp-stats">'+stats.map(function(s){return '<span class="lp-stat">'+s+'</span>'}).join('')+'</div>';
+  html += actionButtons();
   html += '</div></div></div>';
 
   // Photo gallery
@@ -338,6 +433,16 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
     }
   }
 
+  // Mid-article action box: before the middle <h2> of the article
+  var h2s = [], re = /<h2/g, m;
+  while((m = re.exec(bodyContent))) h2s.push(m.index);
+  if(h2s.length >= 3){
+    var at = h2s[Math.floor(h2s.length/2)];
+    bodyContent = bodyContent.substring(0, at) + midActionsHtml + bodyContent.substring(at);
+  } else {
+    bodyContent = bodyContent + midActionsHtml;
+  }
+
   html += '<div class="lp-body">';
   html += bodyContent;
   html += detailsHtml;
@@ -351,10 +456,109 @@ background:rgba(22,58,73,0.94);backdrop-filter:blur(12px);padding:0 32px}
   html += '<h2>Interested in This Property?</h2>';
   html += '<p>Our team of agents and attorneys will guide you through every step — from your first showing to a legally protected closing.</p>';
   html += '<a href="tel:4802033039" class="lp-cta-phone">(480) 203-3039</a>';
-  html += '<a href="/#contact" class="btn">Get In Touch</a>';
+  html += actionButtons('center');
   html += '</div>';
 
   document.getElementById('postContent').innerHTML = html;
+
+  // ---- Save buttons ----
+  function setSavedUI(saved){
+    document.querySelectorAll('[data-action="save"]').forEach(function(b){
+      b.classList.toggle('is-saved', !!saved);
+      b.setAttribute('aria-pressed', saved ? 'true' : 'false');
+      b.innerHTML = saved ? '&#9829; Saved' : '&#9825; Save';
+    });
+  }
+  function refreshSaved(){
+    if(typeof window.chgIsFavorite === 'function') setSavedUI(window.chgIsFavorite(favId));
+  }
+  function handleSave(){
+    if(typeof window.chgToggleFavorite !== 'function') return;
+    // Signed-out visitors get the sign-up popup from lead-capture.js
+    var saved = window.chgToggleFavorite(favId, post.price, post.city, post.address, post.mlsNumber);
+    setSavedUI(saved);
+  }
+  window.addEventListener('load', function(){ refreshSaved(); setTimeout(refreshSaved, 1500); });
+
+  // ---- Find Out More modal ----
+  var modal = document.getElementById('leadModal');
+  var formState = document.getElementById('leadFormState');
+  var successState = document.getElementById('leadSuccessState');
+  var form = document.getElementById('leadForm');
+  var submitBtn = document.getElementById('leadSubmitBtn');
+
+  function openLeadModal(){
+    document.getElementById('leadPropertyId').value = post.propertyId || '';
+    document.getElementById('leadPropertyAddress').value = post.title || '';
+    document.getElementById('modalPropertyAddr').textContent = post.title || 'This property';
+    document.getElementById('modalPropertyPrice').textContent = formatPrice(post.price);
+    if(post.image){
+      document.getElementById('modalPropertyPhoto').innerHTML = '<img src="'+post.image+'" alt="" style="width:100%;height:100%;object-fit:cover">';
+    }
+    var chgUser = typeof window.chgGetUser === 'function' ? window.chgGetUser() : null;
+    var greeting = document.getElementById('leadUserGreeting');
+    var contactFields = document.getElementById('leadContactFields');
+    var reqIds = ['leadFirstName','leadLastName','leadEmail'];
+    if(chgUser && chgUser.email){
+      document.getElementById('leadUserName').textContent = chgUser.firstName ? (chgUser.firstName + ' ' + (chgUser.lastName||'')).trim() : chgUser.email;
+      greeting.style.display = '';
+      contactFields.style.display = 'none';
+      document.getElementById('leadFirstName').value = chgUser.firstName || '';
+      document.getElementById('leadLastName').value = chgUser.lastName || '';
+      document.getElementById('leadEmail').value = chgUser.email;
+      document.getElementById('leadPhone').value = chgUser.phone || '';
+      reqIds.forEach(function(id){ document.getElementById(id).removeAttribute('required'); });
+    } else {
+      greeting.style.display = 'none';
+      contactFields.style.display = '';
+      reqIds.forEach(function(id){ document.getElementById(id).setAttribute('required',''); });
+    }
+    formState.style.display = '';
+    successState.style.display = 'none';
+    modal.classList.add('active');
+  }
+  function closeLeadModal(){ modal.classList.remove('active'); }
+  document.getElementById('closeLeadModal').addEventListener('click', closeLeadModal);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeLeadModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeLeadModal(); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    var msg = document.getElementById('leadMessage').value.trim();
+    var data = {
+      firstName: document.getElementById('leadFirstName').value,
+      lastName: document.getElementById('leadLastName').value,
+      email: document.getElementById('leadEmail').value,
+      phone: document.getElementById('leadPhone').value,
+      propertyAddress: post.title,
+      propertyMlsId: String(post.propertyId || ''),
+      source: 'Listing Spotlight Inquiry',
+      note: 'Find Out More on listing spotlight: ' + post.title +
+        (post.mlsNumber ? ' (MLS# ' + post.mlsNumber + ')' : '') +
+        '\nPage: ' + window.location.href +
+        (msg ? '\n\nMessage: ' + msg : ''),
+      events: typeof window.chgTakeBrowsing === 'function' ? window.chgTakeBrowsing() : []
+    };
+    fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(new FormData(form)).toString()}).catch(function(){});
+    function done(){
+      formState.style.display = 'none';
+      successState.style.display = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Request';
+    }
+    fetch('/.netlify/functions/lead', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)})
+      .then(function(r){ return r.json(); }).then(done).catch(done);
+  });
+
+  // Delegate clicks for all repeated buttons
+  document.getElementById('postContent').addEventListener('click', function(e){
+    var b = e.target.closest('[data-action]');
+    if(!b) return;
+    if(b.getAttribute('data-action') === 'more') openLeadModal();
+    else if(b.getAttribute('data-action') === 'save') handleSave();
+  });
 
   // Mobile nav toggle
   document.getElementById('navToggle').addEventListener('click',function(){
