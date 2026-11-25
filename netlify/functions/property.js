@@ -67,7 +67,12 @@ exports.handler = async (event) => {
       listDate: p.listDate || null,
       status: p.mls ? p.mls.status : "Active",
       daysOnMarket: p.mls ? p.mls.daysOnMarket : null,
-      agent: p.agent ? { name: p.agent.firstName + " " + p.agent.lastName, office: p.office ? p.office.name : "" } : null,
+      agent: p.agent ? {
+        name: p.agent.firstName + " " + p.agent.lastName,
+        office: p.office ? p.office.name : "",
+        email: (p.agent.contact && p.agent.contact.email) || null,
+        phone: (p.agent.contact && (p.agent.contact.cell || p.agent.contact.office)) || null,
+      } : null,
       listingOffice: p.office ? p.office.name || "" : "",
       lat: p.geo ? p.geo.lat : null,
       lng: p.geo ? p.geo.lng : null,
